@@ -1,6 +1,8 @@
 /* supabase-client.js */
 
-const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+if (typeof _supabase === 'undefined') {
+    var _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
 
 async function getDeposits() {
     const { data, error } = await _supabase
