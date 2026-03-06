@@ -1,0 +1,2231 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบจัดการคืนเงินประกันอาคาร</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Figtree:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ─── TOKENS ─────────────────────────────────── */
+    :root {
+      --bg: #f4f6fb;
+      --white: #ffffff;
+      --surface: #f9fafd;
+      --border: #e4e8f2;
+      --border-focus: #4361ee;
+
+      --txt: #1a1f36;
+      --txt2: #5a6282;
+      --txt3: #9ba3c4;
+
+      --blue: #4361ee;
+      --blue-l: #eef1fd;
+      --blue-m: #c7cffa;
+
+      --green: #12b76a;
+      --green-l: #ecfdf5;
+      --orange: #f79009;
+      --orange-l: #fffaeb;
+      --red: #f04438;
+      --red-l: #fef3f2;
+      --violet: #7c3aed;
+      --violet-l: #f5f3ff;
+      --teal: #0e9384;
+      --teal-l: #f0fdf9;
+      --gray-l: #f2f4f7;
+
+      --r: 12px;
+      --r-sm: 8px;
+      --shadow: 0 1px 3px rgba(16, 24, 40, .08), 0 1px 2px rgba(16, 24, 40, .06);
+      --shadow-md: 0 4px 16px rgba(16, 24, 40, .10), 0 2px 6px rgba(16, 24, 40, .06);
+      --shadow-lg: 0 12px 40px rgba(16, 24, 40, .14), 0 4px 12px rgba(16, 24, 40, .08);
+    }
+
+    /* ─── RESET ──────────────────────────────────── */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+
+    body {
+      font-family: 'Noto Sans Thai', 'Figtree', sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.5
+    }
+
+    button {
+      cursor: pointer;
+      font-family: inherit;
+      border: none;
+      outline: none
+    }
+
+    input,
+    select,
+    textarea {
+      font-family: inherit;
+      outline: none
+    }
+
+    /* ─── LAYOUT ─────────────────────────────────── */
+    .app {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: 100vh
+    }
+
+    /* ─── SIDEBAR ────────────────────────────────── */
+    .sidebar {
+      background: var(--white);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar-logo {
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-logo .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #4361ee, #7c3aed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(67, 97, 238, .3);
+    }
+
+    .brand-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--txt);
+      line-height: 1.2
+    }
+
+    .brand-sub {
+      font-size: 10.5px;
+      color: var(--txt3);
+      font-weight: 400
+    }
+
+    .sidebar-nav {
+      padding: 12px 10px;
+      flex: 1
+    }
+
+    .nav-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--txt3);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 8px 10px 4px
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: var(--r-sm);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--txt2);
+      cursor: pointer;
+      transition: all .15s;
+      margin-bottom: 2px;
+    }
+
+    .nav-item:hover {
+      background: var(--gray-l);
+      color: var(--txt)
+    }
+
+    .nav-item.active {
+      background: var(--blue-l);
+      color: var(--blue);
+      font-weight: 600
+    }
+
+    .nav-item .icon {
+      width: 20px;
+      text-align: center;
+      font-size: 15px;
+      flex-shrink: 0
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      background: var(--blue);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 20px;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .nav-badge.orange {
+      background: var(--orange)
+    }
+
+    .nav-badge.green {
+      background: var(--green)
+    }
+
+    .sidebar-stats {
+      padding: 14px 16px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--txt3)
+    }
+
+    .stat-val {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--txt)
+    }
+
+    .stat-val.blue {
+      color: var(--blue)
+    }
+
+    .stat-val.green {
+      color: var(--green)
+    }
+
+    .stat-val.orange {
+      color: var(--orange)
+    }
+
+    /* ─── MAIN ───────────────────────────────────── */
+    .main {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow: hidden
+    }
+
+    /* ─── TOPBAR ─────────────────────────────────── */
+    .topbar {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 0 28px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px
+    }
+
+    .page-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--txt)
+    }
+
+    .page-sub {
+      font-size: 12px;
+      color: var(--txt3)
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 16px;
+      border-radius: var(--r-sm);
+      font-size: 13px;
+      font-weight: 600;
+      transition: all .15s;
+    }
+
+    .btn-primary {
+      background: var(--blue);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(67, 97, 238, .25)
+    }
+
+    .btn-primary:hover {
+      background: #3451d1;
+      box-shadow: 0 4px 14px rgba(67, 97, 238, .35);
+      transform: translateY(-1px)
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--txt2);
+      border: 1px solid var(--border)
+    }
+
+    .btn-ghost:hover {
+      background: var(--gray-l);
+      color: var(--txt)
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px
+    }
+
+    .btn-danger {
+      background: var(--red-l);
+      color: var(--red);
+      border: 1px solid #fecdca
+    }
+
+    .btn-danger:hover {
+      background: #fee4e2
+    }
+
+    /* ─── PAGE CONTENT ───────────────────────────── */
+    .page {
+      padding: 24px 28px;
+      flex: 1;
+      display: none
+    }
+
+    .page.active {
+      display: block
+    }
+
+    /* ─── FILTER BAR ─────────────────────────────── */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 14px 16px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow);
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 200px
+    }
+
+    .search-wrap input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 8px 12px 8px 36px;
+      font-size: 13px;
+      color: var(--txt);
+      background: var(--surface);
+      transition: border-color .15s;
+    }
+
+    .search-wrap input:focus {
+      border-color: var(--blue-focus, var(--blue))
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--txt3);
+      font-size: 15px;
+      pointer-events: none
+    }
+
+    .pill-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap
+    }
+
+    .pill {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      color: var(--txt2);
+      transition: all .15s;
+      cursor: pointer;
+    }
+
+    .pill:hover {
+      border-color: var(--blue-m)
+    }
+
+    .pill.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(67, 97, 238, .2)
+    }
+
+    .pill.g.active {
+      background: var(--green);
+      border-color: var(--green)
+    }
+
+    .pill.o.active {
+      background: var(--orange);
+      border-color: var(--orange)
+    }
+
+    .pill.r.active {
+      background: var(--red);
+      border-color: var(--red)
+    }
+
+    .select-filter {
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 7px 12px;
+      font-size: 13px;
+      color: var(--txt2);
+      background: var(--surface);
+      cursor: pointer;
+      min-width: 130px;
+    }
+
+    /* ─── TABLE CARD ─────────────────────────────── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .card-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--white);
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--txt)
+    }
+
+    .card-meta {
+      font-size: 12px;
+      color: var(--txt3)
+    }
+
+    .table-wrap {
+      overflow-x: auto
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px
+    }
+
+    thead th {
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--txt3);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #f2f4f7;
+      transition: background .1s
+    }
+
+    tbody tr:last-child {
+      border-bottom: none
+    }
+
+    tbody tr:hover {
+      background: #f8f9ff
+    }
+
+    td {
+      padding: 11px 14px;
+      vertical-align: middle
+    }
+
+    td.nowrap {
+      white-space: nowrap
+    }
+
+    .td-place {
+      max-width: 200px
+    }
+
+    .td-place .place {
+      font-weight: 600;
+      color: var(--txt);
+      font-size: 13px
+    }
+
+    .td-place .cust {
+      font-size: 11.5px;
+      color: var(--txt3);
+      margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 190px
+    }
+
+    /* ─── BADGES ─────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0
+    }
+
+    .b-done {
+      background: var(--green-l);
+      color: var(--green)
+    }
+
+    .b-process {
+      background: var(--orange-l);
+      color: #b45309
+    }
+
+    .b-wait {
+      background: var(--blue-l);
+      color: var(--blue)
+    }
+
+    .b-cancel {
+      background: var(--red-l);
+      color: var(--red)
+    }
+
+    .b-new {
+      background: var(--gray-l);
+      color: var(--txt2)
+    }
+
+    .b-violet {
+      background: var(--violet-l);
+      color: var(--violet)
+    }
+
+    .b-teal {
+      background: var(--teal-l);
+      color: var(--teal)
+    }
+
+    /* ─── STEP PROGRESS BAR ──────────────────────── */
+    .progress-steps {
+      display: flex;
+      align-items: center;
+      gap: 0
+    }
+
+    .ps {
+      display: flex;
+      align-items: center;
+      font-size: 10.5px;
+      color: var(--txt3);
+      white-space: nowrap;
+      gap: 4px;
+    }
+
+    .ps .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    .ps.done {
+      color: var(--green)
+    }
+
+    .ps.done .dot {
+      background: var(--green)
+    }
+
+    .ps.active {
+      color: var(--orange)
+    }
+
+    .ps.active .dot {
+      background: var(--orange)
+    }
+
+    .ps.pending .dot {
+      background: #d1d5e3
+    }
+
+    .ps-sep {
+      color: #d1d5e3;
+      font-size: 12px;
+      padding: 0 3px
+    }
+
+    /* ─── ACTION BUTTONS ─────────────────────────── */
+    .actions {
+      display: flex;
+      gap: 6px;
+      align-items: center
+    }
+
+    .act-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: all .15s;
+      border: 1px solid var(--border);
+      background: var(--white);
+    }
+
+    .act-btn:hover {
+      transform: scale(1.1)
+    }
+
+    .act-btn.edit:hover {
+      background: var(--blue-l);
+      border-color: var(--blue-m)
+    }
+
+    .act-btn.delete:hover {
+      background: var(--red-l);
+      border-color: #fecdca
+    }
+
+    .act-btn.view:hover {
+      background: var(--violet-l);
+      border-color: #c4b5fd
+    }
+
+    /* ─── DROPDOWN STATUS ────────────────────────── */
+    .status-select {
+      border: 1.5px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 11.5px;
+      font-weight: 600;
+      background: var(--white);
+      cursor: pointer;
+      transition: border-color .15s;
+      appearance: none;
+      padding-right: 22px;
+      background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%239ba3c4' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+    }
+
+    .status-select:focus {
+      border-color: var(--blue)
+    }
+
+    /* ─── MODAL ──────────────────────────────────── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, .5);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(3px);
+      padding: 20px;
+    }
+
+    .overlay.open {
+      display: flex;
+      animation: fadeIn .2s ease
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0
+      }
+
+      to {
+        opacity: 1
+      }
+    }
+
+    .modal {
+      background: var(--white);
+      border-radius: 16px;
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 760px;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      animation: slideUp .25s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
+
+    .modal.sm {
+      max-width: 440px
+    }
+
+    .modal.lg {
+      max-width: 900px
+    }
+
+    .modal-head {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--txt)
+    }
+
+    .modal-sub {
+      font-size: 12px;
+      color: var(--txt3);
+      margin-top: 1px
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--gray-l);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: var(--txt2);
+      cursor: pointer;
+      border: none;
+      transition: all .15s;
+    }
+
+    .modal-close:hover {
+      background: var(--red-l);
+      color: var(--red)
+    }
+
+    .modal-body {
+      padding: 22px;
+      overflow-y: auto;
+      flex: 1
+    }
+
+    .modal-foot {
+      padding: 14px 22px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-radius: 0 0 16px 16px;
+    }
+
+    /* ─── FORM ───────────────────────────────────── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px
+    }
+
+    .form-grid.cols3 {
+      grid-template-columns: 1fr 1fr 1fr
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px
+    }
+
+    .form-group.span2 {
+      grid-column: span 2
+    }
+
+    .form-group.span3 {
+      grid-column: span 3
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--txt2)
+    }
+
+    .form-control {
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 8px 12px;
+      font-size: 13px;
+      color: var(--txt);
+      background: var(--white);
+      transition: border-color .15s;
+      width: 100%;
+    }
+
+    .form-control:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, .1)
+    }
+
+    .form-control::placeholder {
+      color: var(--txt3)
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 72px
+    }
+
+    .form-section {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--txt3);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin: 18px 0 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .form-section:first-child {
+      margin-top: 0
+    }
+
+    .required {
+      color: var(--red);
+      margin-left: 2px
+    }
+
+    /* ─── STEP WORKFLOW MODAL ────────────────────── */
+    .workflow {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 4px 0
+    }
+
+    .wf-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 14px 0;
+      position: relative;
+    }
+
+    .wf-step::before {
+      content: '';
+      position: absolute;
+      left: 19px;
+      top: 42px;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+
+    .wf-step:last-child::before {
+      display: none
+    }
+
+    .wf-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+      border: 2px solid;
+      position: relative;
+      z-index: 1;
+    }
+
+    .wf-icon.done {
+      background: var(--green-l);
+      border-color: var(--green);
+      color: var(--green)
+    }
+
+    .wf-icon.active {
+      background: var(--orange-l);
+      border-color: var(--orange);
+      color: var(--orange);
+      box-shadow: 0 0 0 4px rgba(247, 144, 9, .12)
+    }
+
+    .wf-icon.pending {
+      background: var(--gray-l);
+      border-color: var(--border);
+      color: var(--txt3)
+    }
+
+    .wf-content {
+      flex: 1;
+      padding-top: 6px
+    }
+
+    .wf-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--txt);
+      margin-bottom: 2px
+    }
+
+    .wf-desc {
+      font-size: 12px;
+      color: var(--txt3)
+    }
+
+    .wf-date {
+      font-size: 12px;
+      color: var(--green);
+      font-weight: 500;
+      margin-top: 4px
+    }
+
+    .wf-action {
+      margin-top: 8px
+    }
+
+    .wf-step.active-step .wf-title {
+      color: var(--orange)
+    }
+
+    /* ─── DETAIL PANEL ───────────────────────────── */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px
+    }
+
+    .detail-row {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      background: var(--surface);
+      border-radius: var(--r-sm);
+      padding: 10px 12px;
+    }
+
+    .detail-key {
+      font-size: 11px;
+      color: var(--txt3);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em
+    }
+
+    .detail-val {
+      font-size: 13px;
+      color: var(--txt);
+      font-weight: 500
+    }
+
+    .detail-row.span2 {
+      grid-column: span 2
+    }
+
+    .money-box {
+      background: linear-gradient(135deg, var(--blue-l), #f0f2ff);
+      border: 1px solid var(--blue-m);
+      border-radius: var(--r);
+      padding: 14px 16px;
+      margin-top: 14px;
+    }
+
+    .money-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--blue);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      margin-bottom: 10px
+    }
+
+    .money-rows {
+      display: grid;
+      gap: 6px
+    }
+
+    .money-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px
+    }
+
+    .money-row .ml {
+      color: var(--txt2)
+    }
+
+    .money-row .mr {
+      font-weight: 600;
+      color: var(--txt)
+    }
+
+    .money-total {
+      border-top: 1px solid var(--blue-m);
+      padding-top: 8px;
+      margin-top: 4px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 15px;
+      font-weight: 700
+    }
+
+    .money-total .ml {
+      color: var(--txt)
+    }
+
+    .money-total .mr {
+      color: var(--blue)
+    }
+
+    /* ─── TOAST ──────────────────────────────────── */
+    .toast-wrap {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      animation: toastIn .3s ease;
+      min-width: 260px;
+      pointer-events: auto;
+    }
+
+    @keyframes toastIn {
+      from {
+        opacity: 0;
+        transform: translateX(20px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0)
+      }
+    }
+
+    .toast.success .ti {
+      color: var(--green);
+      font-size: 18px
+    }
+
+    .toast.error .ti {
+      color: var(--red);
+      font-size: 18px
+    }
+
+    .toast.info .ti {
+      color: var(--blue);
+      font-size: 18px
+    }
+
+    .toast-msg {
+      flex: 1;
+      font-weight: 500
+    }
+
+    .toast-bar {
+      height: 3px;
+      border-radius: 3px;
+      margin-top: 2px;
+      animation: shrink 2.8s linear forwards
+    }
+
+    .toast.success .toast-bar {
+      background: var(--green)
+    }
+
+    .toast.info .toast-bar {
+      background: var(--blue)
+    }
+
+    @keyframes shrink {
+      from {
+        width: 100%
+      }
+
+      to {
+        width: 0%
+      }
+    }
+
+    /* ─── CONFIRM MODAL ──────────────────────────── */
+    .confirm-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      margin: 0 auto 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+    }
+
+    .confirm-icon.danger {
+      background: var(--red-l)
+    }
+
+    .confirm-icon.warn {
+      background: var(--orange-l)
+    }
+
+    /* ─── EMPTY STATE ────────────────────────────── */
+    .empty {
+      padding: 56px 20px;
+      text-align: center
+    }
+
+    .empty .ei {
+      font-size: 40px;
+      opacity: .4;
+      margin-bottom: 10px
+    }
+
+    .empty p {
+      color: var(--txt3);
+      font-size: 13px
+    }
+
+    /* ─── KPI ROW ────────────────────────────────── */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-bottom: 20px
+    }
+
+    .kpi {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .kpi-icon2 {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    .kpi-icon2.blue {
+      background: var(--blue-l)
+    }
+
+    .kpi-icon2.green {
+      background: var(--green-l)
+    }
+
+    .kpi-icon2.orange {
+      background: var(--orange-l)
+    }
+
+    .kpi-icon2.red {
+      background: var(--red-l)
+    }
+
+    .kpi-icon2.violet {
+      background: var(--violet-l)
+    }
+
+    .kpi-val {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--txt);
+      line-height: 1
+    }
+
+    .kpi-lbl {
+      font-size: 11.5px;
+      color: var(--txt3);
+      margin-top: 3px
+    }
+
+    /* ─── OVERFLOW MENU ──────────────────────────── */
+    .amt {
+      font-weight: 700;
+      font-size: 13px
+    }
+
+    .amt.pos {
+      color: var(--green)
+    }
+
+    .amt.zero {
+      color: var(--txt3)
+    }
+
+    /* ─── RESPONSIVE ─────────────────────────────── */
+    @media(max-width:1100px) {
+      .kpi-row {
+        grid-template-columns: repeat(3, 1fr)
+      }
+    }
+
+    @media(max-width:800px) {
+      .app {
+        grid-template-columns: 1fr
+      }
+
+      .sidebar {
+        display: none
+      }
+
+      .kpi-row {
+        grid-template-columns: repeat(2, 1fr)
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr
+      }
+
+      .form-group.span2 {
+        grid-column: span 1
+      }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
+</head>
+
+<body>
+
+  <div class="app">
+
+    <!-- ════════════════ SIDEBAR ════════════════ -->
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="brand">
+          <div class="logo-box">🏢</div>
+          <div>
+            <div class="brand-name">ประกันอาคาร</div>
+            <div class="brand-sub">Deposit Manager 2026</div>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-label">เมนูหลัก</div>
+        <div class="nav-item active" onclick="showPage('list')">
+          <span class="icon">📋</span> รายการทั้งหมด
+          <span class="nav-badge" id="nav-total">0</span>
+        </div>
+        <div class="nav-item" onclick="showPage('list');setStatusFilter('On Process')">
+          <span class="icon">⏳</span> กำลังดำเนินการ
+          <span class="nav-badge orange" id="nav-process">0</span>
+        </div>
+        <div class="nav-item" onclick="showPage('list');setStatusFilter('Done')">
+          <span class="icon">✅</span> เสร็จแล้ว
+          <span class="nav-badge green" id="nav-done">0</span>
+        </div>
+        <div class="nav-label" style="margin-top:8px">ประเภทสิทธิ์</div>
+        <div class="nav-item" onclick="showPage('list');setOwnerFilter('เจษฎาภรณ์')">
+          <span class="icon">👤</span> เจษฎาภรณ์
+        </div>
+        <div class="nav-item" onclick="showPage('list');setOwnerFilter('ญาดา')">
+          <span class="icon">👤</span> ญาดา
+        </div>
+        <div class="nav-item" onclick="showPage('list');setOwnerFilter('พงศ์เทพ')">
+          <span class="icon">👤</span> พงศ์เทพ
+        </div>
+        <div class="nav-item" onclick="showPage('list');setOwnerFilter('ณัฐพงศ์')">
+          <span class="icon">👤</span> ณัฐพงศ์
+        </div>
+      </nav>
+      <div class="sidebar-stats">
+        <div class="stat-row"><span class="stat-label">ยอดรวมทั้งหมด</span><span class="stat-val blue"
+            id="sb-total-amt">฿0</span></div>
+        <div class="stat-row"><span class="stat-label">เงินประกันคงค้าง</span><span class="stat-val orange"
+            id="sb-dep-amt">฿0</span></div>
+        <div class="stat-row"><span class="stat-label">อัปเดตล่าสุด</span><span class="stat-val"
+            id="sb-updated">—</span></div>
+      </div>
+    </aside>
+
+    <!-- ════════════════ MAIN ════════════════ -->
+    <div class="main">
+      <!-- Topbar -->
+      <div class="topbar">
+        <div class="topbar-left">
+          <div>
+            <div class="page-title">รายการขอคืนเงินประกันอาคาร</div>
+            <div class="page-sub" id="topbar-sub">ข้อมูลทั้งหมด · 2026</div>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+          <button class="btn btn-primary" onclick="openAddModal()">＋ เพิ่มรายการใหม่</button>
+        </div>
+      </div>
+
+      <!-- List Page -->
+      <div class="page active" id="page-list">
+        <div style="padding:24px 28px 0">
+
+          <!-- KPIs -->
+          <div class="kpi-row" id="kpiRow"></div>
+
+          <!-- Filter bar -->
+          <div class="filter-bar">
+            <div class="search-wrap">
+              <span class="search-icon">🔍</span>
+              <input type="text" placeholder="ค้นหาอาคาร, ลูกค้า, เจ้าของงาน..." id="searchInput"
+                oninput="applyFilters()">
+            </div>
+            <div class="pill-group" id="statusPills">
+              <span class="pill active" data-val="" onclick="setStatusFilter('')">ทั้งหมด</span>
+              <span class="pill o" data-val="On Process" onclick="setStatusFilter('On Process')">⏳ กำลังดำเนินการ</span>
+              <span class="pill g" data-val="Done" onclick="setStatusFilter('Done')">✓ เสร็จแล้ว</span>
+              <span class="pill r" data-val="Cancel" onclick="setStatusFilter('Cancel')">✕ ยกเลิก</span>
+            </div>
+            <select class="select-filter" id="ownerFilter" onchange="applyFilters()">
+              <option value="">เจ้าของงานทั้งหมด</option>
+              <option>เจษฎาภรณ์</option>
+              <option>ญาดา</option>
+              <option>พงศ์เทพ</option>
+              <option>ณัฐพงศ์</option>
+              <option>วฬารัตน์</option>
+            </select>
+            <select class="select-filter" id="areaFilter" onchange="applyFilters()">
+              <option value="">พื้นที่ทั้งหมด</option>
+              <option>BKK 1</option>
+              <option>BKK 2</option>
+              <option>BKK 3</option>
+              <option>BKK 4</option>
+              <option>CBI</option>
+              <option>CMI</option>
+            </select>
+          </div>
+
+          <!-- Table -->
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">รายการทั้งหมด</span>
+              <span class="card-meta" id="tableCount">— รายการ</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>สถานะ</th>
+                    <th>อาคาร / ลูกค้า</th>
+                    <th>เจ้าของงาน</th>
+                    <th>PR No.</th>
+                    <th>วันที่ตั้งเบิก</th>
+                    <th>วันที่ต้องได้</th>
+                    <th>ยอดรวม</th>
+                    <th>ขั้นตอน</th>
+                    <th>การดำเนินการ</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+              </table>
+              <div class="empty" id="emptyState" style="display:none">
+                <div class="ei">🔍</div>
+                <p>ไม่พบรายการที่ตรงกัน</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /page-list -->
+    </div><!-- /main -->
+  </div><!-- /app -->
+
+  <!-- ═══════ MODAL: ADD / EDIT ═══════ -->
+  <div class="overlay" id="formOverlay">
+    <div class="modal lg" id="formModal">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title" id="formTitle">เพิ่มรายการใหม่</div>
+          <div class="modal-sub" id="formSub">กรอกข้อมูลการขอคืนเงินประกันอาคาร</div>
+        </div>
+        <button class="modal-close" onclick="closeModal('formOverlay')">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="mainForm" onsubmit="submitForm(event)">
+
+          <div class="form-section">📍 ข้อมูลทั่วไป</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>ชื่ออาคาร / สถานที่ <span class="required">*</span></label>
+              <input class="form-control" id="f-place" placeholder="เช่น เซ็นทรัลเวิลด์ พลาซา" required>
+            </div>
+            <div class="form-group">
+              <label>ชื่อลูกค้า</label>
+              <input class="form-control" id="f-customer" placeholder="ชื่อบริษัท / ผู้เช่า">
+            </div>
+            <div class="form-group">
+              <label>เจ้าของงาน (Owner) <span class="required">*</span></label>
+              <select class="form-control" id="f-owner" required>
+                <option value="">-- เลือก --</option>
+                <option>เจษฎาภรณ์</option>
+                <option>ญาดา</option>
+                <option>พงศ์เทพ</option>
+                <option>ณัฐพงศ์</option>
+                <option>วฬารัตน์</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>พื้นที่ (Area)</label>
+              <select class="form-control" id="f-area">
+                <option value="">-- เลือก --</option>
+                <option>BKK 1</option>
+                <option>BKK 2</option>
+                <option>BKK 3</option>
+                <option>BKK 4</option>
+                <option>CBI</option>
+                <option>CMI</option>
+                <option>AYA</option>
+                <option>HYI</option>
+                <option>KKN</option>
+                <option>NMA</option>
+                <option>PKT</option>
+                <option>PLK</option>
+                <option>RBI</option>
+                <option>RYG</option>
+                <option>SNI</option>
+                <option>UBN</option>
+                <option>UDN</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Project Code</label>
+              <input class="form-control" id="f-project" placeholder="เช่น HRA025">
+            </div>
+            <div class="form-group">
+              <label>Deal No.</label>
+              <input class="form-control" id="f-deal" placeholder="รหัส Deal">
+            </div>
+          </div>
+
+          <div class="form-section">💰 ข้อมูลการเบิกจ่าย</div>
+          <div class="form-grid cols3">
+            <div class="form-group">
+              <label>PR No.</label>
+              <input class="form-control" id="f-pr" placeholder="เลขที่ PR">
+            </div>
+            <div class="form-group">
+              <label>วันที่ตั้งเบิก</label>
+              <input type="date" class="form-control" id="f-date-req">
+            </div>
+            <div class="form-group">
+              <label>วันที่ต้องการ (Due)</label>
+              <input type="date" class="form-control" id="f-date-due">
+            </div>
+            <div class="form-group">
+              <label>จ่ายให้ (Pay to)</label>
+              <input class="form-control" id="f-payto" placeholder="ชื่อบริษัทอาคาร">
+            </div>
+            <div class="form-group">
+              <label>ประเภทการชำระ</label>
+              <select class="form-control" id="f-paytype">
+                <option value="">-- เลือก --</option>
+                <option>เช็ค</option>
+                <option>โอนเงิน</option>
+                <option>แคชเชียร์เช็ค</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>วันที่ได้รับเช็ค/โอน</label>
+              <input type="date" class="form-control" id="f-date-check">
+            </div>
+          </div>
+
+          <div class="form-section">🏦 จำนวนเงิน (บาท)</div>
+          <div class="form-grid cols3">
+            <div class="form-group">
+              <label>เงินประกันติดตั้ง</label>
+              <input type="number" class="form-control" id="f-deposit" placeholder="0" oninput="calcTotal()">
+            </div>
+            <div class="form-group">
+              <label>เงินประกันรื้อถอน</label>
+              <input type="number" class="form-control" id="f-demolish" placeholder="0" oninput="calcTotal()">
+            </div>
+            <div class="form-group">
+              <label>ค่าธรรมเนียม</label>
+              <input type="number" class="form-control" id="f-fee" placeholder="0" oninput="calcTotal()">
+            </div>
+            <div class="form-group">
+              <label>ค่าใช้จ่ายอื่นๆ</label>
+              <input type="number" class="form-control" id="f-other" placeholder="0" oninput="calcTotal()">
+            </div>
+            <div class="form-group">
+              <label>ยอดรวม (คำนวณอัตโนมัติ)</label>
+              <input type="number" class="form-control" id="f-total" placeholder="0" readonly
+                style="background:var(--blue-l);font-weight:700;color:var(--blue)">
+            </div>
+          </div>
+
+          <div class="form-section">🔄 สถานะประกัน</div>
+          <div class="form-grid cols3">
+            <div class="form-group">
+              <label>สถานะหลัก</label>
+              <select class="form-control" id="f-status">
+                <option value="">-- เลือก --</option>
+                <option>On Process</option>
+                <option>Done</option>
+                <option>Cancel</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>สถานะเงินประกันติดตั้ง</label>
+              <select class="form-control" id="f-dep-status">
+                <option value="">-- เลือก --</option>
+                <option>No</option>
+                <option>Wait Install</option>
+                <option>Wait Insp. SC</option>
+                <option>Wait Ins. Ac.</option>
+                <option>Done</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>สถานะเงินประกันรื้อถอน</label>
+              <select class="form-control" id="f-demo-status">
+                <option value="">-- เลือก --</option>
+                <option>No</option>
+                <option>On Service</option>
+                <option>Terminate</option>
+                <option>Done</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Status Complete</label>
+              <select class="form-control" id="f-complete">
+                <option value="">-- เลือก --</option>
+                <option>Complete</option>
+                <option>Cancel</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>คืนเงินประกันติดตั้งแล้ว?</label>
+              <select class="form-control" id="f-dep-return">
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>คืนเงินประกันรื้อถอนแล้ว?</label>
+              <select class="form-control" id="f-demo-return">
+                <option value="No">No</option>
+                <option value="Yes">Yes</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-section">👤 ผู้ประสานงาน</div>
+          <div class="form-grid cols3">
+            <div class="form-group">
+              <label>ชื่อผู้ประสานงาน</label>
+              <input class="form-control" id="f-contact" placeholder="ชื่อ">
+            </div>
+            <div class="form-group">
+              <label>เบอร์โทร</label>
+              <input class="form-control" id="f-tel" placeholder="02-xxx-xxxx">
+            </div>
+            <div class="form-group">
+              <label>มือถือ</label>
+              <input class="form-control" id="f-mobile" placeholder="08x-xxx-xxxx">
+            </div>
+            <div class="form-group span3">
+              <label>Remark / หมายเหตุ</label>
+              <textarea class="form-control" id="f-remark" placeholder="บันทึกเพิ่มเติม..."></textarea>
+            </div>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeModal('formOverlay')">ยกเลิก</button>
+        <button class="btn btn-primary" onclick="submitForm(event)" id="formSubmitBtn">💾 บันทึก</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ MODAL: DETAIL VIEW ═══════ -->
+  <div class="overlay" id="detailOverlay">
+    <div class="modal lg" id="detailModal">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title" id="detailTitle">รายละเอียด</div>
+          <div class="modal-sub" id="detailSub"></div>
+        </div>
+        <button class="modal-close" onclick="closeModal('detailOverlay')">✕</button>
+      </div>
+      <div class="modal-body" id="detailBody"></div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeModal('detailOverlay')">ปิด</button>
+        <button class="btn btn-primary" id="detailEditBtn">✏️ แก้ไขข้อมูล</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ MODAL: WORKFLOW ═══════ -->
+  <div class="overlay" id="wfOverlay">
+    <div class="modal" id="wfModal">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">อัปเดตสถานะ</div>
+          <div class="modal-sub" id="wfSub"></div>
+        </div>
+        <button class="modal-close" onclick="closeModal('wfOverlay')">✕</button>
+      </div>
+      <div class="modal-body" id="wfBody"></div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeModal('wfOverlay')">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ MODAL: CONFIRM DELETE ═══════ -->
+  <div class="overlay" id="confirmOverlay">
+    <div class="modal sm">
+      <div class="modal-head">
+        <div class="modal-title">ยืนยันการลบ</div>
+        <button class="modal-close" onclick="closeModal('confirmOverlay')">✕</button>
+      </div>
+      <div class="modal-body" style="text-align:center">
+        <div class="confirm-icon danger">🗑️</div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:6px" id="confirmTitle">ลบรายการนี้?</div>
+        <div style="font-size:13px;color:var(--txt3)" id="confirmDesc">การดำเนินการนี้ไม่สามารถย้อนกลับได้</div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeModal('confirmOverlay')">ยกเลิก</button>
+        <button class="btn btn-danger" id="confirmOkBtn">ลบเลย</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script>
+    /* ════════════════════════════════════════════════════════
+       DATA STORE
+    ════════════════════════════════════════════════════════ */
+    let DB = [];
+    let nextId = 1; // Used for new records before DB sync, or we can use Supabase IDs
+    let editingId = null;
+    let filterStatus = '';
+    let filterOwner = '';
+    let filterArea = '';
+    let searchQ = '';
+
+    /* ════════ WORKFLOW STEPS DEF ════════ */
+    const STEPS = [
+      { key: 'step1', label: 'ประสานงานอาคาร', desc: 'ติดต่อผู้ดูแลอาคารเพื่อขอคืนเงินประกัน' },
+      { key: 'step2', label: 'ตั้งเบิก (PR)', desc: 'สร้างเอกสารตั้งเบิก PR และกำหนดวันที่ต้องการ' },
+      { key: 'step3', label: 'รับเช็ค / โอนเงิน', desc: 'รับเช็คหรือโอนเงินจากอาคาร' },
+      { key: 'step4', label: 'ส่งเอกสารบัญชี', desc: 'นำส่งเอกสารการจ่ายเงินให้ฝ่ายบัญชี' },
+      { key: 'step5', label: 'สถานะ Complete', desc: 'ยืนยันการดำเนินการเสร็จสมบูรณ์' },
+      { key: 'step6', label: 'คืนเงินประกันติดตั้ง', desc: 'รับเงินประกันการติดตั้งคืนจากอาคาร' },
+      { key: 'step7', label: 'คืนเงินประกันรื้อถอน', 'desc': 'รับเงินประกันการรื้อถอนคืนจากอาคาร' },
+    ];
+
+    /* ════════ HELPERS ════════ */
+    function getStepIndex(d) {
+      if (!d.pr && !d.dateReq) return 0;
+      if (d.pr && !d.dateCheck && !d.dateReq) return 1;
+      if (d.dateReq && !d.dateCheck) return 2;
+      if (d.dateCheck && !d.dateAcc) return 3;
+      if (d.dateAcc && d.complete !== 'Complete') return 4;
+      if (d.complete === 'Complete' && d.depReturn !== 'Yes') return 5;
+      if (d.depReturn === 'Yes' && d.demoReturn !== 'Yes' && d.demolish > 0) return 6;
+      return 7; // all done
+    }
+
+    function statusBadge(s) {
+      if (s === 'Done') return `<span class="badge b-done"><span class="dot"></span>Done</span>`;
+      if (s === 'On Process') return `<span class="badge b-process"><span class="dot"></span>กำลังดำเนินการ</span>`;
+      if (s === 'Cancel') return `<span class="badge b-cancel"><span class="dot"></span>ยกเลิก</span>`;
+      return `<span class="badge b-new"><span class="dot"></span>ใหม่</span>`;
+    }
+
+    function fmt(n) { return n > 0 ? '฿' + n.toLocaleString() : `<span style="color:var(--txt3)">—</span>` }
+
+    function stepLabel(d) {
+      const idx = getStepIndex(d);
+      if (idx >= 7) return `<span style="color:var(--green);font-size:11.5px;font-weight:600">✓ เสร็จสมบูรณ์</span>`;
+      return `<span style="color:var(--orange);font-size:11.5px;font-weight:600">${STEPS[idx]?.label || '—'}</span>`;
+    }
+
+    /* ════════ RENDER KPI ════════ */
+    function renderKPI() {
+      const total = DB.length;
+      const done = DB.filter(d => d.status === 'Done').length;
+      const proc = DB.filter(d => d.status === 'On Process').length;
+      const amt = DB.reduce((s, d) => s + (d.total || 0), 0);
+      const dep = DB.filter(d => d.depReturn !== 'Yes').reduce((s, d) => s + (d.deposit || 0), 0);
+
+      document.getElementById('kpiRow').innerHTML = `
+    <div class="kpi"><div class="kpi-icon2 blue">📁</div><div><div class="kpi-val">${total}</div><div class="kpi-lbl">รายการทั้งหมด</div></div></div>
+    <div class="kpi"><div class="kpi-icon2 orange">⏳</div><div><div class="kpi-val" style="color:var(--orange)">${proc}</div><div class="kpi-lbl">กำลังดำเนินการ</div></div></div>
+    <div class="kpi"><div class="kpi-icon2 green">✅</div><div><div class="kpi-val" style="color:var(--green)">${done}</div><div class="kpi-lbl">เสร็จแล้ว</div></div></div>
+    <div class="kpi"><div class="kpi-icon2 blue">💰</div><div><div class="kpi-val" style="color:var(--blue);font-size:17px">฿${amt.toLocaleString()}</div><div class="kpi-lbl">ยอดรวมทั้งหมด</div></div></div>
+    <div class="kpi"><div class="kpi-icon2 violet">🏛️</div><div><div class="kpi-val" style="color:var(--violet);font-size:17px">฿${dep.toLocaleString()}</div><div class="kpi-lbl">ประกันรอคืน</div></div></div>
+  `;
+
+      document.getElementById('nav-total').textContent = total;
+      document.getElementById('nav-process').textContent = proc;
+      document.getElementById('nav-done').textContent = done;
+      document.getElementById('sb-total-amt').textContent = '฿' + amt.toLocaleString();
+      document.getElementById('sb-dep-amt').textContent = '฿' + dep.toLocaleString();
+      const now = new Date();
+      document.getElementById('sb-updated').textContent = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    /* ════════ RENDER TABLE ════════ */
+    function renderTable() {
+      let data = DB.filter(d => {
+        const ms = !filterStatus || d.status === filterStatus;
+        const mo = !filterOwner || d.owner === filterOwner;
+        const ma = !filterArea || d.area === filterArea;
+        const mq = !searchQ || [d.place, d.customer, d.owner, d.project, d.pr].join(' ').toLowerCase().includes(searchQ);
+        return ms && mo && ma && mq;
+      });
+
+      document.getElementById('tableCount').textContent = data.length + ' รายการ';
+      const empty = document.getElementById('emptyState');
+
+      if (!data.length) {
+        document.getElementById('tbody').innerHTML = '';
+        empty.style.display = 'block'; return;
+      }
+      empty.style.display = 'none';
+
+      document.getElementById('tbody').innerHTML = data.map(d => `
+    <tr>
+      <td class="nowrap" style="color:var(--txt3);font-size:12px">#${d.id}</td>
+      <td class="nowrap">
+        <select class="status-select" onchange="quickStatus(${d.id},this.value)" style="${statusSelectStyle(d.status)}">
+          <option ${d.status === '' ? 'selected' : ''} value="">ใหม่</option>
+          <option ${d.status === 'On Process' ? 'selected' : ''} value="On Process">⏳ กำลังดำเนินการ</option>
+          <option ${d.status === 'Done' ? 'selected' : ''} value="Done">✓ Done</option>
+          <option ${d.status === 'Cancel' ? 'selected' : ''} value="Cancel">✕ ยกเลิก</option>
+        </select>
+      </td>
+      <td class="td-place">
+        <div class="place">${d.place}</div>
+        <div class="cust">${d.customer || '—'}</div>
+      </td>
+      <td class="nowrap">
+        ${d.owner ? `<span class="badge b-violet" style="font-size:11px">${d.owner}</span>` : '<span style="color:var(--txt3)">—</span>'}
+      </td>
+      <td class="nowrap" style="color:var(--txt2)">${d.pr || '—'}</td>
+      <td class="nowrap" style="color:var(--txt2);font-size:12px">${d.dateReq || '—'}</td>
+      <td class="nowrap" style="color:${isOverdue(d) ? 'var(--red)' : 'var(--txt2)'};font-size:12px;font-weight:${isOverdue(d) ? '600' : '400'}">${d.dateDue || '—'}${isOverdue(d) ? ' ⚠️' : ''}</td>
+      <td class="nowrap"><span class="amt ${d.total > 0 ? 'pos' : ''}">${d.total > 0 ? '฿' + d.total.toLocaleString() : '—'}</span></td>
+      <td class="nowrap">${stepLabel(d)}</td>
+      <td class="nowrap">
+        <div class="actions">
+          <button class="act-btn view" title="ดูรายละเอียด" onclick="openDetail(${d.id})">👁</button>
+          <button class="act-btn edit" title="แก้ไข" onclick="openEdit(${d.id})">✏️</button>
+          <button class="act-btn" title="อัปเดตสถานะ" onclick="openWorkflow(${d.id})" style="font-size:13px" onmouseover="this.style.background='var(--orange-l)'" onmouseout="this.style.background='var(--white)'">🔄</button>
+          <button class="act-btn delete" title="ลบ" onclick="confirmDelete(${d.id})">🗑</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+    }
+
+    function statusSelectStyle(s) {
+      if (s === 'Done') return 'color:var(--green);border-color:#a7f3d0;background:#f0fdf4';
+      if (s === 'On Process') return 'color:#b45309;border-color:#fde68a;background:#fffbeb';
+      if (s === 'Cancel') return 'color:var(--red);border-color:#fecaca;background:#fef2f2';
+      return 'color:var(--txt3)';
+    }
+
+    function isOverdue(d) {
+      if (!d.dateDue || d.status === 'Done') return false;
+      return new Date(d.dateDue) < new Date();
+    }
+
+    /* ════════ QUICK STATUS CHANGE ════════ */
+    async function quickStatus(id, val) {
+      try {
+        const d = DB.find(x => x.id === id);
+        if (!d) return;
+        const updated = await updateDeposit(id, { status: val, complete: (val === 'Done' && !d.complete) ? 'Complete' : d.complete });
+        const idx = DB.findIndex(x => x.id === id);
+        DB[idx] = updated;
+        renderTable(); renderKPI();
+        toast(`อัปเดตสถานะ "${d.place}" → ${val || 'ใหม่'}`, 'success');
+      } catch (err) {
+        toast('เกิดข้อผิดพลาดในการอัปเดตสถานะ', 'error');
+      }
+    }
+
+    /* ════════ FILTERS ════════ */
+    function setStatusFilter(v) {
+      filterStatus = v;
+      document.querySelectorAll('#statusPills .pill').forEach(p => {
+        p.classList.toggle('active', p.dataset.val === v);
+      });
+      document.getElementById('ownerFilter').value = '';
+      filterOwner = '';
+      applyFilters();
+    }
+    function setOwnerFilter(v) {
+      filterOwner = v;
+      filterStatus = '';
+      document.querySelectorAll('#statusPills .pill').forEach(p => p.classList.remove('active'));
+      document.querySelector('#statusPills .pill').classList.add('active');
+      document.getElementById('ownerFilter').value = v;
+      applyFilters();
+    }
+    function applyFilters() {
+      searchQ = document.getElementById('searchInput').value.toLowerCase();
+      filterOwner = document.getElementById('ownerFilter').value;
+      filterArea = document.getElementById('areaFilter').value;
+      renderTable();
+    }
+
+    /* ════════ MODAL HELPERS ════════ */
+    function openModal(id) { document.getElementById(id).classList.add('open') }
+    function closeModal(id) { document.getElementById(id).classList.remove('open') }
+
+    document.querySelectorAll('.overlay').forEach(o => {
+      o.addEventListener('click', e => { if (e.target === o) closeModal(o.id) });
+    });
+
+    /* ════════ ADD FORM ════════ */
+    function openAddModal() {
+      editingId = null;
+      document.getElementById('formTitle').textContent = 'เพิ่มรายการใหม่';
+      document.getElementById('formSub').textContent = 'กรอกข้อมูลการขอคืนเงินประกันอาคาร';
+      document.getElementById('formSubmitBtn').textContent = '💾 บันทึก';
+      clearForm();
+      openModal('formOverlay');
+    }
+
+    function openEdit(id) {
+      const d = DB.find(x => x.id === id);
+      editingId = id;
+      document.getElementById('formTitle').textContent = 'แก้ไขรายการ #' + id;
+      document.getElementById('formSub').textContent = d.place;
+      document.getElementById('formSubmitBtn').textContent = '💾 บันทึกการแก้ไข';
+      fillForm(d);
+      openModal('formOverlay');
+    }
+
+    function clearForm() {
+      ['f-place', 'f-customer', 'f-owner', 'f-area', 'f-project', 'f-deal',
+        'f-pr', 'f-date-req', 'f-date-due', 'f-date-check',
+        'f-payto', 'f-paytype', 'f-deposit', 'f-demolish', 'f-fee', 'f-other', 'f-total',
+        'f-status', 'f-dep-status', 'f-demo-status', 'f-complete',
+        'f-dep-return', 'f-demo-return', 'f-contact', 'f-tel', 'f-mobile', 'f-remark'
+      ].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      document.getElementById('f-dep-return').value = 'No';
+      document.getElementById('f-demo-return').value = 'No';
+    }
+
+    function fillForm(d) {
+      document.getElementById('f-place').value = d.place || '';
+      document.getElementById('f-customer').value = d.customer || '';
+      document.getElementById('f-owner').value = d.owner || '';
+      document.getElementById('f-area').value = d.area || '';
+      document.getElementById('f-project').value = d.project || '';
+      document.getElementById('f-deal').value = d.deal || '';
+      document.getElementById('f-pr').value = d.pr || '';
+      document.getElementById('f-date-req').value = d.dateReq || '';
+      document.getElementById('f-date-due').value = d.dateDue || '';
+      document.getElementById('f-date-check').value = d.dateCheck || '';
+      document.getElementById('f-payto').value = d.payTo || '';
+      document.getElementById('f-paytype').value = d.payType || '';
+      document.getElementById('f-deposit').value = d.deposit || '';
+      document.getElementById('f-demolish').value = d.demolish || '';
+      document.getElementById('f-fee').value = d.fee || '';
+      document.getElementById('f-other').value = d.other || '';
+      document.getElementById('f-total').value = d.total || '';
+      document.getElementById('f-status').value = d.status || '';
+      document.getElementById('f-dep-status').value = d.depStatus || '';
+      document.getElementById('f-demo-status').value = d.demoStatus || '';
+      document.getElementById('f-complete').value = d.complete || '';
+      document.getElementById('f-dep-return').value = d.depReturn || 'No';
+      document.getElementById('f-demo-return').value = d.demoReturn || 'No';
+      document.getElementById('f-contact').value = d.contact || '';
+      document.getElementById('f-tel').value = d.tel || '';
+      document.getElementById('f-mobile').value = d.mobile || '';
+      document.getElementById('f-remark').value = d.remark || '';
+    }
+
+    function calcTotal() {
+      const d = +document.getElementById('f-deposit').value || 0;
+      const m = +document.getElementById('f-demolish').value || 0;
+      const f = +document.getElementById('f-fee').value || 0;
+      const o = +document.getElementById('f-other').value || 0;
+      document.getElementById('f-total').value = d + m + f + o;
+    }
+
+    async function submitForm(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const place = document.getElementById('f-place').value.trim();
+      const owner = document.getElementById('f-owner').value;
+      if (!place) { toast('กรุณากรอกชื่ออาคาร', 'error'); return; }
+      if (!owner) { toast('กรุณาเลือกเจ้าของงาน', 'error'); return; }
+
+      const obj = {
+        place, owner,
+        customer: document.getElementById('f-customer').value,
+        area: document.getElementById('f-area').value,
+        project: document.getElementById('f-project').value,
+        deal: document.getElementById('f-deal').value,
+        pr: document.getElementById('f-pr').value,
+        dateReq: document.getElementById('f-date-req').value,
+        dateDue: document.getElementById('f-date-due').value,
+        dateCheck: document.getElementById('f-date-check').value,
+        dateAcc: '',
+        payTo: document.getElementById('f-payto').value,
+        payType: document.getElementById('f-paytype').value,
+        deposit: +document.getElementById('f-deposit').value || 0,
+        demolish: +document.getElementById('f-demolish').value || 0,
+        fee: +document.getElementById('f-fee').value || 0,
+        other: +document.getElementById('f-other').value || 0,
+        total: +document.getElementById('f-total').value || 0,
+        status: document.getElementById('f-status').value,
+        depStatus: document.getElementById('f-dep-status').value,
+        demoStatus: document.getElementById('f-demo-status').value,
+        complete: document.getElementById('f-complete').value,
+        depReturn: document.getElementById('f-dep-return').value,
+        demoReturn: document.getElementById('f-demo-return').value,
+        contact: document.getElementById('f-contact').value,
+        tel: document.getElementById('f-tel').value,
+        mobile: document.getElementById('f-mobile').value,
+        remark: document.getElementById('f-remark').value,
+        expense: '',
+      };
+
+      try {
+        if (editingId) {
+          const updated = await updateDeposit(editingId, obj);
+          const idx = DB.findIndex(x => x.id === editingId);
+          DB[idx] = updated;
+          toast('แก้ไขข้อมูลสำเร็จ ✓', 'success');
+        } else {
+          const inserted = await insertDeposit(obj);
+          DB.unshift(inserted);
+          toast('เพิ่มรายการใหม่สำเร็จ ✓', 'success');
+        }
+        closeModal('formOverlay');
+        renderTable(); renderKPI();
+      } catch (err) {
+        toast('เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
+      }
+    }
+
+    /* ════════ DETAIL VIEW ════════ */
+    function openDetail(id) {
+      const d = DB.find(x => x.id === id);
+      document.getElementById('detailTitle').textContent = d.place;
+      document.getElementById('detailSub').textContent = `#${d.id} · ${d.project || '—'} · ${d.area || '—'}`;
+
+      const rows = [
+        ['ลูกค้า', d.customer || '—'],
+        ['เจ้าของงาน', d.owner || '—'],
+        ['พื้นที่', d.area || '—'],
+        ['PR No.', d.pr || '—'],
+        ['วันที่ตั้งเบิก', d.dateReq || '—'],
+        ['วันที่ต้องได้', d.dateDue || '—'],
+        ['ประเภทชำระ', d.payType || '—'],
+        ['จ่ายให้', d.payTo || '—'],
+        ['สถานะประกันติดตั้ง', d.depStatus || '—'],
+        ['สถานะประกันรื้อถอน', d.demoStatus || '—'],
+        ['Complete', d.complete || '—'],
+        ['ผู้ประสานงาน', d.contact || '—'],
+        ['โทร', d.tel || '—'],
+        ['มือถือ', d.mobile || '—'],
+      ];
+
+      const statusHTML = `<div style="margin-bottom:14px">${statusBadge(d.status)}</div>`;
+      const detailHTML = `<div class="detail-grid">${rows.map(([k, v], i) => `<div class="detail-row${i === 0 ? '' : ''}""><div class="detail-key">${k}</div><div class="detail-val">${v}</div></div>`).join('')}</div>`;
+      const moneyHTML = (d.deposit || d.demolish || d.fee || d.other || d.total) ? `
+    <div class="money-box">
+      <div class="money-title">💰 รายละเอียดค่าใช้จ่าย</div>
+      <div class="money-rows">
+        ${d.deposit ? `<div class="money-row"><span class="ml">เงินประกันติดตั้ง</span><span class="mr">฿${d.deposit.toLocaleString()}</span></div>` : ''}
+        ${d.demolish ? `<div class="money-row"><span class="ml">เงินประกันรื้อถอน</span><span class="mr">฿${d.demolish.toLocaleString()}</span></div>` : ''}
+        ${d.fee ? `<div class="money-row"><span class="ml">ค่าธรรมเนียม</span><span class="mr">฿${d.fee.toLocaleString()}</span></div>` : ''}
+        ${d.other ? `<div class="money-row"><span class="ml">ค่าใช้จ่ายอื่นๆ</span><span class="mr">฿${d.other.toLocaleString()}</span></div>` : ''}
+      </div>
+      <div class="money-total"><span class="ml">รวมทั้งสิ้น</span><span class="mr">฿${d.total.toLocaleString()}</span></div>
+    </div>` : '';
+      const remarkHTML = d.remark ? `<div style="margin-top:12px;padding:10px 12px;background:var(--orange-l);border-radius:var(--r-sm);font-size:12.5px;color:#92400e">📝 ${d.remark}</div>` : '';
+
+      document.getElementById('detailBody').innerHTML = statusHTML + detailHTML + moneyHTML + remarkHTML;
+      document.getElementById('detailEditBtn').onclick = () => { closeModal('detailOverlay'); openEdit(id); };
+      openModal('detailOverlay');
+    }
+
+    /* ════════ WORKFLOW MODAL ════════ */
+    function openWorkflow(id) {
+      const d = DB.find(x => x.id === id);
+      document.getElementById('wfSub').textContent = d.place;
+
+      const stepIdx = getStepIndex(d);
+
+      const stepsHTML = STEPS.map((s, i) => {
+        const isDone = i < stepIdx;
+        const isActive = i === stepIdx;
+        const cls = isDone ? 'done' : isActive ? 'active' : 'pending';
+        const activeClass = isActive ? 'active-step' : '';
+        const icon = isDone ? '✓' : isActive ? '●' : (i + 1).toString();
+
+        let actionBtn = '';
+        if (isActive) {
+          const actionMap = {
+            0: { label: '✓ ประสานงานแล้ว', fn: `wfAction(${id},0)` },
+            1: { label: '✓ ตั้งเบิกแล้ว', fn: `wfAction(${id},1)` },
+            2: { label: '✓ รับเช็ค/โอนแล้ว', fn: `wfAction(${id},2)` },
+            3: { label: '✓ ส่งเอกสารแล้ว', fn: `wfAction(${id},3)` },
+            4: { label: '✓ Complete', fn: `wfAction(${id},4)` },
+            5: { label: '✓ ได้รับเงินประกันติดตั้งคืน', fn: `wfAction(${id},5)` },
+            6: { label: '✓ ได้รับเงินประกันรื้อถอนคืน', fn: `wfAction(${id},6)` },
+          };
+          if (actionMap[i]) {
+            actionBtn = `<div class="wf-action"><button class="btn btn-primary btn-sm" onclick="${actionMap[i].fn}">${actionMap[i].label}</button></div>`;
+          }
+        }
+        return `
+      <div class="wf-step ${activeClass}">
+        <div class="wf-icon ${cls}">${icon}</div>
+        <div class="wf-content">
+          <div class="wf-title">${s.label}</div>
+          <div class="wf-desc">${s.desc}</div>
+          ${isDone ? `<div class="wf-date">✓ เสร็จแล้ว</div>` : ''}
+          ${actionBtn}
+        </div>
+      </div>`;
+      }).join('');
+
+      document.getElementById('wfBody').innerHTML = `<div class="workflow">${stepsHTML}</div>`;
+      openModal('wfOverlay');
+    }
+
+    async function wfAction(id, step) {
+      try {
+        const d = DB.find(x => x.id === id);
+        const today = new Date().toISOString().split('T')[0];
+        const updates = {};
+        if (step === 0) updates.status = 'On Process';
+        if (step === 1) updates.dateReq = d.dateReq || today;
+        if (step === 2) { updates.dateCheck = today; updates.payType = d.payType || 'โอนเงิน'; }
+        if (step === 3) updates.dateAcc = today;
+        if (step === 4) { updates.complete = 'Complete'; updates.status = 'Done'; }
+        if (step === 5) { updates.depReturn = 'Yes'; updates.depStatus = 'Done'; }
+        if (step === 6) { updates.demoReturn = 'Yes'; updates.demoStatus = 'Done'; }
+
+        const updated = await updateDeposit(id, updates);
+        const idx = DB.findIndex(x => x.id === id);
+        DB[idx] = updated;
+
+        closeModal('wfOverlay');
+        setTimeout(() => openWorkflow(id), 200);
+        renderTable(); renderKPI();
+        toast(`อัปเดตขั้นตอน: ${STEPS[step].label} ✓`, 'success');
+      } catch (err) {
+        toast('เกิดข้อผิดพลาดในการอัปเดตขั้นตอน', 'error');
+      }
+    }
+
+    /* ════════ DELETE ════════ */
+    function confirmDelete(id) {
+      const d = DB.find(x => x.id === id);
+      document.getElementById('confirmTitle').textContent = `ลบ "${d.place}"?`;
+      document.getElementById('confirmOkBtn').onclick = async () => {
+        try {
+          await deleteDeposit(id);
+          DB = DB.filter(x => x.id !== id);
+          closeModal('confirmOverlay');
+          renderTable(); renderKPI();
+          toast(`ลบรายการ "${d.place}" แล้ว`, 'info');
+        } catch (err) {
+          toast('เกิดข้อผิดพลาดในการลบข้อมูล', 'error');
+        }
+      };
+      openModal('confirmOverlay');
+    }
+
+    /* ════════ EXPORT CSV ════════ */
+    function exportCSV() {
+      const headers = ['ID', 'สถานะ', 'อาคาร', 'ลูกค้า', 'เจ้าของงาน', 'พื้นที่', 'PR No.', 'วันตั้งเบิก', 'วันDue', 'ยอดรวม', 'ประกันติดตั้ง', 'ประกันรื้อถอน', 'ค่าธรรมเนียม', 'คืนประกันติดตั้ง', 'คืนประกันรื้อถอน'];
+      const rows = DB.map(d => [d.id, d.status, d.place, d.customer, d.owner, d.area, d.pr, d.dateReq, d.dateDue, d.total, d.deposit, d.demolish, d.fee, d.depReturn, d.demoReturn]);
+      const csv = [headers, ...rows].map(r => r.map(v => `"${v || ''}"`).join(',')).join('\n');
+      const a = document.createElement('a');
+      a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
+      a.download = 'deposit_report_' + new Date().toISOString().split('T')[0] + '.csv';
+      a.click();
+      toast('Export CSV สำเร็จ ✓', 'success');
+    }
+
+    /* ════════ PAGE SWITCHING ════════ */
+    function showPage(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + id).classList.add('active');
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    }
+
+    /* ════════ TOAST ════════ */
+    function toast(msg, type = 'info') {
+      const wrap = document.getElementById('toastWrap');
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `<span class="ti">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span><span class="toast-msg">${msg}</span>`;
+      const bar = document.createElement('div');
+      bar.style.cssText = 'position:absolute;bottom:0;left:0;right:0';
+      el.style.position = 'relative;overflow:hidden';
+      wrap.appendChild(el);
+      setTimeout(() => el.remove(), 3000);
+    }
+
+    /* ════════ INIT ════════ */
+    async function initApp() {
+      try {
+        DB = await getDeposits();
+        renderKPI();
+        renderTable();
+      } catch (err) {
+        toast('เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error');
+      }
+    }
+
+    initApp();
+
+    /* Helper for seeding data (one-time use) */
+    async function seedMockData() {
+      const mockData = [
+        { status: 'Done', depStatus: 'Wait Insp. SC', demoStatus: 'On Service', owner: 'เจษฎาภรณ์', place: 'เซ็นทรัลเวิลด์ พลาซา', area: 'BKK 4', customer: 'MUJI (จากชั้น B1 - ชั้น 4)', deal: '62741', project: 'HRA025', pr: '001', dateReq: '2026-01-13', dateDue: '2026-01-16', dateCheck: '2026-01-16', dateAcc: '2026-01-19', payType: 'เช็ค', complete: 'Complete', payTo: 'บมจ.เซ็นทรัลพัฒนา', expense: 'ค่าธรรมเนียม,ค่าประกันรื้อถอน,ค่าประกันติดตั้ง', deposit: 50000, demolish: 10700, fee: 29960, other: 0, total: 90660, depReturn: 'Yes', demoReturn: 'Yes', contact: 'Thitnapha Khengkhan (Bee)', tel: '02-640-7000 Ext.1005', mobile: '06 1941 6966', remark: '' },
+        // ... add more if needed
+      ];
+      for (const item of mockData) {
+        await insertDeposit(item);
+      }
+      initApp();
+    }
+  </script>
+</body>
+
+</html>

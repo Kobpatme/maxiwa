@@ -1,0 +1,6 @@
+name = "deposit-manager-2026"
+pages_build_output_dir = "."
+
+[vars]
+SUPABASE_URL = "YOUR_SUPABASE_URL"
+SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY"
