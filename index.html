@@ -1676,19 +1676,7 @@
           <span class="icon">✅</span> เสร็จแล้ว
           <span class="nav-badge green" id="nav-done">0</span>
         </div>
-        <div class="nav-label" style="margin-top:8px">ประเภทสิทธิ์</div>
-        <div class="nav-item" onclick="showPage('list');setOwnerFilter('เจษฎาภรณ์')">
-          <span class="icon">👤</span> เจษฎาภรณ์
-        </div>
-        <div class="nav-item" onclick="showPage('list');setOwnerFilter('ญาดา')">
-          <span class="icon">👤</span> ญาดา
-        </div>
-        <div class="nav-item" onclick="showPage('list');setOwnerFilter('พงศ์เทพ')">
-          <span class="icon">👤</span> พงศ์เทพ
-        </div>
-        <div class="nav-item" onclick="showPage('list');setOwnerFilter('ณัฐพงศ์')">
-          <span class="icon">👤</span> ณัฐพงศ์
-        </div>
+
 
         <!-- Admin Section -->
         <div id="admin-nav" style="display:none">
@@ -2458,7 +2446,7 @@
       empty.style.display = 'none';
 
       document.getElementById('tbody').innerHTML = data.map(d => `
-    <tr>
+    <tr onclick="if(event.target.tagName !== 'BUTTON' && event.target.tagName !== 'SELECT') openWorkflow(${d.id})" style="cursor:pointer;" title="คลิกเพื่ออัปเดตสถานะ">
       <td class="nowrap" style="color:var(--txt3);font-size:12px">#${d.id}</td>
       <td class="nowrap">
         <select class="status-select" onchange="quickStatus(${d.id},this.value)" style="${statusSelectStyle(d.status)}">
@@ -2603,50 +2591,48 @@
     }
 
     function fillForm(d, targetStep = 1) {
-      document.getElementById('f-place').value = d.place || '';
-      document.getElementById('f-customer').value = d.customer || '';
-      document.getElementById('f-owner').value = d.owner || '';
-      document.getElementById('f-area').value = d.area || '';
-      document.getElementById('f-project').value = d.project || '';
-      document.getElementById('f-deal').value = d.deal || '';
-      document.getElementById('f-pr').value = d.pr || '';
-      document.getElementById('f-date-req').value = d.dateReq || '';
-      document.getElementById('f-date-due').value = d.dateDue || '';
-      document.getElementById('f-date-check').value = d.dateCheck || '';
-      document.getElementById('f-date-acc').value = d.dateAcc || '';
-      document.getElementById('f-payto').value = d.payTo || '';
-      document.getElementById('f-paytype').value = d.payType || '';
-      document.getElementById('f-deposit').value = d.deposit || '';
-      document.getElementById('f-demolish').value = d.demolish || '';
-      document.getElementById('f-fee').value = d.fee || '';
-      document.getElementById('f-other').value = d.other || '';
-      document.getElementById('f-total').value = d.total || '';
-      document.getElementById('f-status').value = d.status || '';
-      document.getElementById('f-dep-status').value = d.depStatus || '';
-      document.getElementById('f-demo-status').value = d.demoStatus || '';
-      document.getElementById('f-complete').value = d.complete || '';
-      const fdr = document.getElementById('f-dep-return');
-      if (fdr) fdr.value = d.depReturn || 'No';
-      const fdm = document.getElementById('f-demo-return');
-      if (fdm) fdm.value = d.demoReturn || 'No';
-      document.getElementById('f-contact').value = d.contact || '';
-      document.getElementById('f-tel').value = d.tel || '';
-      document.getElementById('f-office-tel').value = d.office_tel || '';
-      document.getElementById('f-email').value = d.email || '';
-      document.getElementById('f-mobile').value = d.mobile || '';
-      document.getElementById('f-remark').value = d.remark || '';
-      document.getElementById('f-cost-sheet').value = d.cost_sheet || '';
+      const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+      setVal('f-place', d.place || '');
+      setVal('f-customer', d.customer || '');
+      setVal('f-owner', d.owner || '');
+      setVal('f-area', d.area || '');
+      setVal('f-project', d.project || '');
+      setVal('f-deal', d.deal || '');
+      setVal('f-pr', d.pr || '');
+      setVal('f-date-req', d.dateReq || '');
+      setVal('f-date-due', d.dateDue || '');
+      setVal('f-date-check', d.dateCheck || '');
+      setVal('f-date-acc', d.dateAcc || '');
+      setVal('f-payto', d.payTo || '');
+      setVal('f-paytype', d.payType || '');
+      setVal('f-deposit', d.deposit || '');
+      setVal('f-demolish', d.demolish || '');
+      setVal('f-fee', d.fee || '');
+      setVal('f-other', d.other || '');
+      setVal('f-total', d.total || '');
+      setVal('f-status', d.status || '');
+      setVal('f-dep-status', d.depStatus || '');
+      setVal('f-demo-status', d.demoStatus || '');
+      setVal('f-complete', d.complete || '');
+      setVal('f-dep-return', d.depReturn || 'No');
+      setVal('f-demo-return', d.demoReturn || 'No');
+      setVal('f-contact', d.contact || '');
+      setVal('f-tel', d.tel || '');
+      setVal('f-office-tel', d.office_tel || '');
+      setVal('f-email', d.email || '');
+      setVal('f-mobile', d.mobile || '');
+      setVal('f-remark', d.remark || '');
+      setVal('f-cost-sheet', d.cost_sheet || '');
 
-      // New fields
-      if (document.getElementById('f-tl-team')) document.getElementById('f-tl-team').value = d.tl_team || '';
-      if (document.getElementById('f-complete-tl')) document.getElementById('f-complete-tl').value = d.complete_tl || '';
-      if (document.getElementById('f-status-final')) document.getElementById('f-status-final').value = d.status_final || '';
-      if (document.getElementById('f-return-status')) document.getElementById('f-return-status').value = d.return_status || '';
+      setVal('f-tl-team', d.tl_team || '');
+      setVal('f-complete-tl', d.complete_tl || '');
+      setVal('f-status-final', d.status_final || '');
+      setVal('f-return-status', d.return_status || '');
 
-      if (document.getElementById('f-date-return')) document.getElementById('f-date-return').value = d.date_return || '';
-      if (document.getElementById('f-return-type')) document.getElementById('f-return-type').value = d.return_type || '';
-      if (document.getElementById('f-final-remark')) document.getElementById('f-final-remark').value = d.final_remark || '';
-      if (document.getElementById('f-date-accounting')) document.getElementById('f-date-accounting').value = d.date_accounting || '';
+      setVal('f-date-return', d.date_return || '');
+      setVal('f-return-type', d.return_type || '');
+      setVal('f-final-remark', d.final_remark || '');
+      setVal('f-date-accounting', d.date_accounting || '');
 
       // PDF Links
       ['pdf_payment', 'pdf_layout', 'pdf_tl_work', 'pdf_user_final'].forEach(key => {
@@ -2984,11 +2970,13 @@
 
       // 1. Monthly Financial Trend
       const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
-      const trendData = new Array(12).fill(0);
+      const feeData = new Array(12).fill(0);
+      const depositData = new Array(12).fill(0);
       DB.forEach(d => {
         if (d.dateReq) {
           const m = new Date(d.dateReq).getMonth();
-          trendData[m] += (d.total || 0);
+          feeData[m] += (d.fee || 0);
+          depositData[m] += ((d.deposit || 0) + (d.demolish || 0));
         }
       });
 
@@ -2998,8 +2986,19 @@
         data: {
           labels: months,
           datasets: [{
-            label: 'มูลค่าการตั้งเบิกรายเดือน',
-            data: trendData,
+            label: 'ค่าธรรมเนียมอาคาร',
+            data: feeData,
+            borderColor: '#94a3b8',
+            backgroundColor: 'rgba(148, 163, 184, 0.1)',
+            fill: true,
+            tension: 0.4,
+            borderWidth: 3,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: '#94a3b8',
+            pointRadius: 4
+          }, {
+            label: 'เงินประกันอาคาร',
+            data: depositData,
             borderColor: '#d4af37',
             backgroundColor: 'rgba(212, 175, 55, 0.1)',
             fill: true,
@@ -3012,7 +3011,7 @@
         },
         options: {
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
+          plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 15 } } },
           scales: {
             y: { grid: { color: 'rgba(0,0,0,0.05)' }, border: { display: false } },
             x: { grid: { display: false }, border: { display: false } }
