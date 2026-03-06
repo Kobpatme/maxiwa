@@ -1851,6 +1851,7 @@
                     <th>รหัสพนักงาน</th>
                     <th>ชื่อ-นามสกุล</th>
                     <th>สิทธิ์การใช้งาน</th>
+                    <th>พื้นที่ที่ดูได้ (Area)</th>
                     <th>การดำเนินการ</th>
                   </tr>
                 </thead>
@@ -1886,10 +1887,17 @@
           </div>
           <div class="form-group">
             <label>สิทธิ์การใช้งาน <span class="required">*</span></label>
-            <select class="form-control" id="u-role">
+            <select class="form-control" id="u-role" onchange="toggleAreaSelect(this.value)">
               <option value="user">User (ดูและแก้ไขข้อมูลทั่วไป)</option>
-              <option value="admin">Admin (จัดการผู้ใช้งานได้)</option>
+              <option value="admin">Admin (จัดการได้ทุกอย่าง)</option>
+              <option value="tl">TL (ดูแลเฉพาะ Area ที่กำหนด)</option>
             </select>
+          </div>
+          <div class="form-group" id="u-area-group" style="display:none">
+            <label>พื้นที่รับผิดชอบ (Area) <span class="required">*</span></label>
+            <input class="form-control" id="u-area" placeholder="ระบุ Area (คั่นด้วยลูกน้ำ เช่น BKK 1,BKK 2)">
+            <div style="font-size:11px;color:var(--txt3);margin-top:4px">ตัวอย่าง: BKK 1, BKK 2, CBI -
+              ปล่อยว่างถ้าดูได้ทั้งหมด</div>
           </div>
           <div class="modal-foot">
             <button type="button" class="btn btn-ghost" onclick="closeModal('userOverlay')">ยกเลิก</button>
@@ -2274,6 +2282,29 @@
     </div>
   </div>
 
+  <!-- ═══════ MODAL: CANCEL REASON ═══════ -->
+  <div class="overlay" id="cancelOverlay">
+    <div class="modal sm">
+      <div class="modal-head">
+        <div class="modal-title">ยกเลิกรายการ</div>
+        <button class="modal-close" onclick="closeModal('cancelOverlay')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="confirm-icon warn">🚫</div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:12px;text-align:center" id="cancelTitle">
+          ยกเลิกรายการนี้?</div>
+        <div class="form-group">
+          <label>เหตุผลที่ยกเลิก <span class="required">*</span></label>
+          <textarea class="form-control" id="f-cancel-reason" rows="3" placeholder="ระบุเหตุผล..."></textarea>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeModal('cancelOverlay')">ปิด</button>
+        <button class="btn btn-danger" id="cancelOkBtn">บันทึกการยกเลิก</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══════ MODAL: CONFIRM DELETE ═══════ -->
   <div class="overlay" id="confirmOverlay">
     <div class="modal sm">
@@ -2284,11 +2315,12 @@
       <div class="modal-body" style="text-align:center">
         <div class="confirm-icon danger">🗑️</div>
         <div style="font-size:15px;font-weight:600;margin-bottom:6px" id="confirmTitle">ลบรายการนี้?</div>
-        <div style="font-size:13px;color:var(--txt3)" id="confirmDesc">การดำเนินการนี้ไม่สามารถย้อนกลับได้</div>
+        <div style="font-size:13px;color:var(--txt3)" id="confirmDesc">การดำเนินการนี้ไม่สามารถย้อนกลับได้เฉพาะ Admin
+          เท่านั้น</div>
       </div>
       <div class="modal-foot">
         <button class="btn btn-ghost" onclick="closeModal('confirmOverlay')">ยกเลิก</button>
-        <button class="btn btn-danger" id="confirmOkBtn">ลบเลย</button>
+        <button class="btn btn-danger" id="confirmOkBtn">ลบถาวร</button>
       </div>
     </div>
   </div>
@@ -2343,8 +2375,9 @@
     function fmt(n) { return n > 0 ? '฿' + n.toLocaleString() : `<span style="color:var(--txt3)">—</span>` }
 
     function stepLabel(d) {
+      if (d.status === 'Cancel') return `<span style="color:var(--red);font-size:11.5px;font-weight:600">✕ ยกเลิกแล้ว</span>`;
       const idx = getStepIndex(d);
-      if (idx >= 7 || d.status === 'Done') return `<span style="color:var(--green);font-size:11.5px;font-weight:600">✓ เสร็จสมบูรณ์</span>`;
+      if (idx >= 7 || d.status === 'Done') return `<span style="color:var(--green);font-size:11.5px;font-weight:600">✓ ปิดงาน</span>`;
       return `<span style="color:var(--orange);font-size:11.5px;font-weight:600">${STEPS[idx]?.label || '—'}</span>`;
     }
 
@@ -2428,7 +2461,15 @@
 
     /* ════════ RENDER TABLE ════════ */
     function renderTable() {
-      let data = DB.filter(d => {
+      // Role-based filtering
+      let roleAllowedData = DB;
+      if (CURRENT_USER && CURRENT_USER.role === 'tl' && CURRENT_USER.area) {
+        // tl role sees only their areas
+        const allowedAreas = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
+        roleAllowedData = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
+      }
+
+      let data = roleAllowedData.filter(d => {
         const ms = !filterStatus || d.status === filterStatus;
         const mo = !filterOwner || d.owner === filterOwner;
         const ma = !filterArea || d.area === filterArea;
@@ -2449,12 +2490,9 @@
     <tr onclick="if(event.target.tagName !== 'BUTTON' && event.target.tagName !== 'SELECT') openWorkflow(${d.id})" style="cursor:pointer;" title="คลิกเพื่ออัปเดตสถานะ">
       <td class="nowrap" style="color:var(--txt3);font-size:12px">#${d.id}</td>
       <td class="nowrap">
-        <select class="status-select" onchange="quickStatus(${d.id},this.value)" style="${statusSelectStyle(d.status)}">
-          <option ${d.status === '' ? 'selected' : ''} value="">ใหม่</option>
-          <option ${d.status === 'On Process' ? 'selected' : ''} value="On Process">⏳ กำลังดำเนินการ</option>
-          <option ${d.status === 'Done' ? 'selected' : ''} value="Done">✓ Done</option>
-          <option ${d.status === 'Cancel' ? 'selected' : ''} value="Cancel">✕ ยกเลิก</option>
-        </select>
+        <div style="${statusSelectStyle(d.status)}; font-size:13px; font-weight:600; text-align:center;">
+          ${d.status === 'Done' ? '✓ ปิดงาน' : d.status === 'Cancel' ? '✕ ยกเลิก' : d.status === 'On Process' ? '⏳ กำลังดำเนินการ' : 'ใหม่'}
+        </div>
       </td>
       <td class="td-place">
         <div class="place">${d.place}</div>
@@ -2471,9 +2509,11 @@
       <td class="nowrap">
         <div class="actions">
           <button class="act-btn view" title="ดูรายละเอียด" onclick="openDetail(${d.id})">👁</button>
+          <button class="act-btn view" title="ดูรายละเอียด" onclick="openDetail(${d.id})">👁</button>
           <button class="act-btn edit" title="แก้ไข" onclick="openEdit(${d.id})">✏️</button>
           <button class="act-btn" title="อัปเดตสถานะ" onclick="openWorkflow(${d.id})" style="font-size:13px" onmouseover="this.style.background='var(--orange-l)'" onmouseout="this.style.background='var(--white)'">🔄</button>
-          <button class="act-btn delete" title="ลบ" onclick="confirmDelete(${d.id})">🗑</button>
+          <button class="act-btn" title="ยกเลิกรายการ" onclick="confirmCancel(${d.id})" style="font-size:13px" onmouseover="this.style.background='var(--red-l);border-color:#fecdca'" onmouseout="this.style.background='var(--white);border-color:var(--border)'">🚫</button>
+          ${CURRENT_USER?.role === 'admin' ? `<button class="act-btn delete" title="ลบถาวร" onclick="confirmDelete(${d.id})">🗑</button>` : ''}
         </div>
       </td>
     </tr>
@@ -2698,6 +2738,13 @@
           }
         }
 
+        // Auto-complete if Step 2 empty deposit
+        const depositVal = +document.getElementById('f-deposit').value || 0;
+        let finalStatus = getVal('f-status') || getVal('f-status-final');
+        if (depositVal === 0 && finalStatus !== 'Cancel') {
+          finalStatus = 'Done';
+        }
+
         const obj = {
           place, owner,
           customer: getVal('f-customer'),
@@ -2711,12 +2758,12 @@
           dateAcc: getVal('f-date-acc'),
           payTo: getVal('f-payto'),
           payType: getVal('f-paytype'),
-          deposit: +document.getElementById('f-deposit').value || 0,
+          deposit: depositVal,
           demolish: +document.getElementById('f-demolish').value || 0,
           fee: +document.getElementById('f-fee').value || 0,
           other: +document.getElementById('f-other').value || 0,
           total: +document.getElementById('f-total').value || 0,
-          status: getVal('f-status') || getVal('f-status-final'), // Use final if set
+          status: finalStatus,
           depStatus: getVal('f-dep-status'),
           demoStatus: getVal('f-demo-status'),
           complete: getVal('f-complete'),
@@ -2731,7 +2778,7 @@
           expense: '',
           tl_team: getVal('f-tl-team'),
           complete_tl: getVal('f-complete-tl'),
-          status_final: getVal('f-status-final'),
+          status_final: finalStatus,
           return_status: getVal('f-return-status'),
           cost_sheet: getVal('f-cost-sheet'),
           date_return: getVal('f-date-return'),
@@ -2745,11 +2792,11 @@
           const updated = await updateDeposit(editingId, obj);
           const idx = DB.findIndex(x => x.id === editingId);
           DB[idx] = updated;
-          toast('แก้ไขข้อมูลสำเร็จ ✓', 'success');
+          toast('แก้ไขข้อมูลสำเร็จ ✓' + (depositVal === 0 ? ' (ระบบปิดงานอัตโนมัติเนื่องจากไม่มีเงินประกันติดตั้ง)' : ''), 'success');
         } else {
           const inserted = await insertDeposit(obj);
           DB.unshift(inserted);
-          toast('เพิ่มรายการใหม่สำเร็จ ✓', 'success');
+          toast('เพิ่มรายการใหม่สำเร็จ ✓' + (depositVal === 0 ? ' (ระบบปิดงานอัตโนมัติเนื่องจากไม่มีเงินประกันติดตั้ง)' : ''), 'success');
         }
         closeModal('formOverlay');
         renderTable(); renderKPI();
@@ -2901,10 +2948,45 @@
       }
     }
 
-    /* ════════ DELETE ════════ */
-    function confirmDelete(id) {
+    /* ════════ CANCEL / DELETE ════════ */
+    function confirmCancel(id) {
       const d = DB.find(x => x.id === id);
-      document.getElementById('confirmTitle').textContent = `ลบ "${d.place}"?`;
+      document.getElementById('cancelTitle').textContent = `ยกเลิกรายการ "${d.place}"?`;
+      document.getElementById('f-cancel-reason').value = '';
+
+      document.getElementById('cancelOkBtn').onclick = async () => {
+        const reason = document.getElementById('f-cancel-reason').value.trim();
+        if (!reason) { toast('กรุณาระบุเหตุผลการยกเลิก', 'error'); return; }
+
+        try {
+          const idx = DB.findIndex(x => x.id === id);
+          if (idx !== -1) {
+            const updated = await updateDeposit(id, {
+              status: 'Cancel',
+              status_final: 'Cancel',
+              cancel_reason: reason,
+              final_remark: (DB[idx].final_remark ? DB[idx].final_remark + ' | ' : '') + 'ยกเลิกเนื่องจาก: ' + reason
+            });
+            DB[idx] = updated;
+            closeModal('cancelOverlay');
+            renderTable(); renderKPI();
+            toast(`ยกเลิกรายการ "${d.place}" แล้ว`, 'info');
+          }
+        } catch (err) {
+          console.error(err);
+          toast('เกิดข้อผิดพลาดในการยกเลิกข้อมูล', 'error');
+        }
+      };
+      openModal('cancelOverlay');
+    }
+
+    function confirmDelete(id) {
+      if (CURRENT_USER?.role !== 'admin') {
+        toast('เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถลบข้อมูลได้', 'error');
+        return;
+      }
+      const d = DB.find(x => x.id === id);
+      document.getElementById('confirmTitle').textContent = `ลบถาวร "${d.place}"?`;
       document.getElementById('confirmOkBtn').onclick = async () => {
         try {
           await deleteDeposit(id);
@@ -3148,13 +3230,23 @@
     }
 
     /* ════════ ADMIN: USER MANAGEMENT ════════ */
+    function toggleAreaSelect(role) {
+      if (role === 'tl' || role === 'admin') {
+        document.getElementById('u-area-group').style.display = 'block';
+      } else {
+        document.getElementById('u-area-group').style.display = 'none';
+        document.getElementById('u-area').value = '';
+      }
+    }
+
     async function loadUserTable() {
       const users = await getUsers();
       document.getElementById('user-tbody').innerHTML = users.map(u => `
         <tr>
           <td class="nowrap" style="font-weight:600">${u.employee_id}</td>
           <td>${u.name}</td>
-          <td><span class="badge ${u.role === 'admin' ? 'b-violet' : 'b-blue'}">${u.role}</span></td>
+          <td><span class="badge ${u.role === 'admin' ? 'b-violet' : u.role === 'tl' ? 'b-orange' : 'b-blue'}">${u.role}</span></td>
+          <td>${u.area ? u.area : '<span style="color:var(--txt3);font-size:12px">ทุกพื้นที่/ไม่ได้ระบุ</span>'}</td>
           <td class="nowrap">
             <button class="act-btn delete" onclick="deleteUserPrompt(${u.id}, '${u.name}')" ${u.employee_id === CURRENT_USER.employee_id ? 'disabled' : ''}>🗑</button>
           </td>
@@ -3166,6 +3258,8 @@
       document.getElementById('u-id').value = '';
       document.getElementById('u-name').value = '';
       document.getElementById('u-role').value = 'user';
+      document.getElementById('u-area').value = '';
+      toggleAreaSelect('user');
       openModal('userOverlay');
     }
 
@@ -3174,7 +3268,8 @@
       const obj = {
         employee_id: document.getElementById('u-id').value.trim(),
         name: document.getElementById('u-name').value.trim(),
-        role: document.getElementById('u-role').value
+        role: document.getElementById('u-role').value,
+        area: document.getElementById('u-area').value.trim()
       };
 
       try {
