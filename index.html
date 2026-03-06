@@ -1779,6 +1779,8 @@
       const buildingFee = DB.reduce((s, d) => s + (d.fee || 0) + (d.other || 0), 0);
       const installDep = DB.reduce((s, d) => s + (d.deposit || 0), 0);
       const demoDep = DB.reduce((s, d) => s + (d.demolish || 0), 0);
+      const amt = DB.reduce((s, d) => s + (d.total || 0), 0);
+      const dep = DB.filter(d => d.depReturn !== 'Yes').reduce((s, d) => s + (d.deposit || 0), 0);
 
       document.getElementById('kpiRow').innerHTML = `
     <div class="kpi"><div class="kpi-icon2 blue">📁</div><div><div class="kpi-val">${total}</div><div class="kpi-lbl">รายการทั้งหมด</div></div></div>
