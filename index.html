@@ -11,37 +11,38 @@
   <style>
     /* ─── TOKENS ─────────────────────────────────── */
     :root {
-      --bg: #f4f6fb;
+      --bg: #f0f2f5;
       --white: #ffffff;
-      --surface: #f9fafd;
-      --border: #e4e8f2;
-      --border-focus: #4361ee;
+      --surface: #f8fafc;
+      --border: #e2e8f0;
+      --border-focus: #1e293b;
 
-      --txt: #1a1f36;
-      --txt2: #5a6282;
-      --txt3: #9ba3c4;
+      --txt: #1e293b;
+      --txt2: #475569;
+      --txt3: #94a3b8;
 
-      --blue: #4361ee;
-      --blue-l: #eef1fd;
-      --blue-m: #c7cffa;
+      --navy: #1e293b;
+      --gold: #d4af37;
+      --gold-l: #fef3c7;
+      --gold-dark: #b8860b;
 
-      --green: #12b76a;
+      --blue: #1e293b;
+      --blue-l: #f1f5f9;
+
+      --green: #059669;
       --green-l: #ecfdf5;
-      --orange: #f79009;
-      --orange-l: #fffaeb;
-      --red: #f04438;
-      --red-l: #fef3f2;
-      --violet: #7c3aed;
-      --violet-l: #f5f3ff;
-      --teal: #0e9384;
-      --teal-l: #f0fdf9;
-      --gray-l: #f2f4f7;
+      --orange: #d97706;
+      --orange-l: #fffbeb;
+      --red: #dc2626;
+      --red-l: #fef2f2;
 
-      --r: 12px;
-      --r-sm: 8px;
-      --shadow: 0 1px 3px rgba(16, 24, 40, .08), 0 1px 2px rgba(16, 24, 40, .06);
-      --shadow-md: 0 4px 16px rgba(16, 24, 40, .10), 0 2px 6px rgba(16, 24, 40, .06);
-      --shadow-lg: 0 12px 40px rgba(16, 24, 40, .14), 0 4px 12px rgba(16, 24, 40, .08);
+      --glass: rgba(255, 255, 255, 0.7);
+      --glass-border: rgba(255, 255, 255, 0.4);
+
+      --r: 16px;
+      --r-sm: 10px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
 
     /* ─── RESET ──────────────────────────────────── */
@@ -1276,32 +1277,118 @@
     }
 
     /* ─── DASHBOARD GRID ─────────────────────────── */
+    .db-hero {
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      border-radius: var(--r);
+      padding: 40px;
+      margin-bottom: 30px;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .db-hero::after {
+      content: "";
+      position: absolute;
+      top: -50%;
+      right: -10%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .db-hero-main h1 {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      opacity: 0.8;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .db-hero-val {
+      font-size: 48px;
+      font-weight: 800;
+      color: var(--gold);
+      font-family: 'Figtree';
+      line-height: 1.1;
+    }
+
+    .db-hero-stats {
+      display: flex;
+      gap: 40px;
+    }
+
+    .db-hero-stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .db-hero-stat-lbl {
+      font-size: 11px;
+      opacity: 0.7;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .db-hero-stat-val {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+    }
+
     .db-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
       margin-top: 10px;
     }
 
     .db-card {
-      background: var(--white);
-      border: 1px solid var(--border);
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
       border-radius: var(--r);
       padding: 24px;
       box-shadow: var(--shadow);
-      min-height: 340px;
+      min-height: 380px;
       display: flex;
       flex-direction: column;
+      transition: transform 0.3s ease;
+    }
+
+    .db-card:hover {
+      transform: translateY(-5px);
     }
 
     .db-card h3 {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
-      color: var(--txt);
-      margin-bottom: 20px;
+      color: var(--navy);
+      margin-bottom: 24px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .db-card h3 span {
+      width: 32px;
+      height: 32px;
+      background: var(--gold-l);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
     }
 
     .chart-container {
@@ -1493,23 +1580,46 @@
       <!-- Dashboard Page -->
       <div class="page" id="page-dashboard">
         <div style="padding:24px 28px 0">
+
+          <!-- Financial Hero Section -->
+          <div class="db-hero">
+            <div class="db-hero-main">
+              <h1>มูลค่าโครงการรวมทั้งหมด</h1>
+              <div class="db-hero-val" id="db-total-valuation">฿0</div>
+            </div>
+            <div class="db-hero-stats">
+              <div class="db-hero-stat-item">
+                <div class="db-hero-stat-lbl">เงินประกันติดตั้ง</div>
+                <div class="db-hero-stat-val" id="db-total-install">฿0</div>
+              </div>
+              <div class="db-hero-stat-item">
+                <div class="db-hero-stat-lbl">เงินประกันรื้อถอน</div>
+                <div class="db-hero-stat-val" id="db-total-demo">฿0</div>
+              </div>
+              <div class="db-hero-stat-item">
+                <div class="db-hero-stat-lbl">ค่าธรรมเนียมอาคาร</div>
+                <div class="db-hero-stat-val" id="db-total-fee">฿0</div>
+              </div>
+            </div>
+          </div>
+
           <div class="db-grid">
             <div class="db-card">
-              <h3><span>📊</span> สัดส่วนสถานะการดำเนินงาน</h3>
+              <h3><span>📈</span> แนวโน้มกระแสเงินสดรายเดือน</h3>
               <div class="chart-container">
-                <canvas id="statusChart"></canvas>
+                <canvas id="trendChart"></canvas>
               </div>
             </div>
             <div class="db-card">
-              <h3><span>👤</span> ปริมาณงานแยกตามเจ้าของงาน</h3>
+              <h3><span>📊</span> สัดส่วนการจัดสรรงบประมาณ</h3>
               <div class="chart-container">
-                <canvas id="ownerChart"></canvas>
+                <canvas id="financeAllocationChart"></canvas>
               </div>
             </div>
-            <div class="db-card" style="grid-column: span 2">
-              <h3><span>📈</span> แนวโน้มการตั้งเบิกเงินประกัน (Timeline)</h3>
+            <div class="db-card">
+              <h3><span>👤</span> มูลค่าโครงการแยกตามเจ้าของงาน</h3>
               <div class="chart-container">
-                <canvas id="trendChart"></canvas>
+                <canvas id="ownerFinanceChart"></canvas>
               </div>
             </div>
           </div>
@@ -2269,50 +2379,22 @@
     }
 
     /* ════════ EXECUTIVE DASHBOARD LOGIC ════════ */
-    let statusChart, ownerChart, trendChart;
+    let trendChart, allocationChart, ownerFinanceChart;
 
     function renderExecutiveDashboard() {
-      // 1. Status Distribution
-      const statusCounts = {};
-      DB.forEach(d => {
-        const s = d.status || 'ใหม่';
-        statusCounts[s] = (statusCounts[s] || 0) + 1;
-      });
+      const totalVal = DB.reduce((s, d) => s + (d.total || 0), 0);
+      const totalInstall = DB.reduce((s, d) => s + (d.deposit || 0), 0);
+      const totalDemo = DB.reduce((s, d) => s + (d.demolish || 0), 0);
+      const totalFee = DB.reduce((s, d) => s + (d.fee || 0) + (d.other || 0), 0);
 
-      if (statusChart) statusChart.destroy();
-      statusChart = new Chart(document.getElementById('statusChart'), {
-        type: 'doughnut',
-        data: {
-          labels: Object.keys(statusCounts),
-          datasets: [{
-            data: Object.values(statusCounts),
-            backgroundColor: ['#4361ee', '#f79009', '#12b76a', '#f04438', '#9ba3c4']
-          }]
-        },
-        options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-      });
+      document.getElementById('db-total-valuation').textContent = '฿' + totalVal.toLocaleString();
+      document.getElementById('db-total-install').textContent = '฿' + totalInstall.toLocaleString();
+      document.getElementById('db-total-demo').textContent = '฿' + totalDemo.toLocaleString();
+      document.getElementById('db-total-fee').textContent = '฿' + totalFee.toLocaleString();
 
-      // 2. Owner Distribution
-      const ownerCounts = {};
-      DB.forEach(d => {
-        if (d.owner) ownerCounts[d.owner] = (ownerCounts[d.owner] || 0) + 1;
-      });
+      const luxuryPalette = ['#1e293b', '#d4af37', '#94a3b8', '#334155', '#b8860b'];
 
-      if (ownerChart) ownerChart.destroy();
-      ownerChart = new Chart(document.getElementById('ownerChart'), {
-        type: 'bar',
-        data: {
-          labels: Object.keys(ownerCounts),
-          datasets: [{
-            label: 'จำนวนรายการ',
-            data: Object.values(ownerCounts),
-            backgroundColor: '#7c3aed'
-          }]
-        },
-        options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
-      });
-
-      // 3. Trend Analysis (Monthly)
+      // 1. Monthly Financial Trend
       const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
       const trendData = new Array(12).fill(0);
       DB.forEach(d => {
@@ -2328,15 +2410,76 @@
         data: {
           labels: months,
           datasets: [{
-            label: 'ยอดตั้งเบิกรายเดือน (฿)',
+            label: 'มูลค่าการตั้งเบิกรายเดือน',
             data: trendData,
-            borderColor: '#4361ee',
-            backgroundColor: 'rgba(67, 97, 238, 0.1)',
+            borderColor: '#d4af37',
+            backgroundColor: 'rgba(212, 175, 55, 0.1)',
             fill: true,
-            tension: 0.4
+            tension: 0.4,
+            borderWidth: 3,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: '#d4af37',
+            pointRadius: 4
           }]
         },
-        options: { maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        options: {
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { grid: { color: 'rgba(0,0,0,0.05)' }, border: { display: false } },
+            x: { grid: { display: false }, border: { display: false } }
+          }
+        }
+      });
+
+      // 2. Financial Allocation
+      if (allocationChart) allocationChart.destroy();
+      allocationChart = new Chart(document.getElementById('financeAllocationChart'), {
+        type: 'doughnut',
+        data: {
+          labels: ['เงินประกันติดตั้ง', 'เงินประกันรื้อถอน', 'ค่าธรรมเนียมอาคาร'],
+          datasets: [{
+            data: [totalInstall, totalDemo, totalFee],
+            backgroundColor: ['#1e293b', '#d4af37', '#94a3b8'],
+            borderWidth: 0,
+            hoverOffset: 15
+          }]
+        },
+        options: {
+          maintainAspectRatio: false,
+          cutout: '70%',
+          plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } } }
+        }
+      });
+
+      // 3. Owner Finance Value
+      const ownerFin = {};
+      DB.forEach(d => {
+        if (d.owner) ownerFin[d.owner] = (ownerFin[d.owner] || 0) + (d.total || 0);
+      });
+
+      if (ownerFinanceChart) ownerFinanceChart.destroy();
+      ownerFinanceChart = new Chart(document.getElementById('ownerFinanceChart'), {
+        type: 'bar',
+        data: {
+          labels: Object.keys(ownerFin),
+          datasets: [{
+            label: 'มูลค่าโครงการรวม (฿)',
+            data: Object.values(ownerFin),
+            backgroundColor: '#1e293b',
+            borderRadius: 8,
+            barThickness: 28
+          }]
+        },
+        options: {
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false }, border: { display: false } },
+            y: { grid: { display: false }, border: { display: false } }
+          }
+        }
       });
     }
 
