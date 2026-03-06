@@ -68,7 +68,8 @@ async function uploadFile(file, folder = 'misc') {
 
     if (error) {
         console.error('Error uploading file:', error);
-        throw error;
+        toast('อัปโหลดไฟล์ไม่สำเร็จ', 'error');
+        return null;
     }
 
     // Get public URL
