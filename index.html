@@ -1201,7 +1201,7 @@
     /* ─── KPI ROW ────────────────────────────────── */
     .kpi-row {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(6, 1fr);
       gap: 14px;
       margin-bottom: 20px
     }
@@ -1775,15 +1775,18 @@
       const total = DB.length;
       const done = DB.filter(d => d.status === 'Done').length;
       const proc = DB.filter(d => d.status === 'On Process').length;
-      const amt = DB.reduce((s, d) => s + (d.total || 0), 0);
-      const dep = DB.filter(d => d.depReturn !== 'Yes').reduce((s, d) => s + (d.deposit || 0), 0);
+
+      const buildingFee = DB.reduce((s, d) => s + (d.fee || 0) + (d.other || 0), 0);
+      const installDep = DB.reduce((s, d) => s + (d.deposit || 0), 0);
+      const demoDep = DB.reduce((s, d) => s + (d.demolish || 0), 0);
 
       document.getElementById('kpiRow').innerHTML = `
     <div class="kpi"><div class="kpi-icon2 blue">📁</div><div><div class="kpi-val">${total}</div><div class="kpi-lbl">รายการทั้งหมด</div></div></div>
     <div class="kpi"><div class="kpi-icon2 orange">⏳</div><div><div class="kpi-val" style="color:var(--orange)">${proc}</div><div class="kpi-lbl">กำลังดำเนินการ</div></div></div>
     <div class="kpi"><div class="kpi-icon2 green">✅</div><div><div class="kpi-val" style="color:var(--green)">${done}</div><div class="kpi-lbl">เสร็จแล้ว</div></div></div>
-    <div class="kpi"><div class="kpi-icon2 blue">💰</div><div><div class="kpi-val" style="color:var(--blue);font-size:17px">฿${amt.toLocaleString()}</div><div class="kpi-lbl">ยอดรวมทั้งหมด</div></div></div>
-    <div class="kpi"><div class="kpi-icon2 violet">🏛️</div><div><div class="kpi-val" style="color:var(--violet);font-size:17px">฿${dep.toLocaleString()}</div><div class="kpi-lbl">ประกันรอคืน</div></div></div>
+    <div class="kpi"><div class="kpi-icon2 violet">🏛️</div><div><div class="kpi-val" style="color:var(--violet);font-size:16px">฿${buildingFee.toLocaleString()}</div><div class="kpi-lbl">ค่าธรรมเนียมอาคาร</div></div></div>
+    <div class="kpi"><div class="kpi-icon2 blue">🛡️</div><div><div class="kpi-val" style="color:var(--blue);font-size:16px">฿${installDep.toLocaleString()}</div><div class="kpi-lbl">เงินประกันติดตั้ง</div></div></div>
+    <div class="kpi"><div class="kpi-icon2 red">🚧</div><div><div class="kpi-val" style="color:var(--red);font-size:16px">฿${demoDep.toLocaleString()}</div><div class="kpi-lbl">ประกันรื้อถอน</div></div></div>
   `;
 
       document.getElementById('nav-total').textContent = total;
