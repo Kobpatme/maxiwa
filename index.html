@@ -8,6 +8,10 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Figtree:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase-client.js"></script>
   <style>
     /* ─── TOKENS ─────────────────────────────────── */
     :root {
@@ -1944,6 +1948,10 @@
           </div>
           <div class="w-step" onclick="goToStep(7)">
             <div class="w-step-n">7</div>
+            <div class="w-step-lbl">User ตรวจสอบ</div>
+          </div>
+          <div class="w-step" onclick="goToStep(8)">
+            <div class="w-step-n">8</div>
             <div class="w-step-lbl">ปิดงาน</div>
           </div>
         </div>
@@ -2009,6 +2017,24 @@
                 <label>ผู้ประสานงาน</label>
                 <input class="form-control" id="f-contact" placeholder="ชื่อ">
               </div>
+              <div class="form-group">
+                <label>เบอร์โทร (มือถือ)</label>
+                <input class="form-control" id="f-tel" placeholder="08X-XXX-XXXX">
+              </div>
+              <div class="form-group">
+                <label>เบอร์สำนักงาน</label>
+                <input class="form-control" id="f-office-tel" placeholder="เบอร์โทรสำนักงาน">
+              </div>
+            </div>
+            <div class="form-grid cols3" style="margin-top:15px">
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" class="form-control" id="f-email" placeholder="example@email.com">
+              </div>
+              <div class="form-group" style="grid-column: span 2">
+                <label>Cost Sheet</label>
+                <input class="form-control" id="f-cost-sheet" placeholder="ระบุข้อมูล Cost Sheet">
+              </div>
             </div>
           </div>
 
@@ -2032,13 +2058,17 @@
                 </select>
               </div>
             </div>
-            <div class="form-grid cols3" style="margin-top:15px">
+            <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); margin-top:15px">
               <div class="form-group"><label>เงินประกันติดตั้ง</label><input type="number" class="form-control"
                   id="f-deposit" oninput="calcTotal()"></div>
               <div class="form-group"><label>เงินประกันรื้อถอน</label><input type="number" class="form-control"
                   id="f-demolish" oninput="calcTotal()"></div>
-              <div class="form-group"><label>ค่าธรรมเนียม/อื่นๆ</label><input type="number" class="form-control"
-                  id="f-fee" oninput="calcTotal()"></div>
+              <div class="form-group"><label>ค่าธรรมเนียม</label><input type="number" class="form-control" id="f-fee"
+                  oninput="calcTotal()"></div>
+              <div class="form-group"><label>อื่นๆ</label><input type="number" class="form-control" id="f-other"
+                  oninput="calcTotal()"></div>
+            </div>
+            <div class="form-grid" style="margin-top:15px">
               <div class="form-group"><label>ยอดรวม</label><input type="number" class="form-control" id="f-total"
                   readonly style="background:var(--blue-l)"></div>
             </div>
@@ -2068,6 +2098,11 @@
                   <a id="f-pdf-layout-link" class="file-link" target="_blank" style="display:none">ดูไฟล์ปัจจุบัน</a>
                 </div>
               </div>
+            </div>
+            <div class="form-group" style="margin-top:15px">
+              <label>หมายเหตุ</label>
+              <textarea class="form-control" id="f-remark" rows="3"
+                placeholder="ระบุหมายเหตุเพิ่มเติม (ถ้ามี)"></textarea>
             </div>
             <div class="form-group" style="margin-top:15px">
               <label>สถานะหลัก</label>
@@ -2142,10 +2177,54 @@
             </div>
           </div>
 
-          <!-- STEP 7: User Final -->
+          <!-- STEP 7: User Return Process -->
           <div class="form-step" id="step-7">
-            <div class="form-section">🏁 Step 7: ปิดงาน (User) & แนบหลักฐานสุดท้าย</div>
+            <div class="form-section">🔄 Step 7: ขั้นตอนขอคืนเงินประกัน (User)</div>
             <div class="form-group">
+              <label>สถานะการขอคืนเงิน (Return Status)</label>
+              <select class="form-control" id="f-return-status">
+                <option value="">-- เลือกสถานะ --</option>
+                <option value="On Process">On Process (กำลังดำเนินการขอคืนเงิน)</option>
+                <option value="Done">Done (ดำเนินการแล้ว)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- STEP 8: User Final -->
+          <div class="form-step" id="step-8">
+            <div class="form-section">🏁 Step 8: ปิดงาน (User) & แนบหลักฐานสุดท้าย</div>
+            <div class="form-grid cols3">
+              <div class="form-group">
+                <label>วันที่ได้รับเงินประกันคืน</label>
+                <input type="date" class="form-control" id="f-date-return">
+              </div>
+              <div class="form-group">
+                <label>ประเภทการคืนเงิน</label>
+                <select class="form-control" id="f-return-type">
+                  <option value="">-- เลือก --</option>
+                  <option>เช็คใบเดิม</option>
+                  <option>เช็คใบใหม่ของอาคาร</option>
+                  <option>โอนเข้าบัญชี</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>วันที่ส่งคืนบัญชี</label>
+                <input type="date" class="form-control" id="f-date-accounting">
+              </div>
+            </div>
+            <div class="form-group" style="margin-top:15px">
+              <label>หมายเหตุ (ปิดงาน)</label>
+              <textarea class="form-control" id="f-final-remark" rows="2"
+                placeholder="ระบุหมายเหตุการปิดงาน..."></textarea>
+            </div>
+            <div class="form-group" style="margin-top:15px">
+              <label>สถานะสุดท้าย</label>
+              <select class="form-control" id="f-status-final">
+                <option value="On Process">On Process</option>
+                <option value="Done">Done (ปิดงานสมบูรณ์)</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-top:15px">
               <label>หลักฐานการปิดจบงาน (PDF)</label>
               <div class="file-upload-box">
                 <div class="file-upload-icon">🏁</div>
@@ -2154,13 +2233,6 @@
                 <div class="file-upload-name" id="f-pdf-user-final-name"></div>
                 <a id="f-pdf-user-final-link" class="file-link" target="_blank" style="display:none">ดูไฟล์ปัจจุบัน</a>
               </div>
-            </div>
-            <div class="form-group" style="margin-top:15px">
-              <label>สถานะสุดท้าย</label>
-              <select class="form-control" id="f-status-final">
-                <option value="On Process">On Process</option>
-                <option value="Done">Done (ปิดงานสมบูรณ์)</option>
-              </select>
             </div>
           </div>
 
@@ -2256,19 +2328,21 @@
       { label: 'Step 4: มอบหมายงาน', desc: 'ส่งงานให้ทีม TL (BKK/UPC) ดำเนินการ' },
       { label: 'Step 5: TL รับงาน', desc: 'ทีม TL รับทราบและเริ่มดำเนินการหน้างาน' },
       { label: 'Step 6: TL ส่งงาน', desc: 'ทีม TL ดำเนินการเสร็จสิ้นและแนบหลักฐาน' },
-      { label: 'Step 7: ปิดงาน', desc: 'User ตรวจรับและแนบหลักฐานปิดจบโครงการ' },
+      { label: 'Step 7: ขั้นตอนขอคืนเงิน', desc: 'User ดำเนินการขอคืนเงินประกัน' },
+      { label: 'Step 8: ปิดงาน', desc: 'User ตรวจรับและแนบหลักฐานปิดจบโครงการ' },
     ];
 
     /* ════════ HELPERS ════════ */
     function getStepIndex(d) {
-      if (!d.pr && !d.deposit) return 0; // Step 1
-      if ((d.pr || d.deposit) && !d.pdf_payment) return 1; // Step 2
-      if (d.pdf_payment && !d.tl_team) return 2; // Step 3
-      if (d.tl_team && d.complete !== 'Complete') return 3; // Step 4
-      if (d.complete === 'Complete' && d.status === 'On Process' && !d.pdf_tl_work) return 4; // Step 5
-      if (d.pdf_tl_work && !d.pdf_user_final) return 5; // Step 6
-      if (d.pdf_user_final || d.status === 'Done') return 6; // Step 7
-      return 7;
+      if (!d.pr && !d.deposit) return 0; // Step 1: waiting for PR/Deposit
+      if ((d.pr || d.deposit) && !d.pdf_payment) return 1; // Step 2: waiting for PDF proof
+      if (d.pdf_payment && !d.tl_team) return 2; // Step 3: waiting for TL Assignment
+      if (d.tl_team && d.complete !== 'Complete') return 3; // Step 4: waiting for assignment confirmation
+      if (d.complete === 'Complete' && d.complete_tl !== 'On Process') return 4; // Step 5: waiting for TL Acceptance
+      if (d.complete_tl === 'On Process' && !d.pdf_tl_work) return 5; // Step 6: waiting for TL Proof
+      if (d.pdf_tl_work && !d.return_status) return 6; // Step 7: waiting for return_status
+      if (d.return_status && !d.pdf_user_final) return 7; // Step 8: waiting for formal closing
+      return 8; // Done
     }
 
     function statusBadge(s) {
@@ -2290,7 +2364,7 @@
     let currentStep = 1;
 
     function goToStep(s) {
-      if (s < 1 || s > 7) return;
+      if (s < 1 || s > 8) return;
       currentStep = s;
 
       // Update UI
@@ -2312,17 +2386,17 @@
       const btnSave = document.getElementById('formSubmitBtn');
 
       if (btnPrev) btnPrev.style.display = (s === 1) ? 'none' : 'block';
-      if (btnNext) btnNext.style.display = (s === 7) ? 'none' : 'block';
-      if (btnSave) btnSave.style.display = (s === 7) ? 'block' : 'none';
+      if (btnNext) btnNext.style.display = (s === 8) ? 'none' : 'block';
+      if (btnSave) btnSave.style.display = (s === 8) ? 'block' : 'none';
 
       // Role validation (Step 5-6 for TL only)
-      const user = JSON.parse(localStorage.getItem('user_session') || '{}');
+      const user = CURRENT_USER || {};
       if ((s === 5 || s === 6) && user.role !== 'admin' && user.role !== 'tl') {
         toast('สิทธิ์เฉพาะทีม TL เท่านั้น', 'info');
       }
     }
 
-    function nextStep() { if (currentStep < 7) goToStep(currentStep + 1); }
+    function nextStep() { if (currentStep < 8) goToStep(currentStep + 1); }
     function prevStep() { if (currentStep > 1) goToStep(currentStep - 1); }
 
     function handleFileSelect(input) {
@@ -2488,13 +2562,13 @@
       openModal('formOverlay');
     }
 
-    function openEdit(id) {
+    function openEdit(id, targetStep = 1) {
       const d = DB.find(x => x.id === id);
       editingId = id;
       document.getElementById('formTitle').textContent = 'แก้ไขรายการ #' + id;
       document.getElementById('formSub').textContent = d.place;
       document.getElementById('formSubmitBtn').textContent = '💾 บันทึกการแก้ไข';
-      fillForm(d);
+      fillForm(d, targetStep);
       openModal('formOverlay');
     }
 
@@ -2503,14 +2577,17 @@
         'f-pr', 'f-date-req', 'f-date-due', 'f-date-check', 'f-date-acc',
         'f-payto', 'f-paytype', 'f-deposit', 'f-demolish', 'f-fee', 'f-other', 'f-total',
         'f-status', 'f-dep-status', 'f-demo-status', 'f-complete',
-        'f-dep-return', 'f-demo-return', 'f-contact', 'f-tel', 'f-mobile', 'f-remark',
-        'f-tl-team', 'f-complete-tl', 'f-status-final'
+        'f-dep-return', 'f-demo-return', 'f-contact', 'f-tel', 'f-office-tel', 'f-email', 'f-mobile', 'f-remark',
+        'f-cost-sheet', 'f-date-return', 'f-return-type', 'f-final-remark', 'f-date-accounting',
+        'f-tl-team', 'f-complete-tl', 'f-status-final', 'f-return-status'
       ].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
       });
-      document.getElementById('f-dep-return').value = 'No';
-      document.getElementById('f-demo-return').value = 'No';
+      const fdr = document.getElementById('f-dep-return');
+      if (fdr) fdr.value = 'No';
+      const fdm = document.getElementById('f-demo-return');
+      if (fdm) fdm.value = 'No';
 
       // Clear Files
       ['f-pdf-payment', 'f-pdf-layout', 'f-pdf-tl-work', 'f-pdf-user-final'].forEach(id => {
@@ -2525,7 +2602,7 @@
       goToStep(1);
     }
 
-    function fillForm(d) {
+    function fillForm(d, targetStep = 1) {
       document.getElementById('f-place').value = d.place || '';
       document.getElementById('f-customer').value = d.customer || '';
       document.getElementById('f-owner').value = d.owner || '';
@@ -2548,17 +2625,28 @@
       document.getElementById('f-dep-status').value = d.depStatus || '';
       document.getElementById('f-demo-status').value = d.demoStatus || '';
       document.getElementById('f-complete').value = d.complete || '';
-      document.getElementById('f-dep-return').value = d.depReturn || 'No';
-      document.getElementById('f-demo-return').value = d.demoReturn || 'No';
+      const fdr = document.getElementById('f-dep-return');
+      if (fdr) fdr.value = d.depReturn || 'No';
+      const fdm = document.getElementById('f-demo-return');
+      if (fdm) fdm.value = d.demoReturn || 'No';
       document.getElementById('f-contact').value = d.contact || '';
       document.getElementById('f-tel').value = d.tel || '';
+      document.getElementById('f-office-tel').value = d.office_tel || '';
+      document.getElementById('f-email').value = d.email || '';
       document.getElementById('f-mobile').value = d.mobile || '';
       document.getElementById('f-remark').value = d.remark || '';
+      document.getElementById('f-cost-sheet').value = d.cost_sheet || '';
 
       // New fields
       if (document.getElementById('f-tl-team')) document.getElementById('f-tl-team').value = d.tl_team || '';
       if (document.getElementById('f-complete-tl')) document.getElementById('f-complete-tl').value = d.complete_tl || '';
       if (document.getElementById('f-status-final')) document.getElementById('f-status-final').value = d.status_final || '';
+      if (document.getElementById('f-return-status')) document.getElementById('f-return-status').value = d.return_status || '';
+
+      if (document.getElementById('f-date-return')) document.getElementById('f-date-return').value = d.date_return || '';
+      if (document.getElementById('f-return-type')) document.getElementById('f-return-type').value = d.return_type || '';
+      if (document.getElementById('f-final-remark')) document.getElementById('f-final-remark').value = d.final_remark || '';
+      if (document.getElementById('f-date-accounting')) document.getElementById('f-date-accounting').value = d.date_accounting || '';
 
       // PDF Links
       ['pdf_payment', 'pdf_layout', 'pdf_tl_work', 'pdf_user_final'].forEach(key => {
@@ -2575,7 +2663,7 @@
         }
       });
 
-      goToStep(1);
+      goToStep(targetStep);
     }
 
     function calcTotal() {
@@ -2650,12 +2738,20 @@
           demoReturn: getVal('f-demo-return'),
           contact: getVal('f-contact'),
           tel: getVal('f-tel'),
+          office_tel: getVal('f-office-tel'),
+          email: getVal('f-email'),
           mobile: getVal('f-mobile'),
           remark: getVal('f-remark'),
           expense: '',
           tl_team: getVal('f-tl-team'),
           complete_tl: getVal('f-complete-tl'),
           status_final: getVal('f-status-final'),
+          return_status: getVal('f-return-status'),
+          cost_sheet: getVal('f-cost-sheet'),
+          date_return: getVal('f-date-return'),
+          return_type: getVal('f-return-type'),
+          final_remark: getVal('f-final-remark'),
+          date_accounting: getVal('f-date-accounting'),
           ...fileUrls // Spread uploaded URLs
         };
 
@@ -2699,8 +2795,14 @@
         ['จ่ายให้', d.payTo || '—'],
         ['ทีม TL กทม/ตจว', d.tl_team || '—'],
         ['ผู้ประสานงาน', d.contact || '—'],
-        ['โทร', d.tel || '—'],
-        ['มือถือ', d.mobile || '—'],
+        ['เบอร์โทร (มือถือ)', d.tel || '—'],
+        ['เบอร์สำนักงาน', d.office_tel || '—'],
+        ['Email', d.email || '—'],
+        ['Cost Sheet', d.cost_sheet || '—'],
+        ['วันที่ได้รับเงินคืน', d.date_return || '—'],
+        ['ประเภทการคืนเงิน', d.return_type || '—'],
+        ['วันที่ส่งคืนบัญชี', d.date_accounting || '—'],
+        ['หมายเหตุปิดงาน', d.final_remark || '—']
       ];
 
       const statusHTML = `<div style="margin-bottom:14px;display:flex;gap:10px;align-items:center">${statusBadge(d.status)} ${d.complete === 'Complete' ? '<span class="badge b-done">ส่งมอบงานแล้ว</span>' : ''}</div>`;
@@ -2763,13 +2865,14 @@
         let actionBtn = '';
         if (isActive) {
           const actionMap = {
-            0: { label: 'เริ่มการเงิน (Step 2) →', fn: `openEdit(${id}); setTimeout(() => goToStep(2), 100); closeModal('wfOverlay')` },
-            1: { label: 'แนบหลักฐาน (Step 3) →', fn: `openEdit(${id}); setTimeout(() => goToStep(3), 100); closeModal('wfOverlay')` },
-            2: { label: 'มอบหมาย TL (Step 4) →', fn: `openEdit(${id}); setTimeout(() => goToStep(4), 100); closeModal('wfOverlay')` },
+            0: { label: 'เริ่มการเงิน (Step 2) →', fn: `openEdit(${id}, 2); closeModal('wfOverlay')` },
+            1: { label: 'แนบหลักฐาน (Step 3) →', fn: `openEdit(${id}, 3); closeModal('wfOverlay')` },
+            2: { label: 'มอบหมาย TL (Step 4) →', fn: `openEdit(${id}, 4); closeModal('wfOverlay')` },
             3: { label: 'ยืนยันมอบหมายสำเร็จ', fn: `wfAction(${id},3)` },
             4: { label: 'TL รับงานแล้ว', fn: `wfAction(${id},4)` },
-            5: { label: 'TL แนบไฟล์ส่งงาน →', fn: `openEdit(${id}); setTimeout(() => goToStep(6), 100); closeModal('wfOverlay')` },
-            6: { label: 'ปิดงานสมบูรณ์', fn: `wfAction(${id},6)` },
+            5: { label: 'TL แนบไฟล์ส่งงาน →', fn: `openEdit(${id}, 6); closeModal('wfOverlay')` },
+            6: { label: 'ระบุสถานะขอคืนเงิน (Step 7) →', fn: `openEdit(${id}, 7); closeModal('wfOverlay')` },
+            7: { label: 'แนบหลักฐานปิดงาน (Step 8) →', fn: `openEdit(${id}, 8); closeModal('wfOverlay')` },
           };
           const act = actionMap[i];
           if (act) {
@@ -2795,11 +2898,9 @@
     async function wfAction(id, step) {
       try {
         const d = DB.find(x => x.id === id);
-        const today = new Date().toISOString().split('T')[0];
         const updates = {};
         if (step === 3) updates.complete = 'Complete';
         if (step === 4) { updates.status = 'On Process'; updates.complete_tl = 'On Process'; }
-        if (step === 6) { updates.status = 'Done'; updates.status_final = 'Done'; }
 
         const updated = await updateDeposit(id, updates);
         const idx = DB.findIndex(x => x.id === id);
