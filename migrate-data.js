@@ -66,6 +66,7 @@ async function migrate() {
                 pr: String(getVal('PR NO.') || ''),
                 dateDue: excelDateToJS(getVal('วันที่ต้องการ')),
                 dateCheck: excelDateToJS(getVal('วันที่ได้รับเช็ค')),
+                dateAcc: null, // New column added for workflow
                 payTo: getVal('Pay to'),
                 payType: getVal('ประเภทการเบิกจ่าย'),
                 deposit: parseFloat(getVal('เงินประกัน')) || 0,

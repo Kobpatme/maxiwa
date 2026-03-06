@@ -55,6 +55,30 @@ async function deleteDeposit(id) {
     return true;
 }
 
+/* ─── STORAGE (File Upload) ─── */
+
+async function uploadFile(file, folder = 'misc') {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+    const filePath = `${folder}/${fileName}`;
+
+    const { data, error } = await _supabase.storage
+        .from('deposits_files')
+        .upload(filePath, file);
+
+    if (error) {
+        console.error('Error uploading file:', error);
+        throw error;
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = _supabase.storage
+        .from('deposits_files')
+        .getPublicUrl(filePath);
+
+    return publicUrl;
+}
+
 /* ─── USER MANAGEMENT (Auth/Admin) ─── */
 
 async function validateUser(employeeId) {
@@ -62,7 +86,7 @@ async function validateUser(employeeId) {
         .from('users')
         .select('*')
         .eq('employee_id', employeeId)
-        .single();
+        .maybeSingle();
 
     if (error) {
         console.error('Login validation error:', error);

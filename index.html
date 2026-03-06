@@ -1397,7 +1397,131 @@
       width: 100%;
     }
 
-    /* ─── RESPONSIVE ─────────────────────────────── */
+    /* ─── WIZARD STEPS ────────────────────────────── */
+    .wizard-steps {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      position: relative;
+      padding: 0 10px;
+    }
+
+    .wizard-steps::before {
+      content: "";
+      position: absolute;
+      top: 15px;
+      left: 20px;
+      right: 20px;
+      height: 2px;
+      background: var(--border);
+      z-index: 1;
+    }
+
+    .w-step {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      width: 40px;
+    }
+
+    .w-step-n {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--white);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--txt3);
+      transition: all 0.3s;
+    }
+
+    .w-step.active .w-step-n {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: #fff;
+      transform: scale(1.1);
+      box-shadow: 0 0 0 4px var(--blue-l);
+    }
+
+    .w-step.done .w-step-n {
+      border-color: var(--green);
+      background: var(--green);
+      color: #fff;
+    }
+
+    .w-step-lbl {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--txt3);
+      white-space: nowrap;
+      position: absolute;
+      top: 38px;
+    }
+
+    .w-step.active .w-step-lbl {
+      color: var(--blue);
+    }
+
+    .form-step {
+      display: none;
+      animation: fadeIn 0.4s;
+    }
+
+    .form-step.active {
+      display: block;
+    }
+
+    .file-upload-box {
+      border: 2px dashed var(--border);
+      border-radius: var(--r);
+      padding: 20px;
+      text-align: center;
+      background: var(--white);
+      transition: all 0.2s;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .file-upload-box:hover {
+      border-color: var(--blue);
+      background: var(--blue-l);
+    }
+
+    .file-upload-box input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .file-upload-icon {
+      font-size: 24px;
+      margin-bottom: 8px;
+      color: var(--txt3);
+    }
+
+    .file-upload-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--blue);
+      margin-top: 5px;
+    }
+
+    .file-link {
+      font-size: 12px;
+      color: var(--blue);
+      text-decoration: underline;
+      margin-top: 4px;
+      display: block;
+    }
+
     @media(max-width:1100px) {
       .kpi-row {
         grid-template-columns: repeat(3, 1fr)
@@ -1793,201 +1917,264 @@
         <button class="modal-close" onclick="closeModal('formOverlay')">✕</button>
       </div>
       <div class="modal-body">
+        <div class="wizard-steps" id="wizardSteps">
+          <div class="w-step active" onclick="goToStep(1)">
+            <div class="w-step-n">1</div>
+            <div class="w-step-lbl">ข้อมูลทั่วไป</div>
+          </div>
+          <div class="w-step" onclick="goToStep(2)">
+            <div class="w-step-n">2</div>
+            <div class="w-step-lbl">การเงิน</div>
+          </div>
+          <div class="w-step" onclick="goToStep(3)">
+            <div class="w-step-n">3</div>
+            <div class="w-step-lbl">แนบหลักฐาน</div>
+          </div>
+          <div class="w-step" onclick="goToStep(4)">
+            <div class="w-step-n">4</div>
+            <div class="w-step-lbl">มอบหมาย TL</div>
+          </div>
+          <div class="w-step" onclick="goToStep(5)">
+            <div class="w-step-n">5</div>
+            <div class="w-step-lbl">TL รับงาน</div>
+          </div>
+          <div class="w-step" onclick="goToStep(6)">
+            <div class="w-step-n">6</div>
+            <div class="w-step-lbl">TL ส่งงาน</div>
+          </div>
+          <div class="w-step" onclick="goToStep(7)">
+            <div class="w-step-n">7</div>
+            <div class="w-step-lbl">ปิดงาน</div>
+          </div>
+        </div>
+
         <form id="mainForm" onsubmit="submitForm(event)">
-
-          <div class="form-section">📍 ข้อมูลทั่วไป</div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>ชื่ออาคาร / สถานที่ <span class="required">*</span></label>
-              <input class="form-control" id="f-place" placeholder="เช่น เซ็นทรัลเวิลด์ พลาซา" required>
+          <!-- STEP 1: General Info -->
+          <div class="form-step active" id="step-1">
+            <div class="form-section">📍 Step 1: ข้อมูลทั่วไป & ผู้ประสานงาน</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>ชื่ออาคาร / สถานที่ <span class="required">*</span></label>
+                <input class="form-control" id="f-place" placeholder="เช่น เซ็นทรัลเวิลด์ พลาซา" required>
+              </div>
+              <div class="form-group">
+                <label>ชื่อลูกค้า</label>
+                <input class="form-control" id="f-customer" placeholder="ชื่อบริษัท / ผู้เช่า">
+              </div>
+              <div class="form-group">
+                <label>เจ้าของงาน (Owner) <span class="required">*</span></label>
+                <select class="form-control" id="f-owner" required>
+                  <option value="">-- เลือก --</option>
+                  <option>เจษฎาภรณ์</option>
+                  <option>ญาดา</option>
+                  <option>พงศ์เทพ</option>
+                  <option>ณัฐพงศ์</option>
+                  <option>วฬารัตน์</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>พื้นที่ (Area)</label>
+                <select class="form-control" id="f-area">
+                  <option value="">-- เลือก --</option>
+                  <option>BKK 1</option>
+                  <option>BKK 2</option>
+                  <option>BKK 3</option>
+                  <option>BKK 4</option>
+                  <option>CBI</option>
+                  <option>CMI</option>
+                  <option>AYA</option>
+                  <option>HYI</option>
+                  <option>KKN</option>
+                  <option>NMA</option>
+                  <option>PKT</option>
+                  <option>PLK</option>
+                  <option>RBI</option>
+                  <option>RYG</option>
+                  <option>SNI</option>
+                  <option>UBN</option>
+                  <option>UDN</option>
+                </select>
+              </div>
             </div>
-            <div class="form-group">
-              <label>ชื่อลูกค้า</label>
-              <input class="form-control" id="f-customer" placeholder="ชื่อบริษัท / ผู้เช่า">
-            </div>
-            <div class="form-group">
-              <label>เจ้าของงาน (Owner) <span class="required">*</span></label>
-              <select class="form-control" id="f-owner" required>
-                <option value="">-- เลือก --</option>
-                <option>เจษฎาภรณ์</option>
-                <option>ญาดา</option>
-                <option>พงศ์เทพ</option>
-                <option>ณัฐพงศ์</option>
-                <option>วฬารัตน์</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>พื้นที่ (Area)</label>
-              <select class="form-control" id="f-area">
-                <option value="">-- เลือก --</option>
-                <option>BKK 1</option>
-                <option>BKK 2</option>
-                <option>BKK 3</option>
-                <option>BKK 4</option>
-                <option>CBI</option>
-                <option>CMI</option>
-                <option>AYA</option>
-                <option>HYI</option>
-                <option>KKN</option>
-                <option>NMA</option>
-                <option>PKT</option>
-                <option>PLK</option>
-                <option>RBI</option>
-                <option>RYG</option>
-                <option>SNI</option>
-                <option>UBN</option>
-                <option>UDN</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Project Code</label>
-              <input class="form-control" id="f-project" placeholder="เช่น HRA025">
-            </div>
-            <div class="form-group">
-              <label>Deal No.</label>
-              <input class="form-control" id="f-deal" placeholder="รหัส Deal">
-            </div>
-          </div>
-
-          <div class="form-section">💰 ข้อมูลการเบิกจ่าย</div>
-          <div class="form-grid cols3">
-            <div class="form-group">
-              <label>PR No.</label>
-              <input class="form-control" id="f-pr" placeholder="เลขที่ PR">
-            </div>
-            <div class="form-group">
-              <label>วันที่ตั้งเบิก</label>
-              <input type="date" class="form-control" id="f-date-req">
-            </div>
-            <div class="form-group">
-              <label>วันที่ต้องการ (Due)</label>
-              <input type="date" class="form-control" id="f-date-due">
-            </div>
-            <div class="form-group">
-              <label>จ่ายให้ (Pay to)</label>
-              <input class="form-control" id="f-payto" placeholder="ชื่อบริษัทอาคาร">
-            </div>
-            <div class="form-group">
-              <label>ประเภทการชำระ</label>
-              <select class="form-control" id="f-paytype">
-                <option value="">-- เลือก --</option>
-                <option>เช็ค</option>
-                <option>โอนเงิน</option>
-                <option>แคชเชียร์เช็ค</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>วันที่ได้รับเช็ค/โอน</label>
-              <input type="date" class="form-control" id="f-date-check">
+            <div class="form-grid cols3" style="margin-top:15px">
+              <div class="form-group">
+                <label>Project Code</label>
+                <input class="form-control" id="f-project" placeholder="เช่น HRA025">
+              </div>
+              <div class="form-group">
+                <label>Deal No.</label>
+                <input class="form-control" id="f-deal" placeholder="รหัส Deal">
+              </div>
+              <div class="form-group">
+                <label>ผู้ประสานงาน</label>
+                <input class="form-control" id="f-contact" placeholder="ชื่อ">
+              </div>
             </div>
           </div>
 
-          <div class="form-section">🏦 จำนวนเงิน (บาท)</div>
-          <div class="form-grid cols3">
-            <div class="form-group">
-              <label>เงินประกันติดตั้ง</label>
-              <input type="number" class="form-control" id="f-deposit" placeholder="0" oninput="calcTotal()">
+          <!-- STEP 2: Financials -->
+          <div class="form-step" id="step-2">
+            <div class="form-section">💰 Step 2: ข้อมูลการเบิกจ่าย & จำนวนเงิน</div>
+            <div class="form-grid cols3">
+              <div class="form-group"><label>PR No.</label><input class="form-control" id="f-pr"></div>
+              <div class="form-group"><label>วันที่ตั้งเบิก</label><input type="date" class="form-control"
+                  id="f-date-req"></div>
+              <div class="form-group"><label>วันที่ควรได้ (Due)</label><input type="date" class="form-control"
+                  id="f-date-due"></div>
+              <div class="form-group"><label>จ่ายให้</label><input class="form-control" id="f-payto"></div>
+              <div class="form-group">
+                <label>ประเภทชำระ</label>
+                <select class="form-control" id="f-paytype">
+                  <option value="">-- เลือก --</option>
+                  <option>เช็ค</option>
+                  <option>โอนเงิน</option>
+                  <option>แคชเชียร์เช็ค</option>
+                </select>
+              </div>
             </div>
-            <div class="form-group">
-              <label>เงินประกันรื้อถอน</label>
-              <input type="number" class="form-control" id="f-demolish" placeholder="0" oninput="calcTotal()">
-            </div>
-            <div class="form-group">
-              <label>ค่าธรรมเนียม</label>
-              <input type="number" class="form-control" id="f-fee" placeholder="0" oninput="calcTotal()">
-            </div>
-            <div class="form-group">
-              <label>ค่าใช้จ่ายอื่นๆ</label>
-              <input type="number" class="form-control" id="f-other" placeholder="0" oninput="calcTotal()">
-            </div>
-            <div class="form-group">
-              <label>ยอดรวม (คำนวณอัตโนมัติ)</label>
-              <input type="number" class="form-control" id="f-total" placeholder="0" readonly
-                style="background:var(--blue-l);font-weight:700;color:var(--blue)">
+            <div class="form-grid cols3" style="margin-top:15px">
+              <div class="form-group"><label>เงินประกันติดตั้ง</label><input type="number" class="form-control"
+                  id="f-deposit" oninput="calcTotal()"></div>
+              <div class="form-group"><label>เงินประกันรื้อถอน</label><input type="number" class="form-control"
+                  id="f-demolish" oninput="calcTotal()"></div>
+              <div class="form-group"><label>ค่าธรรมเนียม/อื่นๆ</label><input type="number" class="form-control"
+                  id="f-fee" oninput="calcTotal()"></div>
+              <div class="form-group"><label>ยอดรวม</label><input type="number" class="form-control" id="f-total"
+                  readonly style="background:var(--blue-l)"></div>
             </div>
           </div>
 
-          <div class="form-section">🔄 สถานะประกัน</div>
-          <div class="form-grid cols3">
-            <div class="form-group">
+          <!-- STEP 3: PDF Evidence 1 -->
+          <div class="form-step" id="step-3">
+            <div class="form-section">📄 Step 3: แนบหลักฐานการจ่าย & แบบ</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>หลักฐานการจ่ายเงิน (PDF)</label>
+                <div class="file-upload-box">
+                  <div class="file-upload-icon">📄</div>
+                  <div class="file-upload-text">คลิกหรือลากไฟล์ PDF มาวางที่นี่</div>
+                  <input type="file" id="f-pdf-payment" accept=".pdf" onchange="handleFileSelect(this)">
+                  <div class="file-upload-name" id="f-pdf-payment-name"></div>
+                  <a id="f-pdf-payment-link" class="file-link" target="_blank" style="display:none">ดูไฟล์ปัจจุบัน</a>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>แบบ/Drawing (PDF)</label>
+                <div class="file-upload-box">
+                  <div class="file-upload-icon">📐</div>
+                  <div class="file-upload-text">คลิกหรือลากไฟล์ PDF มาวางที่นี่</div>
+                  <input type="file" id="f-pdf-layout" accept=".pdf" onchange="handleFileSelect(this)">
+                  <div class="file-upload-name" id="f-pdf-layout-name"></div>
+                  <a id="f-pdf-layout-link" class="file-link" target="_blank" style="display:none">ดูไฟล์ปัจจุบัน</a>
+                </div>
+              </div>
+            </div>
+            <div class="form-group" style="margin-top:15px">
               <label>สถานะหลัก</label>
               <select class="form-control" id="f-status">
-                <option value="">-- เลือก --</option>
-                <option>On Process</option>
+                <option value="On Process">On Process</option>
                 <option>Done</option>
                 <option>Cancel</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>สถานะเงินประกันติดตั้ง</label>
-              <select class="form-control" id="f-dep-status">
-                <option value="">-- เลือก --</option>
-                <option>No</option>
-                <option>Wait Install</option>
-                <option>Wait Insp. SC</option>
-                <option>Wait Ins. Ac.</option>
-                <option>Done</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>สถานะเงินประกันรื้อถอน</label>
-              <select class="form-control" id="f-demo-status">
-                <option value="">-- เลือก --</option>
-                <option>No</option>
-                <option>On Service</option>
-                <option>Terminate</option>
-                <option>Done</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Status Complete</label>
-              <select class="form-control" id="f-complete">
-                <option value="">-- เลือก --</option>
-                <option>Complete</option>
-                <option>Cancel</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>คืนเงินประกันติดตั้งแล้ว?</label>
-              <select class="form-control" id="f-dep-return">
-                <option value="No">No</option>
-                <option value="Yes">Yes</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>คืนเงินประกันรื้อถอนแล้ว?</label>
-              <select class="form-control" id="f-demo-return">
-                <option value="No">No</option>
-                <option value="Yes">Yes</option>
               </select>
             </div>
           </div>
 
-          <div class="form-section">👤 ผู้ประสานงาน</div>
-          <div class="form-grid cols3">
-            <div class="form-group">
-              <label>ชื่อผู้ประสานงาน</label>
-              <input class="form-control" id="f-contact" placeholder="ชื่อ">
+          <!-- STEP 4: Assignment -->
+          <div class="form-step" id="step-4">
+            <div class="form-section">📤 Step 4: มอบหมายงานให้ทีม TL</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>ทีมที่รับผิดชอบ (TL Team)</label>
+                <select class="form-control" id="f-tl-team">
+                  <option value="">-- เลือกทีม --</option>
+                  <option value="BKK">BKK Team</option>
+                  <option value="UPC">UPC Team</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>สถานะการมอบหมาย (Complete Status)</label>
+                <select class="form-control" id="f-complete">
+                  <option value="">Pending</option>
+                  <option value="Complete">Complete (ส่งมอบงาน)</option>
+                </select>
+              </div>
             </div>
-            <div class="form-group">
-              <label>เบอร์โทร</label>
-              <input class="form-control" id="f-tel" placeholder="02-xxx-xxxx">
+            <div class="alert alert-info"
+              style="margin-top:15px; background:var(--blue-l); padding:10px; border-radius:var(--r-sm)">
+              💡 เมื่อเลือก "Complete" ข้อมูลจะถูกส่งไปที่ Dashboard ของทีม TL ที่เลือก
             </div>
-            <div class="form-group">
-              <label>มือถือ</label>
-              <input class="form-control" id="f-mobile" placeholder="08x-xxx-xxxx">
+          </div>
+
+          <!-- STEP 5: TL Start -->
+          <div class="form-step" id="step-5">
+            <div class="form-section">🛠️ Step 5: TL รับงาน & ตรวจสอบสถานะ</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>สถานะเงินประกันติดตั้ง (Update by TL)</label>
+                <select class="form-control" id="f-dep-status">
+                  <option value="No">No (ไม่มีเงินประกัน)</option>
+                  <option value="Wait Install">Wait Install (รอติดตั้ง)</option>
+                  <option value="Done">Done (ติดตั้งแล้ว)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>สถานะงาน (Update Status)</label>
+                <select class="form-control" id="f-complete-tl">
+                  <option value="Complete">มอบหมายแล้ว</option>
+                  <option value="On Process">On Process (กำลังดำเนินการ)</option>
+                </select>
+              </div>
             </div>
-            <div class="form-group span3">
-              <label>Remark / หมายเหตุ</label>
-              <textarea class="form-control" id="f-remark" placeholder="บันทึกเพิ่มเติม..."></textarea>
+          </div>
+
+          <!-- STEP 6: TL Finish -->
+          <div class="form-step" id="step-6">
+            <div class="form-section">✅ Step 6: TL ส่งงาน & แนบหลักฐาน</div>
+            <div class="form-group">
+              <label>หลักฐานการดำเนินการของ TL (PDF)</label>
+              <div class="file-upload-box">
+                <div class="file-upload-icon">✅</div>
+                <div class="file-upload-text">แนบหลักฐานการติดตั้ง/หน้างาน (PDF)</div>
+                <input type="file" id="f-pdf-tl-work" accept=".pdf" onchange="handleFileSelect(this)">
+                <div class="file-upload-name" id="f-pdf-tl-work-name"></div>
+                <a id="f-pdf-tl-work-link" class="file-link" target="_blank" style="display:none">ดูไฟล์ปัจจุบัน</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 7: User Final -->
+          <div class="form-step" id="step-7">
+            <div class="form-section">🏁 Step 7: ปิดงาน (User) & แนบหลักฐานสุดท้าย</div>
+            <div class="form-group">
+              <label>หลักฐานการปิดจบงาน (PDF)</label>
+              <div class="file-upload-box">
+                <div class="file-upload-icon">🏁</div>
+                <div class="file-upload-text">แนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF)</div>
+                <input type="file" id="f-pdf-user-final" accept=".pdf" onchange="handleFileSelect(this)">
+                <div class="file-upload-name" id="f-pdf-user-final-name"></div>
+                <a id="f-pdf-user-final-link" class="file-link" target="_blank" style="display:none">ดูไฟล์ปัจจุบัน</a>
+              </div>
+            </div>
+            <div class="form-group" style="margin-top:15px">
+              <label>สถานะสุดท้าย</label>
+              <select class="form-control" id="f-status-final">
+                <option value="On Process">On Process</option>
+                <option value="Done">Done (ปิดงานสมบูรณ์)</option>
+              </select>
             </div>
           </div>
 
         </form>
       </div>
       <div class="modal-foot">
-        <button class="btn btn-ghost" onclick="closeModal('formOverlay')">ยกเลิก</button>
-        <button class="btn btn-primary" onclick="submitForm(event)" id="formSubmitBtn">💾 บันทึก</button>
+        <div style="display:flex; gap:10px; width:100%">
+          <button class="btn btn-ghost" onclick="closeModal('formOverlay')">ยกเลิก</button>
+          <div style="flex:1"></div>
+          <button class="btn btn-ghost" id="btnPrev" onclick="prevStep()" style="display:none">← ย้อนกลับ</button>
+          <button class="btn btn-primary" id="btnNext" onclick="nextStep()">ถัดไป →</button>
+          <button class="btn btn-primary" onclick="submitForm(event)" id="formSubmitBtn" style="display:none">💾
+            บันทึกข้อมูล</button>
+        </div>
       </div>
     </div>
   </div>
@@ -2063,25 +2250,25 @@
 
     /* ════════ WORKFLOW STEPS DEF ════════ */
     const STEPS = [
-      { key: 'step1', label: 'ประสานงานอาคาร', desc: 'ติดต่อผู้ดูแลอาคารเพื่อขอคืนเงินประกัน' },
-      { key: 'step2', label: 'ตั้งเบิก (PR)', desc: 'สร้างเอกสารตั้งเบิก PR และกำหนดวันที่ต้องการ' },
-      { key: 'step3', label: 'รับเช็ค / โอนเงิน', desc: 'รับเช็คหรือโอนเงินจากอาคาร' },
-      { key: 'step4', label: 'ส่งเอกสารบัญชี', desc: 'นำส่งเอกสารการจ่ายเงินให้ฝ่ายบัญชี' },
-      { key: 'step5', label: 'สถานะ Complete', desc: 'ยืนยันการดำเนินการเสร็จสมบูรณ์' },
-      { key: 'step6', label: 'คืนเงินประกันติดตั้ง', desc: 'รับเงินประกันการติดตั้งคืนจากอาคาร' },
-      { key: 'step7', label: 'คืนเงินประกันรื้อถอน', 'desc': 'รับเงินประกันการรื้อถอนคืนจากอาคาร' },
+      { label: 'Step 1: ข้อมูลทั่วไป', desc: 'ระบุข้อมูลอาคารและผู้ประสานงาน' },
+      { label: 'Step 2: การเงิน', desc: 'ระบุข้อมูลPR วันที่ต้องการ และงบประมาณ' },
+      { label: 'Step 3: แนบหลักฐาน', desc: 'แนบหลักฐานการจ่ายเงินและแบบ Drawing' },
+      { label: 'Step 4: มอบหมายงาน', desc: 'ส่งงานให้ทีม TL (BKK/UPC) ดำเนินการ' },
+      { label: 'Step 5: TL รับงาน', desc: 'ทีม TL รับทราบและเริ่มดำเนินการหน้างาน' },
+      { label: 'Step 6: TL ส่งงาน', desc: 'ทีม TL ดำเนินการเสร็จสิ้นและแนบหลักฐาน' },
+      { label: 'Step 7: ปิดงาน', desc: 'User ตรวจรับและแนบหลักฐานปิดจบโครงการ' },
     ];
 
     /* ════════ HELPERS ════════ */
     function getStepIndex(d) {
-      if (!d.pr && !d.dateReq) return 0;
-      if (d.pr && !d.dateCheck && !d.dateReq) return 1;
-      if (d.dateReq && !d.dateCheck) return 2;
-      if (d.dateCheck && !d.dateAcc) return 3;
-      if (d.dateAcc && d.complete !== 'Complete') return 4;
-      if (d.complete === 'Complete' && d.depReturn !== 'Yes') return 5;
-      if (d.depReturn === 'Yes' && d.demoReturn !== 'Yes' && d.demolish > 0) return 6;
-      return 7; // all done
+      if (!d.pr && !d.deposit) return 0; // Step 1
+      if ((d.pr || d.deposit) && !d.pdf_payment) return 1; // Step 2
+      if (d.pdf_payment && !d.tl_team) return 2; // Step 3
+      if (d.tl_team && d.complete !== 'Complete') return 3; // Step 4
+      if (d.complete === 'Complete' && d.status === 'On Process' && !d.pdf_tl_work) return 4; // Step 5
+      if (d.pdf_tl_work && !d.pdf_user_final) return 5; // Step 6
+      if (d.pdf_user_final || d.status === 'Done') return 6; // Step 7
+      return 7;
     }
 
     function statusBadge(s) {
@@ -2095,8 +2282,56 @@
 
     function stepLabel(d) {
       const idx = getStepIndex(d);
-      if (idx >= 7) return `<span style="color:var(--green);font-size:11.5px;font-weight:600">✓ เสร็จสมบูรณ์</span>`;
+      if (idx >= 7 || d.status === 'Done') return `<span style="color:var(--green);font-size:11.5px;font-weight:600">✓ เสร็จสมบูรณ์</span>`;
       return `<span style="color:var(--orange);font-size:11.5px;font-weight:600">${STEPS[idx]?.label || '—'}</span>`;
+    }
+
+    /* ════════ WIZARD LOGIC ════════ */
+    let currentStep = 1;
+
+    function goToStep(s) {
+      if (s < 1 || s > 7) return;
+      currentStep = s;
+
+      // Update UI
+      document.querySelectorAll('.form-step').forEach(el => el.classList.remove('active'));
+      const activeStepEl = document.getElementById('step-' + s);
+      if (activeStepEl) activeStepEl.classList.add('active');
+
+      // Update Wizard indicator
+      const steps = document.querySelectorAll('.w-step');
+      steps.forEach((el, i) => {
+        el.classList.remove('active', 'done');
+        if (i + 1 < s) el.classList.add('done');
+        if (i + 1 === s) el.classList.add('active');
+      });
+
+      // Update Buttons
+      const btnPrev = document.getElementById('btnPrev');
+      const btnNext = document.getElementById('btnNext');
+      const btnSave = document.getElementById('formSubmitBtn');
+
+      if (btnPrev) btnPrev.style.display = (s === 1) ? 'none' : 'block';
+      if (btnNext) btnNext.style.display = (s === 7) ? 'none' : 'block';
+      if (btnSave) btnSave.style.display = (s === 7) ? 'block' : 'none';
+
+      // Role validation (Step 5-6 for TL only)
+      const user = JSON.parse(localStorage.getItem('user_session') || '{}');
+      if ((s === 5 || s === 6) && user.role !== 'admin' && user.role !== 'tl') {
+        toast('สิทธิ์เฉพาะทีม TL เท่านั้น', 'info');
+      }
+    }
+
+    function nextStep() { if (currentStep < 7) goToStep(currentStep + 1); }
+    function prevStep() { if (currentStep > 1) goToStep(currentStep - 1); }
+
+    function handleFileSelect(input) {
+      const file = input.files[0];
+      const nameEl = document.getElementById(input.id + '-name');
+      if (file && nameEl) {
+        nameEl.textContent = '📄 ' + file.name + ' (รออัปโหลด)';
+        nameEl.style.color = 'var(--blue)';
+      }
     }
 
     /* ════════ RENDER KPI ════════ */
@@ -2265,16 +2500,29 @@
 
     function clearForm() {
       ['f-place', 'f-customer', 'f-owner', 'f-area', 'f-project', 'f-deal',
-        'f-pr', 'f-date-req', 'f-date-due', 'f-date-check',
+        'f-pr', 'f-date-req', 'f-date-due', 'f-date-check', 'f-date-acc',
         'f-payto', 'f-paytype', 'f-deposit', 'f-demolish', 'f-fee', 'f-other', 'f-total',
         'f-status', 'f-dep-status', 'f-demo-status', 'f-complete',
-        'f-dep-return', 'f-demo-return', 'f-contact', 'f-tel', 'f-mobile', 'f-remark'
+        'f-dep-return', 'f-demo-return', 'f-contact', 'f-tel', 'f-mobile', 'f-remark',
+        'f-tl-team', 'f-complete-tl', 'f-status-final'
       ].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
       });
       document.getElementById('f-dep-return').value = 'No';
       document.getElementById('f-demo-return').value = 'No';
+
+      // Clear Files
+      ['f-pdf-payment', 'f-pdf-layout', 'f-pdf-tl-work', 'f-pdf-user-final'].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.value = '';
+        const nameEl = document.getElementById(id + '-name');
+        if (nameEl) { nameEl.textContent = ''; nameEl.style.color = 'var(--blue)'; }
+        const linkEl = document.getElementById(id + '-link');
+        if (linkEl) linkEl.style.display = 'none';
+      });
+
+      goToStep(1);
     }
 
     function fillForm(d) {
@@ -2288,6 +2536,7 @@
       document.getElementById('f-date-req').value = d.dateReq || '';
       document.getElementById('f-date-due').value = d.dateDue || '';
       document.getElementById('f-date-check').value = d.dateCheck || '';
+      document.getElementById('f-date-acc').value = d.dateAcc || '';
       document.getElementById('f-payto').value = d.payTo || '';
       document.getElementById('f-paytype').value = d.payType || '';
       document.getElementById('f-deposit').value = d.deposit || '';
@@ -2305,6 +2554,28 @@
       document.getElementById('f-tel').value = d.tel || '';
       document.getElementById('f-mobile').value = d.mobile || '';
       document.getElementById('f-remark').value = d.remark || '';
+
+      // New fields
+      if (document.getElementById('f-tl-team')) document.getElementById('f-tl-team').value = d.tl_team || '';
+      if (document.getElementById('f-complete-tl')) document.getElementById('f-complete-tl').value = d.complete_tl || '';
+      if (document.getElementById('f-status-final')) document.getElementById('f-status-final').value = d.status_final || '';
+
+      // PDF Links
+      ['pdf_payment', 'pdf_layout', 'pdf_tl_work', 'pdf_user_final'].forEach(key => {
+        const url = d[key];
+        const id = key.replace(/_/g, '-');
+        const linkEl = document.getElementById('f-' + id + '-link');
+        const nameEl = document.getElementById('f-' + id + '-name');
+        if (url && linkEl) {
+          linkEl.href = url;
+          linkEl.style.display = 'block';
+          if (nameEl) { nameEl.textContent = '📄 มีไฟล์แนบแล้ว'; nameEl.style.color = 'var(--green)'; }
+        } else if (linkEl) {
+          linkEl.style.display = 'none';
+        }
+      });
+
+      goToStep(1);
     }
 
     function calcTotal() {
@@ -2322,38 +2593,72 @@
       if (!place) { toast('กรุณากรอกชื่ออาคาร', 'error'); return; }
       if (!owner) { toast('กรุณาเลือกเจ้าของงาน', 'error'); return; }
 
-      const obj = {
-        place, owner,
-        customer: document.getElementById('f-customer').value,
-        area: document.getElementById('f-area').value,
-        project: document.getElementById('f-project').value,
-        deal: document.getElementById('f-deal').value,
-        pr: document.getElementById('f-pr').value,
-        dateReq: document.getElementById('f-date-req').value,
-        dateDue: document.getElementById('f-date-due').value,
-        dateCheck: document.getElementById('f-date-check').value,
-        dateAcc: '',
-        payTo: document.getElementById('f-payto').value,
-        payType: document.getElementById('f-paytype').value,
-        deposit: +document.getElementById('f-deposit').value || 0,
-        demolish: +document.getElementById('f-demolish').value || 0,
-        fee: +document.getElementById('f-fee').value || 0,
-        other: +document.getElementById('f-other').value || 0,
-        total: +document.getElementById('f-total').value || 0,
-        status: document.getElementById('f-status').value,
-        depStatus: document.getElementById('f-dep-status').value,
-        demoStatus: document.getElementById('f-demo-status').value,
-        complete: document.getElementById('f-complete').value,
-        depReturn: document.getElementById('f-dep-return').value,
-        demoReturn: document.getElementById('f-demo-return').value,
-        contact: document.getElementById('f-contact').value,
-        tel: document.getElementById('f-tel').value,
-        mobile: document.getElementById('f-mobile').value,
-        remark: document.getElementById('f-remark').value,
-        expense: '',
+      const btn = document.getElementById('formSubmitBtn');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = '⌛ กำลังบันทึก...';
+
+      const getVal = (id) => {
+        const el = document.getElementById(id);
+        if (!el) return null;
+        const v = el.value;
+        return v === '' ? null : v;
       };
 
       try {
+        // Handle PDF Uploads
+        const fileFields = [
+          { id: 'f-pdf-payment', key: 'pdf_payment' },
+          { id: 'f-pdf-layout', key: 'pdf_layout' },
+          { id: 'f-pdf-tl-work', key: 'pdf_tl_work' },
+          { id: 'f-pdf-user-final', key: 'pdf_user_final' }
+        ];
+
+        const fileUrls = {};
+        for (const ff of fileFields) {
+          const input = document.getElementById(ff.id);
+          if (input && input.files && input.files[0]) {
+            toast(`กำลังอัปโหลด ${ff.key}...`, 'info');
+            const url = await uploadFile(input.files[0], 'deposits_files');
+            if (url) fileUrls[ff.key] = url;
+          }
+        }
+
+        const obj = {
+          place, owner,
+          customer: getVal('f-customer'),
+          area: getVal('f-area'),
+          project: getVal('f-project'),
+          deal: getVal('f-deal'),
+          pr: getVal('f-pr'),
+          dateReq: getVal('f-date-req'),
+          dateDue: getVal('f-date-due'),
+          dateCheck: getVal('f-date-check'),
+          dateAcc: getVal('f-date-acc'),
+          payTo: getVal('f-payto'),
+          payType: getVal('f-paytype'),
+          deposit: +document.getElementById('f-deposit').value || 0,
+          demolish: +document.getElementById('f-demolish').value || 0,
+          fee: +document.getElementById('f-fee').value || 0,
+          other: +document.getElementById('f-other').value || 0,
+          total: +document.getElementById('f-total').value || 0,
+          status: getVal('f-status') || getVal('f-status-final'), // Use final if set
+          depStatus: getVal('f-dep-status'),
+          demoStatus: getVal('f-demo-status'),
+          complete: getVal('f-complete'),
+          depReturn: getVal('f-dep-return'),
+          demoReturn: getVal('f-demo-return'),
+          contact: getVal('f-contact'),
+          tel: getVal('f-tel'),
+          mobile: getVal('f-mobile'),
+          remark: getVal('f-remark'),
+          expense: '',
+          tl_team: getVal('f-tl-team'),
+          complete_tl: getVal('f-complete-tl'),
+          status_final: getVal('f-status-final'),
+          ...fileUrls // Spread uploaded URLs
+        };
+
         if (editingId) {
           const updated = await updateDeposit(editingId, obj);
           const idx = DB.findIndex(x => x.id === editingId);
@@ -2367,7 +2672,11 @@
         closeModal('formOverlay');
         renderTable(); renderKPI();
       } catch (err) {
-        toast('เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
+        console.error(err);
+        toast('เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
       }
     }
 
@@ -2381,21 +2690,44 @@
         ['ลูกค้า', d.customer || '—'],
         ['เจ้าของงาน', d.owner || '—'],
         ['พื้นที่', d.area || '—'],
+        ['Project Code', d.project || '—'],
+        ['Deal No.', d.deal || '—'],
         ['PR No.', d.pr || '—'],
         ['วันที่ตั้งเบิก', d.dateReq || '—'],
         ['วันที่ต้องได้', d.dateDue || '—'],
         ['ประเภทชำระ', d.payType || '—'],
         ['จ่ายให้', d.payTo || '—'],
-        ['สถานะประกันติดตั้ง', d.depStatus || '—'],
-        ['สถานะประกันรื้อถอน', d.demoStatus || '—'],
-        ['Complete', d.complete || '—'],
+        ['ทีม TL กทม/ตจว', d.tl_team || '—'],
         ['ผู้ประสานงาน', d.contact || '—'],
         ['โทร', d.tel || '—'],
         ['มือถือ', d.mobile || '—'],
       ];
 
-      const statusHTML = `<div style="margin-bottom:14px">${statusBadge(d.status)}</div>`;
-      const detailHTML = `<div class="detail-grid">${rows.map(([k, v], i) => `<div class="detail-row${i === 0 ? '' : ''}""><div class="detail-key">${k}</div><div class="detail-val">${v}</div></div>`).join('')}</div>`;
+      const statusHTML = `<div style="margin-bottom:14px;display:flex;gap:10px;align-items:center">${statusBadge(d.status)} ${d.complete === 'Complete' ? '<span class="badge b-done">ส่งมอบงานแล้ว</span>' : ''}</div>`;
+      const detailHTML = `<div class="detail-grid">${rows.map(([k, v], i) => `<div class="detail-row"><div class="detail-key">${k}</div><div class="detail-val">${v}</div></div>`).join('')}</div>`;
+
+      const fileRows = [
+        { label: 'หลักฐานการจ่าย', key: 'pdf_payment' },
+        { label: 'แบบ / Drawing', key: 'pdf_layout' },
+        { label: 'หลักฐานงาน TL', key: 'pdf_tl_work' },
+        { label: 'เอกสารปิดงาน', key: 'pdf_user_final' }
+      ].filter(f => d[f.key]).map(f => `
+        <a href="${d[f.key]}" target="_blank" class="detail-row" style="text-decoration:none; display:flex; align-items:center; gap:8px; background:var(--blue-l); border:1px solid var(--blue-m); padding:8px 12px; border-radius:var(--r-sm)">
+          <span style="font-size:18px">📄</span>
+          <div style="flex:1">
+            <div style="font-size:11px; color:var(--blue); font-weight:700; text-transform:uppercase">${f.label}</div>
+            <div style="font-size:12px; color:var(--txt)">คลิกเพื่อดู PDF</div>
+          </div>
+        </a>
+      `).join('');
+
+      const filesHTML = fileRows ? `
+        <div style="margin-top:20px">
+          <div class="money-title" style="margin-bottom:10px">📁 ไฟล์แนบ (PDF)</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">${fileRows}</div>
+        </div>
+      ` : '';
+
       const moneyHTML = (d.deposit || d.demolish || d.fee || d.other || d.total) ? `
     <div class="money-box">
       <div class="money-title">💰 รายละเอียดค่าใช้จ่าย</div>
@@ -2409,7 +2741,7 @@
     </div>` : '';
       const remarkHTML = d.remark ? `<div style="margin-top:12px;padding:10px 12px;background:var(--orange-l);border-radius:var(--r-sm);font-size:12.5px;color:#92400e">📝 ${d.remark}</div>` : '';
 
-      document.getElementById('detailBody').innerHTML = statusHTML + detailHTML + moneyHTML + remarkHTML;
+      document.getElementById('detailBody').innerHTML = statusHTML + detailHTML + filesHTML + moneyHTML + remarkHTML;
       document.getElementById('detailEditBtn').onclick = () => { closeModal('detailOverlay'); openEdit(id); };
       openModal('detailOverlay');
     }
@@ -2431,16 +2763,17 @@
         let actionBtn = '';
         if (isActive) {
           const actionMap = {
-            0: { label: '✓ ประสานงานแล้ว', fn: `wfAction(${id},0)` },
-            1: { label: '✓ ตั้งเบิกแล้ว', fn: `wfAction(${id},1)` },
-            2: { label: '✓ รับเช็ค/โอนแล้ว', fn: `wfAction(${id},2)` },
-            3: { label: '✓ ส่งเอกสารแล้ว', fn: `wfAction(${id},3)` },
-            4: { label: '✓ Complete', fn: `wfAction(${id},4)` },
-            5: { label: '✓ ได้รับเงินประกันติดตั้งคืน', fn: `wfAction(${id},5)` },
-            6: { label: '✓ ได้รับเงินประกันรื้อถอนคืน', fn: `wfAction(${id},6)` },
+            0: { label: 'เริ่มการเงิน (Step 2) →', fn: `openEdit(${id}); setTimeout(() => goToStep(2), 100); closeModal('wfOverlay')` },
+            1: { label: 'แนบหลักฐาน (Step 3) →', fn: `openEdit(${id}); setTimeout(() => goToStep(3), 100); closeModal('wfOverlay')` },
+            2: { label: 'มอบหมาย TL (Step 4) →', fn: `openEdit(${id}); setTimeout(() => goToStep(4), 100); closeModal('wfOverlay')` },
+            3: { label: 'ยืนยันมอบหมายสำเร็จ', fn: `wfAction(${id},3)` },
+            4: { label: 'TL รับงานแล้ว', fn: `wfAction(${id},4)` },
+            5: { label: 'TL แนบไฟล์ส่งงาน →', fn: `openEdit(${id}); setTimeout(() => goToStep(6), 100); closeModal('wfOverlay')` },
+            6: { label: 'ปิดงานสมบูรณ์', fn: `wfAction(${id},6)` },
           };
-          if (actionMap[i]) {
-            actionBtn = `<div class="wf-action"><button class="btn btn-primary btn-sm" onclick="${actionMap[i].fn}">${actionMap[i].label}</button></div>`;
+          const act = actionMap[i];
+          if (act) {
+            actionBtn = `<div class="wf-action"><button class="btn btn-primary btn-sm" onclick="${act.fn}">${act.label}</button></div>`;
           }
         }
         return `
@@ -2464,13 +2797,9 @@
         const d = DB.find(x => x.id === id);
         const today = new Date().toISOString().split('T')[0];
         const updates = {};
-        if (step === 0) updates.status = 'On Process';
-        if (step === 1) updates.dateReq = d.dateReq || today;
-        if (step === 2) { updates.dateCheck = today; updates.payType = d.payType || 'โอนเงิน'; }
-        if (step === 3) updates.dateAcc = today;
-        if (step === 4) { updates.complete = 'Complete'; updates.status = 'Done'; }
-        if (step === 5) { updates.depReturn = 'Yes'; updates.depStatus = 'Done'; }
-        if (step === 6) { updates.demoReturn = 'Yes'; updates.demoStatus = 'Done'; }
+        if (step === 3) updates.complete = 'Complete';
+        if (step === 4) { updates.status = 'On Process'; updates.complete_tl = 'On Process'; }
+        if (step === 6) { updates.status = 'Done'; updates.status_final = 'Done'; }
 
         const updated = await updateDeposit(id, updates);
         const idx = DB.findIndex(x => x.id === id);
