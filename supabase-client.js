@@ -54,3 +54,58 @@ async function deleteDeposit(id) {
     }
     return true;
 }
+
+/* ─── USER MANAGEMENT (Auth/Admin) ─── */
+
+async function validateUser(employeeId) {
+    const { data, error } = await _supabase
+        .from('users')
+        .select('*')
+        .eq('employee_id', employeeId)
+        .single();
+
+    if (error) {
+        console.error('Login validation error:', error);
+        return null;
+    }
+    return data;
+}
+
+async function getUsers() {
+    const { data, error } = await _supabase
+        .from('users')
+        .select('*')
+        .order('name', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching users:', error);
+        return [];
+    }
+    return data;
+}
+
+async function addUser(userData) {
+    const { data, error } = await _supabase
+        .from('users')
+        .insert([userData])
+        .select();
+
+    if (error) {
+        console.error('Error adding user:', error);
+        throw error;
+    }
+    return data[0];
+}
+
+async function removeUser(id) {
+    const { error } = await _supabase
+        .from('users')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        console.error('Error removing user:', error);
+        throw error;
+    }
+    return true;
+}

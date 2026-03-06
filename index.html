@@ -1425,6 +1425,72 @@
         grid-column: span 1
       }
     }
+
+    /* ─── LOGIN OVERLAY ─────────────────────────── */
+    #loginOverlay {
+      position: fixed;
+      inset: 0;
+      background: var(--navy);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-box {
+      background: var(--white);
+      width: 100%;
+      max-width: 400px;
+      padding: 40px;
+      border-radius: var(--r);
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+    }
+
+    .login-logo {
+      font-size: 40px;
+      margin-bottom: 20px;
+    }
+
+    .login-box h2 {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+
+    .login-box p {
+      color: var(--txt3);
+      margin-bottom: 30px;
+    }
+
+    .login-form {
+      text-align: left;
+    }
+
+    .login-form label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--txt2);
+      margin-bottom: 8px;
+    }
+
+    .login-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      font-size: 16px;
+      margin-bottom: 20px;
+      transition: all 0.2s;
+    }
+
+    .login-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-l);
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1432,7 +1498,25 @@
   <script src="supabase-client.js"></script>
 </head>
 
-<body>
+<body style="overflow: hidden;">
+  <!-- Login Overlay -->
+  <div id="loginOverlay">
+    <div class="login-box">
+      <div class="login-logo">🏢</div>
+      <h2>เข้าสู่ระบบ</h2>
+      <p>กรุณากรอกรหัสพนักงานเพื่อใช้งานระบบ</p>
+      <form class="login-form" onsubmit="handleLogin(event)">
+        <label>รหัสพนักงาน</label>
+        <input type="password" class="login-input" id="login-id" placeholder="EMPLOYEE ID" required autofocus>
+        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:14px">
+          เข้าสู่ระบบ ➔
+        </button>
+      </form>
+      <div id="login-error" style="color:var(--red); font-size:12px; margin-top:15px; display:none">
+        รหัสพนักงานไม่ถูกต้อง หรือไม่มีสิทธิ์เข้าใช้งาน
+      </div>
+    </div>
+  </div>
 
   <div class="app">
 
@@ -1477,6 +1561,14 @@
         <div class="nav-item" onclick="showPage('list');setOwnerFilter('ณัฐพงศ์')">
           <span class="icon">👤</span> ณัฐพงศ์
         </div>
+
+        <!-- Admin Section -->
+        <div id="admin-nav" style="display:none">
+          <div class="nav-label" style="margin-top:8px">ผู้ดูแลระบบ</div>
+          <div class="nav-item" id="nav-users" onclick="showPage('users')">
+            <span class="icon">👥</span> จัดการผู้ใช้งาน
+          </div>
+        </div>
       </nav>
       <div class="sidebar-stats">
         <div class="stat-row"><span class="stat-label">ยอดรวมทั้งหมด</span><span class="stat-val blue"
@@ -1499,8 +1591,10 @@
           </div>
         </div>
         <div class="topbar-right">
+          <span id="user-display" style="font-size:12px; color:var(--txt2); margin-right:15px; font-weight:600"></span>
           <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
-          <button class="btn btn-primary" onclick="openAddModal()">＋ เพิ่มรายการใหม่</button>
+          <button class="btn btn-primary" id="add-btn" onclick="openAddModal()">＋ เพิ่มรายการใหม่</button>
+          <button class="btn btn-ghost btn-sm" onclick="logout()" style="padding:8px">🚪</button>
         </div>
       </div>
 
@@ -1625,10 +1719,70 @@
           </div>
         </div>
       </div><!-- /page-dashboard -->
+
+      <!-- User Management Page -->
+      <div class="page" id="page-users">
+        <div style="padding:24px 28px 0">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">รายชื่อผู้ใช้งานระบบ</span>
+              <button class="btn btn-primary btn-sm" onclick="openAddUserModal()">＋ เพิ่มผู้ใช้</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>รหัสพนักงาน</th>
+                    <th>ชื่อ-นามสกุล</th>
+                    <th>สิทธิ์การใช้งาน</th>
+                    <th>การดำเนินการ</th>
+                  </tr>
+                </thead>
+                <tbody id="user-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div><!-- /page-users -->
+
     </div><!-- /main -->
   </div><!-- /app -->
 
-  <!-- ═══════ MODAL: ADD / EDIT ═══════ -->
+  <!-- ═══════ MODAL: ADD USER (Admin) ═══════ -->
+  <div class="overlay" id="userOverlay">
+    <div class="modal" id="userModal">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">เพิ่มผู้ใช้งานระบบ</div>
+          <div class="modal-sub">กำหนดสิทธิ์และรหัสพนักงานสำหรับการเข้าขัดการข้อมูล</div>
+        </div>
+        <button class="modal-close" onclick="closeModal('userOverlay')">✕</button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="handleAddUser(event)">
+          <div class="form-group">
+            <label>รหัสพนักงาน <span class="required">*</span></label>
+            <input class="form-control" id="u-id" placeholder="EMPLOYEE01" required>
+          </div>
+          <div class="form-group">
+            <label>ชื่อ-นามสกุล <span class="required">*</span></label>
+            <input class="form-control" id="u-name" placeholder="ชื่อ นามสกุล" required>
+          </div>
+          <div class="form-group">
+            <label>สิทธิ์การใช้งาน <span class="required">*</span></label>
+            <select class="form-control" id="u-role">
+              <option value="user">User (ดูและแก้ไขข้อมูลทั่วไป)</option>
+              <option value="admin">Admin (จัดการผู้ใช้งานได้)</option>
+            </select>
+          </div>
+          <div class="modal-foot">
+            <button type="button" class="btn btn-ghost" onclick="closeModal('userOverlay')">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary" id="userSubmitBtn">💾 บันทึกผู้ใช้</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
   <div class="overlay" id="formOverlay">
     <div class="modal lg" id="formModal">
       <div class="modal-head">
@@ -2372,6 +2526,10 @@
         document.getElementById('nav-db').classList.add('active');
         document.getElementById('topbar-sub').textContent = 'รายงานสรุปภาพรวมสำหรับผู้บริหาร';
         renderExecutiveDashboard();
+      } else if (id === 'users') {
+        document.getElementById('nav-users').classList.add('active');
+        document.getElementById('topbar-sub').textContent = 'จัดการสิทธิ์ผู้เข้าใช้งานระบบ';
+        loadUserTable();
       } else {
         document.getElementById('nav-list').classList.add('active');
         document.getElementById('topbar-sub').textContent = 'ข้อมูลทั้งหมด · 2026';
@@ -2491,28 +2649,149 @@
       el.innerHTML = `<span class="ti">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span><span class="toast-msg">${msg}</span>`;
       const bar = document.createElement('div');
       bar.style.cssText = 'position:absolute;bottom:0;left:0;right:0';
-      el.style.position = 'relative;overflow:hidden';
       wrap.appendChild(el);
       setTimeout(() => el.remove(), 3000);
     }
 
-    /* ════════ INIT ════════ */
+    /* ════════ AUTHENTICATION ════════ */
+    let CURRENT_USER = null;
+
+    async function handleLogin(e) {
+      if (e) e.preventDefault();
+      const id = document.getElementById('login-id').value.trim();
+      const err = document.getElementById('login-error');
+
+      try {
+        const user = await validateUser(id);
+        if (user) {
+          CURRENT_USER = user;
+          localStorage.setItem('deposit_session', JSON.stringify({
+            employeeId: user.employee_id,
+            loginTime: Date.now()
+          }));
+          setupUserSession();
+          toast(`ยินดีต้อนรับคุณ ${user.name}`, 'success');
+        } else {
+          err.style.display = 'block';
+        }
+      } catch (err) {
+        toast('เกิดข้อผิดพลาดในการเข้าสู่ระบบ', 'error');
+      }
+    }
+
+    function setupUserSession() {
+      if (!CURRENT_USER) return;
+      document.body.style.overflow = 'auto';
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('user-display').textContent = `👤 ${CURRENT_USER.name} (${CURRENT_USER.role})`;
+
+      // RBAC
+      if (CURRENT_USER.role === 'admin') {
+        document.getElementById('admin-nav').style.display = 'block';
+      } else {
+        document.getElementById('admin-nav').style.display = 'none';
+      }
+
+      initApp();
+    }
+
+    function logout() {
+      localStorage.removeItem('deposit_session');
+      location.reload();
+    }
+
+    async function checkSession() {
+      const session = localStorage.getItem('deposit_session');
+      if (session) {
+        const data = JSON.parse(session);
+        // Session valid for 24 hours
+        if (Date.now() - data.loginTime < 24 * 60 * 60 * 1000) {
+          const user = await validateUser(data.employeeId);
+          if (user) {
+            CURRENT_USER = user;
+            setupUserSession();
+            return;
+          }
+        }
+      }
+      document.body.style.overflow = 'hidden';
+      document.getElementById('loginOverlay').style.display = 'flex';
+    }
+
+    /* ════════ ADMIN: USER MANAGEMENT ════════ */
+    async function loadUserTable() {
+      const users = await getUsers();
+      document.getElementById('user-tbody').innerHTML = users.map(u => `
+        <tr>
+          <td class="nowrap" style="font-weight:600">${u.employee_id}</td>
+          <td>${u.name}</td>
+          <td><span class="badge ${u.role === 'admin' ? 'b-violet' : 'b-blue'}">${u.role}</span></td>
+          <td class="nowrap">
+            <button class="act-btn delete" onclick="deleteUserPrompt(${u.id}, '${u.name}')" ${u.employee_id === CURRENT_USER.employee_id ? 'disabled' : ''}>🗑</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openAddUserModal() {
+      document.getElementById('u-id').value = '';
+      document.getElementById('u-name').value = '';
+      document.getElementById('u-role').value = 'user';
+      openModal('userOverlay');
+    }
+
+    async function handleAddUser(e) {
+      if (e) e.preventDefault();
+      const obj = {
+        employee_id: document.getElementById('u-id').value.trim(),
+        name: document.getElementById('u-name').value.trim(),
+        role: document.getElementById('u-role').value
+      };
+
+      try {
+        await addUser(obj);
+        toast('เพิ่มผู้ใช้งานสำเร็จ', 'success');
+        closeModal('userOverlay');
+        loadUserTable();
+      } catch (err) {
+        toast('เกิดข้อผิดพลาดในการเพิ่มผู้ใช้', 'error');
+      }
+    }
+
+    async function deleteUserPrompt(id, name) {
+      if (confirm(`ยืนยันการลบผู้ใช้ "${name}"?`)) {
+        try {
+          await removeUser(id);
+          toast('ลบผู้ใช้งานเรียบร้อย', 'info');
+          loadUserTable();
+        } catch (err) {
+          toast('เกิดข้อผิดพลาดในการลบผู้ใช้', 'error');
+        }
+      }
+    }
+
     async function initApp() {
       try {
         DB = await getDeposits();
         renderKPI();
         renderTable();
+
+        // If we want to auto-refresh users if we are on that page
+        if (["users"].includes(document.querySelector('.page.active')?.id)) {
+          loadUserTable();
+        }
       } catch (err) {
         toast('เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error');
       }
     }
 
-    initApp();
+    checkSession();
+
 
     /* Helper for seeding data (one-time use) */
     async function seedMockData() {
       const mockData = [
-        { status: 'Done', depStatus: 'Wait Insp. SC', demoStatus: 'On Service', owner: 'เจษฎาภรณ์', place: 'เซ็นทรัลเวิลด์ พลาซา', area: 'BKK 4', customer: 'MUJI (จากชั้น B1 - ชั้น 4)', deal: '62741', project: 'HRA025', pr: '001', dateReq: '2026-01-13', dateDue: '2026-01-16', dateCheck: '2026-01-16', dateAcc: '2026-01-19', payType: 'เช็ค', complete: 'Complete', payTo: 'บมจ.เซ็นทรัลพัฒนา', expense: 'ค่าธรรมเนียม,ค่าประกันรื้อถอน,ค่าประกันติดตั้ง', deposit: 50000, demolish: 10700, fee: 29960, other: 0, total: 90660, depReturn: 'Yes', demoReturn: 'Yes', contact: 'Thitnapha Khengkhan (Bee)', tel: '02-640-7000 Ext.1005', mobile: '06 1941 6966', remark: '' },
+        { status: 'Done', depStatus: 'Wait Insp. SC', demoStatus: 'On Service', owner: 'เจษฎาภรณ์', place: 'เซ็นทรัลเวิลด์ พลาซา', area: 'BKK 4', customer: 'MUJI (จากชั้น B1 - ชั้น 4)', deal: '62741', project: 'HRA025', pr: '001', dateReq: '2026-01-13', dateDue: '2026-01-16', dateAcc: '2026-01-19', payType: 'เช็ค', complete: 'Complete', payTo: 'บมจ.เซ็นทรัลพัฒนา', expense: 'ค่าธรรมเนียม,ค่าประกันรื้อถอน,ค่าประกันติดตั้ง', deposit: 50000, demolish: 10700, fee: 29960, other: 0, total: 90660, depReturn: 'Yes', demoReturn: 'Yes', contact: 'Thitnapha Khengkhan (Bee)', tel: '02-640-7000 Ext.1005', mobile: '06 1941 6966', remark: '' },
         // ... add more if needed
       ];
       for (const item of mockData) {
