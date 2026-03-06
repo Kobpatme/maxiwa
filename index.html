@@ -2244,8 +2244,8 @@
           <div style="flex:1"></div>
           <button class="btn btn-ghost" id="btnPrev" onclick="prevStep()" style="display:none">← ย้อนกลับ</button>
           <button class="btn btn-primary" id="btnNext" onclick="nextStep()">ถัดไป →</button>
-          <button class="btn btn-primary" onclick="submitForm(event)" id="formSubmitBtn" style="display:none">💾
-            บันทึกข้อมูล</button>
+          <button class="btn btn-primary" onclick="submitForm(event)" id="formSubmitBtn">💾
+            ยืนยัน / บันทึกข้อมูล</button>
         </div>
       </div>
     </div>
@@ -2387,7 +2387,7 @@
 
       if (btnPrev) btnPrev.style.display = (s === 1) ? 'none' : 'block';
       if (btnNext) btnNext.style.display = (s === 8) ? 'none' : 'block';
-      if (btnSave) btnSave.style.display = (s === 8) ? 'block' : 'none';
+      if (btnSave) btnSave.style.display = 'block'; // Always allow saving
 
       // Role validation (Step 5-6 for TL only)
       const user = CURRENT_USER || {};
