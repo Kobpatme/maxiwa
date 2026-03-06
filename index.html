@@ -2748,11 +2748,19 @@
         const depositVal = +document.getElementById('f-deposit').value || 0;
         let finalStatus = getVal('f-status') || getVal('f-status-final');
 
-        // Default status to "On Process" (กำลังดำเนินการ) for new entries / step 1
-        if (!finalStatus) finalStatus = 'On Process';
-
-        if (depositVal === 0 && finalStatus !== 'Cancel') {
-          finalStatus = 'Done';
+        if (!editingId) {
+          // New items always start as "On Process"
+          finalStatus = 'On Process';
+        } else {
+          if (!finalStatus) finalStatus = 'On Process';
+          // Auto-complete to Done if no deposit (per previous request),
+          // but only if it's an update to an existing record that's already past the first step.
+          if (depositVal === 0 && finalStatus !== 'Cancel' && finalStatus !== 'Done') {
+            const oldData = DB.find(x => x.id === editingId);
+            if (oldData && getStepIndex(oldData) >= 1) {
+              finalStatus = 'Done';
+            }
+          }
         }
 
         const obj = {
