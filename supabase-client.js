@@ -136,3 +136,17 @@ async function removeUser(id) {
     }
     return true;
 }
+
+async function updateUser(id, userData) {
+    const { data, error } = await _supabase
+        .from('users')
+        .update(userData)
+        .eq('id', id)
+        .select();
+
+    if (error) {
+        console.error('Error updating user:', error);
+        throw error;
+    }
+    return data[0];
+}

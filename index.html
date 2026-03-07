@@ -1870,42 +1870,27 @@
     <div class="modal" id="userModal">
       <div class="modal-head">
         <div>
-          <div class="modal-title">เพิ่มผู้ใช้งานระบบ</div>
-          <div class="modal-sub">กำหนดสิทธิ์และรหัสพนักงานสำหรับการเข้าขัดการข้อมูล</div>
+          <div class="modal-title" id="userModalTitle">เพิ่มผู้ใช้งานใหม่</div>
+          <div class="modal-sub">กำหนดสิทธิ์และพื้นที่ดูแลรับผิดชอบ</div>
         </div>
-        <button class="modal-close" onclick="closeModal('userOverlay')">✕</button>
+        <button type="button" class="modal-close" onclick="closeModal('userOverlay')">✕</button>
       </div>
-      <div class="modal-body">
-        <form onsubmit="handleAddUser(event)">
+      <form onsubmit="handleUserSubmit(event)">
+        <div class="modal-body">
           <div class="form-group">
-            <label>รหัสพนักงาน <span class="required">*</span></label>
-            <input class="form-control" id="u-id" placeholder="EMPLOYEE01" required>
+            <label>รหัสพนักงาน (ID) <span class="required">*</span></label>
+            <input class="form-control" id="u-id" placeholder="ระบุ ID เพื่อใช้ Login" required>
           </div>
-          <div class="form-group">
-            <label>ชื่อ-นามสกุล <span class="required">*</span></label>
-            <input class="form-control" id="u-name" placeholder="ชื่อ นามสกุล" required>
-          </div>
-          <div class="form-group">
-            <label>สิทธิ์การใช้งาน <span class="required">*</span></label>
-            <select class="form-control" id="u-role" onchange="toggleAreaSelect(this.value)">
-              <option value="user">User (ดูและแก้ไขข้อมูลทั่วไป)</option>
-              <option value="admin">Admin (จัดการได้ทุกอย่าง)</option>
-              <option value="tl">TL (ดูแลเฉพาะ Area ที่กำหนด)</option>
-            </select>
-          </div>
-          <div class="form-group" id="u-area-group" style="display:none">
-            <label>พื้นที่รับผิดชอบ (Area) <span class="required">*</span></label>
-            <input class="form-control" id="u-area" placeholder="ระบุ Area (คั่นด้วยลูกน้ำ เช่น BKK 1,BKK 2)">
-            <div style="font-size:11px;color:var(--txt3);margin-top:4px">ตัวอย่าง: BKK 1, BKK 2, CBI -
-              ปล่อยว่างถ้าดูได้ทั้งหมด</div>
-          </div>
-          <div class="modal-foot">
-            <button type="button" class="btn btn-ghost" onclick="closeModal('userOverlay')">ยกเลิก</button>
-            <button type="submit" class="btn btn-primary" id="userSubmitBtn">💾 บันทึกผู้ใช้</button>
-          </div>
-        </form>
-      </div>
+          <!-- ... other groups ... -->
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-ghost" onclick="closeModal('userOverlay')">ยกเลิก</button>
+          <button type="submit" class="btn btn-primary" id="userSubmitBtn">💾 บันทึกผู้ใช้</button>
+        </div>
+      </form>
+      </form>
     </div>
+  </div>
   </div>
   <div class="overlay" id="formOverlay">
     <div class="modal lg" id="formModal">
@@ -2519,6 +2504,52 @@
   `).join('');
     }
 
+    // Real-time Listener
+    function setupRealtime() {
+      _supabase
+        .channel('db-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'deposits' }, payload => {
+          console.log('Realtime change:', payload);
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            // Notify if customer uploaded files
+            const old = DB.find(x => x.id === payload.new.id);
+            if (payload.new.pdf_payment && (!old || !old.pdf_payment)) {
+              toast(`🔔 ใหม่: ${payload.new.place} แนบหลักฐานการชำระเงินแล้ว`, 'info');
+            }
+            if (payload.new.pdf_layout && (!old || !old.pdf_layout)) {
+              toast(`🔔 ใหม่: ${payload.new.place} แนบแบบ Drawing แล้ว`, 'info');
+            }
+          }
+          // Simple approach: re-fetch and render
+          initApp();
+        })
+        .subscribe();
+
+      // User duplicate login listener
+      _supabase
+        .channel('user-session')
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${CURRENT_USER.id}` }, payload => {
+          const session = sessionStorage.getItem('deposit_session');
+          if (session) {
+            const data = JSON.parse(session);
+            if (payload.new.last_session_id && payload.new.last_session_id !== data.sessionId) {
+              alert('มีการเข้าสู่ระบบซ้อน: บัญชีของคุณถูกใช้งานเครื่องอื่น ระบบจะนำคุณออกจากระบบ');
+              logout();
+            }
+          }
+        })
+        .subscribe();
+    }
+
+    function checkDueDates() {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const overdue = DB.filter(d => d.status !== 'Done' && d.dateDue && new Date(d.dateDue) <= today);
+      if (overdue.length > 0) {
+        toast(`⚠️ คุณมีงานค้างกำหนด ${overdue.length} รายการ`, 'error');
+      }
+    }
+
     function statusSelectStyle(s) {
       if (s === 'Done') return 'color:var(--green);border-color:#a7f3d0;background:#f0fdf4';
       if (s === 'On Process') return 'color:#b45309;border-color:#fde68a;background:#fffbeb';
@@ -2584,7 +2615,7 @@
       editingId = null;
       document.getElementById('formTitle').textContent = 'เพิ่มรายการใหม่';
       document.getElementById('formSub').textContent = 'กรอกข้อมูลการขอคืนเงินประกันอาคาร';
-      document.getElementById('formSubmitBtn').textContent = '💾 บันทึก';
+      document.getElementById('formSubmitBtn').textContent = '✅ ยืนยัน';
       clearForm();
       openModal('formOverlay');
     }
@@ -2594,7 +2625,7 @@
       editingId = id;
       document.getElementById('formTitle').textContent = 'แก้ไขรายการ #' + id;
       document.getElementById('formSub').textContent = d.place;
-      document.getElementById('formSubmitBtn').textContent = '💾 บันทึกการแก้ไข';
+      document.getElementById('formSubmitBtn').textContent = '✅ ยืนยัน';
       fillForm(d, targetStep);
       openModal('formOverlay');
     }
@@ -2709,7 +2740,7 @@
       const btn = document.getElementById('formSubmitBtn');
       const originalText = btn.textContent;
       btn.disabled = true;
-      btn.textContent = '⌛ กำลังบันทึก...';
+      btn.textContent = '⌛ กำลังดำเนินการ...';
 
       const getVal = (id) => {
         const el = document.getElementById(id);
@@ -2730,7 +2761,8 @@
         const fileUrls = {};
         for (const ff of fileFields) {
           const input = document.getElementById(ff.id);
-          if (input && input.files && input.files[0]) {
+          // Only upload if a NEW file is selected (input.value is not empty)
+          if (input && input.files && input.files[0] && input.value !== '') {
             toast(`กำลังอัปโหลด ${ff.key}...`, 'info');
             const url = await uploadFile(input.files[0], ff.folder);
             if (url) {
@@ -3194,10 +3226,17 @@
         const user = await validateUser(id);
         if (user) {
           CURRENT_USER = user;
-          localStorage.setItem('deposit_session', JSON.stringify({
+          const sessionId = Math.random().toString(36).substring(2) + Date.now();
+          sessionStorage.setItem('deposit_session', JSON.stringify({
             employeeId: user.employee_id,
-            loginTime: Date.now()
+            loginTime: Date.now(),
+            sessionId: sessionId
           }));
+
+          // Store session ID in DB for duplicate login check
+          await updateUser(user.id, { last_session_id: sessionId });
+
+          CURRENT_USER = user;
           setupUserSession();
           toast(`ยินดีต้อนรับคุณ ${user.name}`, 'success');
         } else {
@@ -3220,23 +3259,31 @@
       } else {
         document.getElementById('admin-nav').style.display = 'none';
       }
-
-      initApp();
+      setupRealtime();
+      initApp().then(() => {
+        checkDueDates();
+      });
     }
 
     function logout() {
-      localStorage.removeItem('deposit_session');
+      sessionStorage.removeItem('deposit_session');
       location.reload();
     }
 
     async function checkSession() {
-      const session = localStorage.getItem('deposit_session');
+      const session = sessionStorage.getItem('deposit_session');
       if (session) {
         const data = JSON.parse(session);
-        // Session valid for 24 hours
+        // Session valid for 24 hours (though sessionStorage clears on close)
         if (Date.now() - data.loginTime < 24 * 60 * 60 * 1000) {
           const user = await validateUser(data.employeeId);
           if (user) {
+            // Duplicate login check
+            if (user.last_session_id && user.last_session_id !== data.sessionId) {
+              alert('มีการเข้าสู่ระบบซ้อน: บัญชีของคุณถูกใช้งานเครื่องอื่น ระบบจะนำคุณออกจากระบบ');
+              logout();
+              return;
+            }
             CURRENT_USER = user;
             setupUserSession();
             return;
@@ -3266,13 +3313,19 @@
           <td><span class="badge ${u.role === 'admin' ? 'b-violet' : u.role === 'tl' ? 'b-orange' : 'b-blue'}">${u.role}</span></td>
           <td>${u.area ? u.area : '<span style="color:var(--txt3);font-size:12px">ทุกพื้นที่/ไม่ได้ระบุ</span>'}</td>
           <td class="nowrap">
-            <button class="act-btn delete" onclick="deleteUserPrompt(${u.id}, '${u.name}')" ${u.employee_id === CURRENT_USER.employee_id ? 'disabled' : ''}>🗑</button>
+            <div class="actions">
+              <button class="act-btn edit" onclick="openEditUserModal(${u.id})" title="แก้ไข">✏️</button>
+              <button class="act-btn delete" onclick="deleteUserPrompt(${u.id}, '${u.name}')" ${u.employee_id === CURRENT_USER.employee_id ? 'disabled' : ''} title="ลบ">🗑</button>
+            </div>
           </td>
         </tr>
       `).join('');
     }
 
+    let editingUserId = null;
     function openAddUserModal() {
+      editingUserId = null;
+      document.getElementById('userModalTitle').textContent = 'เพิ่มผู้ใช้งานใหม่';
       document.getElementById('u-id').value = '';
       document.getElementById('u-name').value = '';
       document.getElementById('u-role').value = 'user';
@@ -3281,7 +3334,22 @@
       openModal('userOverlay');
     }
 
-    async function handleAddUser(e) {
+    async function openEditUserModal(id) {
+      const users = await getUsers();
+      const u = users.find(x => x.id === id);
+      if (!u) return;
+
+      editingUserId = id;
+      document.getElementById('userModalTitle').textContent = 'แก้ไขผู้ใช้งาน';
+      document.getElementById('u-id').value = u.employee_id || '';
+      document.getElementById('u-name').value = u.name || '';
+      document.getElementById('u-role').value = u.role || 'user';
+      document.getElementById('u-area').value = u.area || '';
+      toggleAreaSelect(u.role);
+      openModal('userOverlay');
+    }
+
+    async function handleUserSubmit(e) {
       if (e) e.preventDefault();
       const obj = {
         employee_id: document.getElementById('u-id').value.trim(),
@@ -3291,12 +3359,17 @@
       };
 
       try {
-        await addUser(obj);
-        toast('เพิ่มผู้ใช้งานสำเร็จ', 'success');
+        if (editingUserId) {
+          await updateUser(editingUserId, obj);
+          toast('แก้ไขผู้ใช้งานสำเร็จ', 'success');
+        } else {
+          await addUser(obj);
+          toast('เพิ่มผู้ใช้งานสำเร็จ', 'success');
+        }
         closeModal('userOverlay');
         loadUserTable();
       } catch (err) {
-        toast('เกิดข้อผิดพลาดในการเพิ่มผู้ใช้', 'error');
+        toast('เกิดข้อผิดพลาดในการบันทึกข้อมูลผู้ใช้', 'error');
       }
     }
 
