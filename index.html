@@ -2721,10 +2721,10 @@
       try {
         // Handle PDF Uploads
         const fileFields = [
-          { id: 'f-pdf-payment', key: 'pdf_payment' },
-          { id: 'f-pdf-layout', key: 'pdf_layout' },
-          { id: 'f-pdf-tl-work', key: 'pdf_tl_work' },
-          { id: 'f-pdf-user-final', key: 'pdf_user_final' }
+          { id: 'f-pdf-payment', key: 'pdf_payment', folder: 'payments' },
+          { id: 'f-pdf-layout', key: 'pdf_layout', folder: 'layouts' },
+          { id: 'f-pdf-tl-work', key: 'pdf_tl_work', folder: 'tl_works' },
+          { id: 'f-pdf-user-final', key: 'pdf_user_final', folder: 'final_docs' }
         ];
 
         const fileUrls = {};
@@ -2732,11 +2732,11 @@
           const input = document.getElementById(ff.id);
           if (input && input.files && input.files[0]) {
             toast(`กำลังอัปโหลด ${ff.key}...`, 'info');
-            const url = await uploadFile(input.files[0], 'deposits_files');
+            const url = await uploadFile(input.files[0], ff.folder);
             if (url) {
               fileUrls[ff.key] = url;
             } else {
-              // Upload failed, already toasted in uploadFile
+              // Upload failed
               btn.disabled = false;
               btn.textContent = originalText;
               return;
