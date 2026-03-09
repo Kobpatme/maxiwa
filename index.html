@@ -2093,15 +2093,15 @@
             </div>
             <div class="db-hero-stats">
               <div class="db-hero-stat-item">
-                <div class="db-hero-stat-lbl">เงินประกันติดตั้ง</div>
+                <div class="db-hero-stat-lbl">เงินประกันติดตั้ง (ต้องขอคืน)</div>
                 <div class="db-hero-stat-val" id="db-total-install">฿0</div>
               </div>
               <div class="db-hero-stat-item">
-                <div class="db-hero-stat-lbl">เงินประกันรื้อถอน</div>
+                <div class="db-hero-stat-lbl">เงินประกันรื้อถอน (คืนเมื่อเลิกบริการ)</div>
                 <div class="db-hero-stat-val" id="db-total-demo">฿0</div>
               </div>
               <div class="db-hero-stat-item">
-                <div class="db-hero-stat-lbl">ค่าธรรมเนียมอาคาร</div>
+                <div class="db-hero-stat-lbl">ค่าใช้จ่ายสุทธิ (ค่าธรรมเนียม/อื่นๆ)</div>
                 <div class="db-hero-stat-val" id="db-total-fee">฿0</div>
               </div>
             </div>
@@ -2843,9 +2843,9 @@
     <div class="kpi"><div class="kpi-icon2 blue">📁</div><div><div class="kpi-val">${total}</div><div class="kpi-lbl">รายการทั้งหมด</div></div></div>
     <div class="kpi"><div class="kpi-icon2 orange">⏳</div><div><div class="kpi-val" style="color:var(--orange)">${proc}</div><div class="kpi-lbl">กำลังดำเนินการ</div></div></div>
     <div class="kpi"><div class="kpi-icon2 green">✅</div><div><div class="kpi-val" style="color:var(--green)">${done}</div><div class="kpi-lbl">เสร็จแล้ว</div></div></div>
-    <div class="kpi"><div class="kpi-icon2 violet">🏛️</div><div><div class="kpi-val" style="color:var(--violet);font-size:16px">฿${buildingFee.toLocaleString()}</div><div class="kpi-lbl">ค่าธรรมเนียมอาคาร</div></div></div>
-    <div class="kpi"><div class="kpi-icon2 blue">🛡️</div><div><div class="kpi-val" style="color:var(--blue);font-size:16px">฿${installDep.toLocaleString()}</div><div class="kpi-lbl">เงินประกันติดตั้ง</div></div></div>
-    <div class="kpi"><div class="kpi-icon2 red">🚧</div><div><div class="kpi-val" style="color:var(--red);font-size:16px">฿${demoDep.toLocaleString()}</div><div class="kpi-lbl">ประกันรื้อถอน</div></div></div>
+    <div class="kpi"><div class="kpi-icon2 violet">🏛️</div><div><div class="kpi-val" style="color:var(--violet);font-size:16px">฿${buildingFee.toLocaleString()}</div><div class="kpi-lbl">ค่าใช้จ่ายสุทธิ (Fee/Other)</div></div></div>
+    <div class="kpi"><div class="kpi-icon2 blue">🛡️</div><div><div class="kpi-val" style="color:var(--blue);font-size:16px">฿${installDep.toLocaleString()}</div><div class="kpi-lbl">ประกันติดตั้ง (ต้องคืน)</div></div></div>
+    <div class="kpi"><div class="kpi-icon2 red">🚧</div><div><div class="kpi-val" style="color:var(--red);font-size:16px">฿${demoDep.toLocaleString()}</div><div class="kpi-lbl">ประกันรื้อถอน (คืนเมื่อเลิก)</div></div></div>
   `;
 
       document.getElementById('nav-total').textContent = total;
@@ -3711,7 +3711,7 @@
       allocationChart = new Chart(document.getElementById('financeAllocationChart'), {
         type: 'doughnut',
         data: {
-          labels: ['เงินประกันติดตั้ง', 'เงินประกันรื้อถอน', 'ค่าธรรมเนียมอาคาร'],
+          labels: ['ประกันติดตั้ง (ต้องคืน)', 'ประกันรื้อถอน (คืนเมื่อเลิก)', 'ค่าใช้จ่ายสุทธิ (Fee/Other)'],
           datasets: [{
             data: [totalInstall, totalDemo, totalFee],
             backgroundColor: ['#1e293b', '#d4af37', '#94a3b8'],
