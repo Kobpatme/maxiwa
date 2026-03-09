@@ -1603,8 +1603,34 @@
     }
 
     .db-hero-stats {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 20px;
+    }
+
+    .db-hero-stat-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px;
       display: flex;
-      gap: 40px;
+      flex-direction: column;
+      gap: 12px;
+      height: 100%;
+    }
+
+    .db-hero-stat-card.span-3 {
+      grid-column: span 3;
+    }
+
+    .db-hero-stat-card.span-1 {
+      grid-column: span 1;
+    }
+
+    .card-group-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
     }
 
     .db-hero-stat-item {
@@ -1614,10 +1640,11 @@
     }
 
     .db-hero-stat-lbl {
-      font-size: 11px;
+      font-size: 10px;
       opacity: 0.7;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
+      font-weight: 600;
     }
 
     .db-hero-stat-val {
@@ -2139,26 +2166,41 @@
                 </div>
               </div>
             </div>
-            <div class="db-hero-stats" style="flex-wrap:wrap; justify-content:flex-end; gap:30px">
-              <div class="db-hero-stat-item">
-                <div class="db-hero-stat-lbl">เงินประกันติดตั้ง (ต้องขอคืน)</div>
-                <div class="db-hero-stat-val" id="db-total-install">฿0</div>
+            <div class="db-hero-stats">
+              <!-- Group 1: Installation Lifecycle (Span 3) -->
+              <div class="db-hero-stat-card span-3">
+                <div style="font-size:11px; font-weight:700; opacity:0.6; text-transform:uppercase; margin-bottom:5px">
+                  📦 ผลการขอคืนเงินประกันติดตั้ง</div>
+                <div class="card-group-grid">
+                  <div class="db-hero-stat-item">
+                    <div class="db-hero-stat-lbl">เงินประกันติดตั้ง (ต้องขอคืน)</div>
+                    <div class="db-hero-stat-val" id="db-total-install">฿0</div>
+                  </div>
+                  <div class="db-hero-stat-item">
+                    <div class="db-hero-stat-lbl">เงินประกัน "ได้รับคืนแล้ว"</div>
+                    <div class="db-hero-stat-val" id="db-total-refunded" style="color:var(--green)">฿0</div>
+                  </div>
+                  <div class="db-hero-stat-item">
+                    <div class="db-hero-stat-lbl">เงินประกัน "คงค้าง"</div>
+                    <div class="db-hero-stat-val" id="db-total-pending" style="color:var(--orange)">฿0</div>
+                  </div>
+                </div>
               </div>
-              <div class="db-hero-stat-item">
-                <div class="db-hero-stat-lbl">เงินประกันรื้อถอน (คืนเมื่อเลิกบริการ)</div>
-                <div class="db-hero-stat-val" id="db-total-demo">฿0</div>
+
+              <!-- Group 2: Removal Deposit (Span 1) -->
+              <div class="db-hero-stat-card span-1">
+                <div class="db-hero-stat-item">
+                  <div class="db-hero-stat-lbl">เงินประกันรื้อถอน (คืนเมื่อเลิก)</div>
+                  <div class="db-hero-stat-val" id="db-total-demo" style="margin-top:auto">฿0</div>
+                </div>
               </div>
-              <div class="db-hero-stat-item">
-                <div class="db-hero-stat-lbl">เงินประกัน "ได้รับคืนแล้ว"</div>
-                <div class="db-hero-stat-val" id="db-total-refunded" style="color:var(--green)">฿0</div>
-              </div>
-              <div class="db-hero-stat-item">
-                <div class="db-hero-stat-lbl">เงินประกัน "คงค้าง"</div>
-                <div class="db-hero-stat-val" id="db-total-pending" style="color:var(--orange)">฿0</div>
-              </div>
-              <div class="db-hero-stat-item">
-                <div class="db-hero-stat-lbl">ค่าใช้จ่ายสุทธิ (ค่าธรรมเนียม/อื่นๆ)</div>
-                <div class="db-hero-stat-val" id="db-total-fee">฿0</div>
+
+              <!-- Group 3: Sunk Costs (Span 1) -->
+              <div class="db-hero-stat-card span-1">
+                <div class="db-hero-stat-item">
+                  <div class="db-hero-stat-lbl">ค่าใช้จ่ายสุทธิ (ค่าธรรมเนียม/อื่นๆ)</div>
+                  <div class="db-hero-stat-val" id="db-total-fee" style="margin-top:auto">฿0</div>
+                </div>
               </div>
             </div>
           </div>
