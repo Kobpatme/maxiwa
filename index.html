@@ -3821,10 +3821,9 @@
       const totalDemo = DB.reduce((s, d) => s + (d.demolish || 0), 0);
       const totalFee = DB.reduce((s, d) => s + (d.fee || 0) + (d.other || 0), 0);
 
-      // Success Rate Calculation
-      const totalRefundableVal = totalInstall + totalDemo;
-      const totalRefundedVal = DB.filter(d => d.status === 'Done').reduce((s, d) => s + (d.deposit || 0) + (d.demolish || 0), 0);
-      const successPct = totalRefundableVal > 0 ? Math.round((totalRefundedVal / totalRefundableVal) * 100) : 0;
+      // Success Rate Calculation (Installation Refund Focus)
+      const totalRefundedVal = DB.filter(d => d.status === 'Done').reduce((s, d) => s + (d.deposit || 0), 0);
+      const successPct = totalInstall > 0 ? Math.round((totalRefundedVal / totalInstall) * 100) : 0;
 
       document.getElementById('db-success-rate-pct').textContent = successPct + '%';
       document.getElementById('db-total-valuation').textContent = '฿' + totalVal.toLocaleString();
@@ -3905,16 +3904,16 @@
         }
       });
 
-      // Update Refunded vs Pending Hero Stats
-      const totalRefunded = DB.filter(d => d.status === 'Done').reduce((s, d) => s + (d.deposit || 0) + (d.demolish || 0), 0);
-      const totalPending = DB.filter(d => d.status !== 'Done' && d.status !== 'Cancel').reduce((s, d) => s + (d.deposit || 0) + (d.demolish || 0), 0);
+      // Update Refunded vs Pending Hero Stats (Installation Only)
+      const totalRefunded = DB.filter(d => d.status === 'Done').reduce((s, d) => s + (d.deposit || 0), 0);
+      const totalPending = DB.filter(d => d.status !== 'Done' && d.status !== 'Cancel').reduce((s, d) => s + (d.deposit || 0), 0);
       document.getElementById('db-total-refunded').textContent = '฿' + totalRefunded.toLocaleString();
       document.getElementById('db-total-pending').textContent = '฿' + totalPending.toLocaleString();
 
-      // 3. Area Outstanding Value
+      // 3. Area Outstanding Value (Installation Only)
       const areaFin = {};
       DB.filter(d => d.status !== 'Done' && d.status !== 'Cancel').forEach(d => {
-        if (d.area) areaFin[d.area] = (areaFin[d.area] || 0) + (d.deposit || 0) + (d.demolish || 0);
+        if (d.area) areaFin[d.area] = (areaFin[d.area] || 0) + (d.deposit || 0);
       });
 
       if (ownerFinanceChart) ownerFinanceChart.destroy();
@@ -3951,12 +3950,12 @@
         }
       });
 
-      // 4. Render Top 5 Outstanding
+      // 4. Render Top 5 Outstanding (Installation Only)
       const topOutstanding = [...DB]
         .filter(d => d.status !== 'Done' && d.status !== 'Cancel')
         .map(d => ({
           ...d,
-          totalOutstanding: (d.deposit || 0) + (d.demolish || 0)
+          totalOutstanding: (d.deposit || 0)
         }))
         .sort((a, b) => b.totalOutstanding - a.totalOutstanding)
         .slice(0, 5);
