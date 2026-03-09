@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "test": "node check-tables.js && node check-columns-diag.js"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.98.0",
     "xlsx": "^0.18.5"
