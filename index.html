@@ -1614,35 +1614,38 @@
     }
 
     .db-hero-stat-card {
-      background: rgba(47, 60, 81, 0.7);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 24px;
+      background: #70798c;
+      /* Flat steel grey */
+      border: none;
+      /* Removed border for flatter look */
+      border-radius: 16px;
+      /* Slightly less rounded */
       padding: 30px;
       display: flex;
       flex-direction: column;
       position: relative;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.15);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      /* Very subtle shadow */
     }
 
     .db-hero-stat-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-4px);
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.15);
     }
 
     /* Category Theming */
     .db-hero-stat-card.install-theme {
-      border-left: 4px solid var(--green);
+      border-left: 6px solid var(--green);
+      /* Thicker border for emphasis */
     }
 
     .db-hero-stat-card.demo-theme {
-      border-left: 4px solid var(--gold);
+      border-left: 6px solid var(--gold);
     }
 
     .db-hero-stat-card.fee-theme {
-      border-left: 4px solid #64748b;
+      /* No border for fees in this design, or subtle grey */
     }
 
     .db-hero-stat-card.span-3 {
@@ -1667,11 +1670,13 @@
 
     .db-hero-stat-lbl {
       font-size: 11px;
-      opacity: 0.8;
+      opacity: 0.9;
+      /* Higher opacity for readability on lighter background */
       text-transform: uppercase;
       letter-spacing: 1.2px;
       font-weight: 700;
-      color: #94a3b8;
+      color: #cbd5e1;
+      /* Lighter slate text */
     }
 
     .db-hero-stat-val {
@@ -1692,14 +1697,17 @@
 
     /* Success Rate Pill in Hero Header */
     .hero-success-rate {
-      background: rgba(34, 197, 94, 0.15);
-      padding: 12px 24px;
+      background: rgba(16, 185, 129, 0.15);
+      /* Muted dark green */
+      padding: 12px 32px;
+      /* Wider padding like the image */
       border-radius: 100px;
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      border: 1px solid rgba(34, 197, 94, 0.3);
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      box-shadow: none;
+      /* Flat look */
     }
 
     .hero-success-rate .pct {
@@ -2219,11 +2227,8 @@
 
           <!-- Financial Hero Section -->
           <div class="db-hero"
-            style="background:linear-gradient(135deg, #2b3445 0%, #1e293b 100%); padding:32px 48px; border-radius:32px; box-shadow:0 10px 30px rgba(0,0,0,0.15); position:relative; overflow:hidden; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
-            <!-- Background Decorative Glow -->
-            <div
-              style="position:absolute; top:-50%; right:-10%; width:600px; height:600px; background:radial-gradient(circle, rgba(252, 211, 77, 0.1) 0%, transparent 60%); pointer-events:none;">
-            </div>
+            style="background: #2b303b; padding:32px 48px; border-radius:32px; box-shadow:0 4px 10px rgba(0,0,0,0.1); position:relative; overflow:hidden; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+            <!-- Removed radial glow entirely for flat look -->
 
             <!-- Hero Header Row (Left) -->
             <div style="position:relative; z-index:2; text-align:left">
