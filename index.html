@@ -1621,63 +1621,102 @@
     }
 
     .db-hero-stat-val {
-      font-size: 18px;
-      font-weight: 700;
+      font-size: 20px;
+      font-weight: 800;
       color: #fff;
+      font-family: 'Figtree';
     }
 
     .db-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 24px;
-      margin-top: 10px;
+      margin-top: 24px;
     }
 
     .db-card {
-      background: var(--glass);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid var(--glass-border);
+      background: var(--white);
+      border: 1px solid var(--border);
       border-radius: var(--r);
       padding: 24px;
       box-shadow: var(--shadow);
       min-height: 380px;
       display: flex;
       flex-direction: column;
-      transition: transform 0.3s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
     }
 
     .db-card:hover {
-      transform: translateY(-5px);
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--blue);
     }
 
     .db-card h3 {
-      font-size: 14px;
-      font-weight: 700;
+      font-size: 13px;
+      font-weight: 800;
       color: var(--navy);
       margin-bottom: 24px;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
     }
 
-    .db-card h3 span {
-      width: 32px;
-      height: 32px;
-      background: var(--gold-l);
-      border-radius: 8px;
+    .card-icon-box {
+      width: 38px;
+      height: 38px;
+      background: var(--blue-l);
+      color: var(--blue);
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
+      font-size: 18px;
     }
 
     .chart-container {
       position: relative;
       flex: 1;
       width: 100%;
+    }
+
+    /* ─── PREMIUM TABLES ─── */
+    .mini-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .mini-table th {
+      text-align: left;
+      padding: 10px;
+      color: var(--txt3);
+      font-weight: 700;
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      font-size: 10px;
+    }
+
+    .mini-table td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #f8fafc;
+    }
+
+    .mini-table tr:last-child td {
+      border: none;
+    }
+
+    .val-pill {
+      background: var(--blue-l);
+      color: var(--blue);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 11px;
     }
 
     /* ─── WIZARD STEPS ────────────────────────────── */
@@ -2088,8 +2127,17 @@
           <!-- Financial Hero Section -->
           <div class="db-hero">
             <div class="db-hero-main">
-              <h1>มูลค่าโครงการรวมทั้งหมด</h1>
-              <div class="db-hero-val" id="db-total-valuation">฿0</div>
+              <div style="display:flex; justify-content:space-between; align-items:flex-end">
+                <div>
+                  <h1>Total Project Valuation</h1>
+                  <div class="db-hero-val" id="db-total-valuation">฿0</div>
+                </div>
+                <div style="text-align:right">
+                  <div id="db-success-rate-pct" style="font-size:32px; font-weight:800; color:var(--green)">0%</div>
+                  <div style="font-size:10px; text-transform:uppercase; letter-spacing:1px; opacity:0.7">Refund Success
+                    Rate</div>
+                </div>
+              </div>
             </div>
             <div class="db-hero-stats" style="flex-wrap:wrap; justify-content:flex-end; gap:30px">
               <div class="db-hero-stat-item">
@@ -2117,21 +2165,53 @@
 
           <div class="db-grid">
             <div class="db-card">
-              <h3><span>📈</span> แนวโน้มกระแสเงินสดรายเดือน</h3>
+              <h3>
+                <div class="card-icon-box">📊</div> แนวโน้มกระแสเงินสดรายเดือน
+              </h3>
               <div class="chart-container">
                 <canvas id="trendChart"></canvas>
               </div>
             </div>
             <div class="db-card">
-              <h3><span>📊</span> สัดส่วนการจัดสรรงบประมาณ</h3>
+              <h3>
+                <div class="card-icon-box">🎯</div> สัดส่วนการจัดสรรงบประมาณ
+              </h3>
               <div class="chart-container">
                 <canvas id="financeAllocationChart"></canvas>
               </div>
             </div>
             <div class="db-card">
-              <h3><span>📍</span> ยอดเงินประกันคงค้างแยกตามพื้นที่ (Area)</h3>
+              <h3>
+                <div class="card-icon-box">📍</div> ยอดเงินประกันคงค้างแยกตามพื้นที่ (Area)
+              </h3>
               <div class="chart-container">
                 <canvas id="areaOutstandingChart"></canvas>
+              </div>
+            </div>
+
+            <!-- Executive Highlight: Top Outstanding -->
+            <div class="db-card" style="grid-column: span 3; min-height: auto;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+                <h3 style="margin-bottom:0">
+                  <div class="card-icon-box">🏆</div> 5 อันดับอาคารที่มียอดเงินประกันคงค้างสูงสุด
+                </h3>
+                <div class="badge b-wait">Action Required</div>
+              </div>
+              <div class="table-wrap">
+                <table class="mini-table">
+                  <thead>
+                    <tr>
+                      <th>ชื่ออาคาร / สถานที่</th>
+                      <th>เจ้าของงาน</th>
+                      <th>เงินประกันติดตั้ง</th>
+                      <th>เงินประกันรื้อถอน</th>
+                      <th style="text-align:right">ยอดคงค้างสุทธิ</th>
+                    </tr>
+                  </thead>
+                  <tbody id="db-top-outstanding">
+                    <!-- JS Render -->
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -2848,12 +2928,30 @@
       const dep = filteredData.filter(d => d.depReturn !== 'Yes').reduce((s, d) => s + (d.deposit || 0), 0);
 
       document.getElementById('kpiRow').innerHTML = `
-    <div class="kpi"><div class="kpi-icon2 blue">📁</div><div><div class="kpi-val">${total}</div><div class="kpi-lbl">รายการทั้งหมด</div></div></div>
-    <div class="kpi"><div class="kpi-icon2 orange">⏳</div><div><div class="kpi-val" style="color:var(--orange)">${proc}</div><div class="kpi-lbl">กำลังดำเนินการ</div></div></div>
-    <div class="kpi"><div class="kpi-icon2 green">✅</div><div><div class="kpi-val" style="color:var(--green)">${done}</div><div class="kpi-lbl">เสร็จแล้ว</div></div></div>
-    <div class="kpi"><div class="kpi-icon2 violet">🏛️</div><div><div class="kpi-val" style="color:var(--violet);font-size:16px">฿${buildingFee.toLocaleString()}</div><div class="kpi-lbl">ค่าใช้จ่ายสุทธิ (Fee/Other)</div></div></div>
-    <div class="kpi"><div class="kpi-icon2 blue">🛡️</div><div><div class="kpi-val" style="color:var(--blue);font-size:16px">฿${installDep.toLocaleString()}</div><div class="kpi-lbl">ประกันติดตั้ง (ต้องคืน)</div></div></div>
-    <div class="kpi"><div class="kpi-icon2 red">🚧</div><div><div class="kpi-val" style="color:var(--red);font-size:16px">฿${demoDep.toLocaleString()}</div><div class="kpi-lbl">ประกันรื้อถอน (คืนเมื่อเลิก)</div></div></div>
+    <div class="kpi" style="border-left: 4px solid var(--blue)">
+      <div class="kpi-icon2 blue">📁</div>
+      <div><div class="kpi-val">${total}</div><div class="kpi-lbl">รายการทั้งหมด</div></div>
+    </div>
+    <div class="kpi" style="border-left: 4px solid var(--orange)">
+      <div class="kpi-icon2 orange">⏳</div>
+      <div><div class="kpi-val" style="color:var(--orange)">${proc}</div><div class="kpi-lbl">กำลังดำเนินการ</div></div>
+    </div>
+    <div class="kpi" style="border-left: 4px solid var(--green)">
+      <div class="kpi-icon2 green">✅</div>
+      <div><div class="kpi-val" style="color:var(--green)">${done}</div><div class="kpi-lbl">เสร็จสิ้นแล้ว</div></div>
+    </div>
+    <div class="kpi" style="border-left: 4px solid var(--violet)">
+      <div class="kpi-icon2 violet">🏛️</div>
+      <div><div class="kpi-val" style="color:var(--violet);font-size:16px">฿${buildingFee.toLocaleString()}</div><div class="kpi-lbl">ค่าใช้จ่ายสุทธิ (Sunk Cost)</div></div>
+    </div>
+    <div class="kpi" style="border-left: 4px solid var(--blue)">
+      <div class="kpi-icon2 blue">🛡️</div>
+      <div><div class="kpi-val" style="color:var(--blue);font-size:16px">฿${installDep.toLocaleString()}</div><div class="kpi-lbl">ประกันติดตั้ง (Refundable)</div></div>
+    </div>
+    <div class="kpi" style="border-left: 4px solid var(--red)">
+      <div class="kpi-icon2 red">🚧</div>
+      <div><div class="kpi-val" style="color:var(--red);font-size:16px">฿${demoDep.toLocaleString()}</div><div class="kpi-lbl">ประกันรื้อถอน (Conditional)</div></div>
+    </div>
   `;
 
       document.getElementById('nav-total').textContent = total;
@@ -3656,6 +3754,12 @@
       const totalDemo = DB.reduce((s, d) => s + (d.demolish || 0), 0);
       const totalFee = DB.reduce((s, d) => s + (d.fee || 0) + (d.other || 0), 0);
 
+      // Success Rate Calculation
+      const totalRefundableVal = totalInstall + totalDemo;
+      const totalRefundedVal = DB.filter(d => d.status === 'Done').reduce((s, d) => s + (d.deposit || 0) + (d.demolish || 0), 0);
+      const successPct = totalRefundableVal > 0 ? Math.round((totalRefundedVal / totalRefundableVal) * 100) : 0;
+
+      document.getElementById('db-success-rate-pct').textContent = successPct + '%';
       document.getElementById('db-total-valuation').textContent = '฿' + totalVal.toLocaleString();
       document.getElementById('db-total-install').textContent = '฿' + totalInstall.toLocaleString();
       document.getElementById('db-total-demo').textContent = '฿' + totalDemo.toLocaleString();
@@ -3746,7 +3850,7 @@
         if (d.area) areaFin[d.area] = (areaFin[d.area] || 0) + (d.deposit || 0) + (d.demolish || 0);
       });
 
-      if (ownerFinanceChart) ownerFinanceChart.destroy(); // Reuse variable name for simplicity or we can add areaOutstandingChart
+      if (ownerFinanceChart) ownerFinanceChart.destroy();
       ownerFinanceChart = new Chart(document.getElementById('areaOutstandingChart'), {
         type: 'bar',
         data: {
@@ -3754,21 +3858,54 @@
           datasets: [{
             label: 'ยอดเงินประกันคงค้าง (฿)',
             data: Object.values(areaFin),
-            backgroundColor: '#d4af37',
+            backgroundColor: '#1e293b',
+            hoverBackgroundColor: '#d4af37',
             borderRadius: 8,
-            barThickness: 28
+            barThickness: 24
           }]
         },
         options: {
           maintainAspectRatio: false,
           indexAxis: 'y',
-          plugins: { legend: { display: false } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1e293b',
+              titleFont: { size: 13 },
+              bodyFont: { size: 12 },
+              padding: 12,
+              displayColors: false
+            }
+          },
           scales: {
-            x: { grid: { display: false }, border: { display: false } },
-            y: { grid: { display: false }, border: { display: false } }
+            x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10 } } },
+            y: { grid: { display: false }, border: { display: false }, ticks: { font: { weight: 'bold' } } }
           }
         }
       });
+
+      // 4. Render Top 5 Outstanding
+      const topOutstanding = [...DB]
+        .filter(d => d.status !== 'Done' && d.status !== 'Cancel')
+        .map(d => ({
+          ...d,
+          totalOutstanding: (d.deposit || 0) + (d.demolish || 0)
+        }))
+        .sort((a, b) => b.totalOutstanding - a.totalOutstanding)
+        .slice(0, 5);
+
+      document.getElementById('db-top-outstanding').innerHTML = topOutstanding.map(d => `
+        <tr>
+          <td>
+            <div style="font-weight:700; color:var(--txt)">${d.place}</div>
+            <div style="font-size:10px; color:var(--txt3)">${d.customer || '-'}</div>
+          </td>
+          <td><span class="badge b-violet" style="font-size:10px">${d.owner}</span></td>
+          <td style="color:var(--txt2)">฿${(d.deposit || 0).toLocaleString()}</td>
+          <td style="color:var(--txt2)">฿${(d.demolish || 0).toLocaleString()}</td>
+          <td style="text-align:right"><span class="val-pill">฿${d.totalOutstanding.toLocaleString()}</span></td>
+        </tr>
+      `).join('');
     }
 
     /* ════════ TOAST ════════ */
