@@ -2091,7 +2091,7 @@
               <h1>มูลค่าโครงการรวมทั้งหมด</h1>
               <div class="db-hero-val" id="db-total-valuation">฿0</div>
             </div>
-            <div class="db-hero-stats">
+            <div class="db-hero-stats" style="flex-wrap:wrap; justify-content:flex-end; gap:30px">
               <div class="db-hero-stat-item">
                 <div class="db-hero-stat-lbl">เงินประกันติดตั้ง (ต้องขอคืน)</div>
                 <div class="db-hero-stat-val" id="db-total-install">฿0</div>
@@ -2099,6 +2099,14 @@
               <div class="db-hero-stat-item">
                 <div class="db-hero-stat-lbl">เงินประกันรื้อถอน (คืนเมื่อเลิกบริการ)</div>
                 <div class="db-hero-stat-val" id="db-total-demo">฿0</div>
+              </div>
+              <div class="db-hero-stat-item">
+                <div class="db-hero-stat-lbl">เงินประกัน "ได้รับคืนแล้ว"</div>
+                <div class="db-hero-stat-val" id="db-total-refunded" style="color:var(--green)">฿0</div>
+              </div>
+              <div class="db-hero-stat-item">
+                <div class="db-hero-stat-lbl">เงินประกัน "คงค้าง"</div>
+                <div class="db-hero-stat-val" id="db-total-pending" style="color:var(--orange)">฿0</div>
               </div>
               <div class="db-hero-stat-item">
                 <div class="db-hero-stat-lbl">ค่าใช้จ่ายสุทธิ (ค่าธรรมเนียม/อื่นๆ)</div>
@@ -2121,9 +2129,9 @@
               </div>
             </div>
             <div class="db-card">
-              <h3><span>👤</span> มูลค่าโครงการแยกตามเจ้าของงาน</h3>
+              <h3><span>📍</span> ยอดเงินประกันคงค้างแยกตามพื้นที่ (Area)</h3>
               <div class="chart-container">
-                <canvas id="ownerFinanceChart"></canvas>
+                <canvas id="areaOutstandingChart"></canvas>
               </div>
             </div>
           </div>
@@ -3726,21 +3734,27 @@
         }
       });
 
-      // 3. Owner Finance Value
-      const ownerFin = {};
-      DB.forEach(d => {
-        if (d.owner) ownerFin[d.owner] = (ownerFin[d.owner] || 0) + (d.total || 0);
+      // Update Refunded vs Pending Hero Stats
+      const totalRefunded = DB.filter(d => d.status === 'Done').reduce((s, d) => s + (d.deposit || 0) + (d.demolish || 0), 0);
+      const totalPending = DB.filter(d => d.status !== 'Done' && d.status !== 'Cancel').reduce((s, d) => s + (d.deposit || 0) + (d.demolish || 0), 0);
+      document.getElementById('db-total-refunded').textContent = '฿' + totalRefunded.toLocaleString();
+      document.getElementById('db-total-pending').textContent = '฿' + totalPending.toLocaleString();
+
+      // 3. Area Outstanding Value
+      const areaFin = {};
+      DB.filter(d => d.status !== 'Done' && d.status !== 'Cancel').forEach(d => {
+        if (d.area) areaFin[d.area] = (areaFin[d.area] || 0) + (d.deposit || 0) + (d.demolish || 0);
       });
 
-      if (ownerFinanceChart) ownerFinanceChart.destroy();
-      ownerFinanceChart = new Chart(document.getElementById('ownerFinanceChart'), {
+      if (ownerFinanceChart) ownerFinanceChart.destroy(); // Reuse variable name for simplicity or we can add areaOutstandingChart
+      ownerFinanceChart = new Chart(document.getElementById('areaOutstandingChart'), {
         type: 'bar',
         data: {
-          labels: Object.keys(ownerFin),
+          labels: Object.keys(areaFin),
           datasets: [{
-            label: 'มูลค่าโครงการรวม (฿)',
-            data: Object.values(ownerFin),
-            backgroundColor: '#1e293b',
+            label: 'ยอดเงินประกันคงค้าง (฿)',
+            data: Object.values(areaFin),
+            backgroundColor: '#d4af37',
             borderRadius: 8,
             barThickness: 28
           }]
