@@ -2129,7 +2129,7 @@
             </div>
           </div>
           <span id="user-display" style="font-size:12px; color:var(--txt2); margin-right:15px; font-weight:600"></span>
-          <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+          <button class="btn btn-ghost btn-sm" id="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
           <button class="btn btn-primary" id="add-btn" onclick="openAddModal()">＋ เพิ่มรายการใหม่</button>
           <button class="btn btn-ghost btn-sm" onclick="logout()" style="padding:8px">🚪</button>
         </div>
@@ -4545,11 +4545,22 @@
         const statsEl = document.querySelector('.sidebar-stats');
         if (statsEl) statsEl.style.display = 'none';
 
+        // Hide specific buttons for TL
+        const exportBtn = document.getElementById('export-btn');
+        const addBtn = document.getElementById('add-btn');
+        if (exportBtn) exportBtn.style.display = 'none';
+        if (addBtn) addBtn.style.display = 'none';
+
         // Auto land on TL tasks
         showPage('tl-tasks');
       } else {
         document.getElementById('nav-db').style.display = 'block';
         document.getElementById('nav-list').style.display = 'block';
+
+        const exportBtn = document.getElementById('export-btn');
+        const addBtn = document.getElementById('add-btn');
+        if (exportBtn) exportBtn.style.display = 'block';
+        if (addBtn) addBtn.style.display = 'block';
         // Admin nav already handled by role check above
       }
 
