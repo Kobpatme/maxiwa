@@ -3111,7 +3111,7 @@
       empty.style.display = 'none';
 
       document.getElementById('tbody').innerHTML = data.map(d => `
-    <tr onclick="if(event.target.tagName !== 'BUTTON' && event.target.tagName !== 'SELECT') openEdit(${d.id}, 'auto')" style="cursor:pointer;" title="คลิกเพื่ออัปเดตสถานะงาน">
+    <tr onclick="if(event.target.tagName !== 'BUTTON' && event.target.tagName !== 'SELECT') { if(window.CURRENT_USER?.role === 'tl') openDetail(${d.id}); else openEdit(${d.id}, 'auto'); }" style="cursor:pointer;" title="คลิกเพื่ออัปเดตสถานะงาน">
       <td class="nowrap" style="color:var(--txt3);font-size:12px">#${d.id}</td>
       <td class="nowrap">
         <div style="${statusSelectStyle(d.status)}; font-size:13px; font-weight:600; text-align:center;">
@@ -3759,6 +3759,7 @@
       }
     }
     /* ════════ DETAIL VIEW ════════ */
+    /* ════════ DETAIL VIEW ════════ */
     function openDetail(id) {
       const d = DB.find(x => x.id === id);
       const detailBody = document.getElementById('detailBody');
@@ -3767,34 +3768,36 @@
       document.getElementById('detailTitle').textContent = d.place;
       document.getElementById('detailSub').textContent = `#${d.id} · ${d.project || '—'} · ${d.area || '—'}`;
 
-      renderWFProgress(d, 'detailProgress');
-      renderActivityLog(d.log, 'detailActivityLog', 'detailActivityItems');
-
       const rows = [
         ['ลูกค้า', d.customer || '—'],
         ['เจ้าของงาน', d.owner || '—'],
-        ['ผู้รับผิดชอบการบันทึก', d.created_by || '—'],
         ['พื้นที่', d.area || '—'],
         ['Project Code', d.project || '—'],
-        ['Deal No.', d.deal || '—'],
         ['PR No.', d.pr || '—'],
-        ['วันที่ตั้งเบิก', d.dateReq || '—'],
         ['วันที่ต้องได้', d.dateDue || '—'],
-        ['ประเภทชำระ', d.payType || '—'],
-        ['จ่ายให้', d.payTo || '—'],
         ['ทีม TL กทม/ตจว', d.tl_team || '—'],
         ['ผู้ประสานงาน', d.contact || '—'],
         ['เบอร์โทร (มือถือ)', d.tel || '—'],
-        ['เบอร์สำนักงาน', d.office_tel || '—'],
-        ['Email', d.email || '—'],
-        ['Cost Sheet', d.cost_sheet || '—'],
-        ['วันที่ได้รับเงินคืน', d.date_return || '—'],
-        ['ประเภทการคืนเงิน', d.return_type || '—'],
-        ['วันที่ส่งคืนบัญชี', d.date_accounting || '—'],
-        ['หมายเหตุปิดงาน', d.final_remark || '—']
       ];
 
-      const statusHTML = `<div style="margin-bottom:14px;display:flex;gap:10px;align-items:center">${statusBadge(d.status)} ${d.complete === 'Complete' ? '<span class="badge b-done">ส่งมอบงานแล้ว</span>' : ''}</div>`;
+      const user = window.CURRENT_USER || {};
+      const isTL = user.role === 'tl';
+
+      // Insurance/Detail Header
+      let headerHTML = `<div style="margin-bottom:14px;display:flex;gap:10px;align-items:center">${statusBadge(d.status)} ${d.complete === 'Complete' ? '<span class="badge b-done">ส่งมอบงานแล้ว</span>' : ''}</div>`;
+
+      if (isTL) {
+        let helpMsg = [];
+        if ((+d.deposit || 0) > 0) helpMsg.push('<span style="color:var(--green);font-weight:700">✅ มีเงินประกันติดตั้ง</span>');
+        if ((+d.demolish || 0) > 0) helpMsg.push('<span style="color:var(--green);font-weight:700">✅ มีเงินประกันรื้อถอน</span>');
+        headerHTML += `
+          <div style="padding:15px; background:var(--blue-l); border:1px solid var(--blue); border-radius:var(--r-md); margin-bottom:20px;">
+            <div style="font-size:13px; color:var(--blue-d); font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:6px;">💰 ข้อมูลเงินประกันคงค้าง</div>
+            <div style="font-size:14px; line-height:1.6">${helpMsg.length > 0 ? helpMsg.join('<br>') : 'ℹ️ ไม่มีรายการเงินประกันคงค้าง'}</div>
+          </div>
+        `;
+      }
+
       const detailHTML = `<div class="detail-grid">${rows.map(([k, v], i) => `<div class="detail-row"><div class="detail-key">${k}</div><div class="detail-val">${v}</div></div>`).join('')}</div>`;
 
       const fileRows = [
@@ -3819,22 +3822,139 @@
       </div>
     ` : '';
 
-      const moneyHTML = (d.deposit || d.demolish || d.fee || d.other || d.total) ? `
-  <div class="money-box" style="margin-top:20px">
-    <div class="money-title">💰 รายละเอียดค่าใช้จ่าย</div>
-    <div class="money-rows">
-      ${d.deposit ? `<div class="money-row"><span class="ml">เงินประกันติดตั้ง</span><span class="mr">฿${d.deposit.toLocaleString()}</span></div>` : ''}
-      ${d.demolish ? `<div class="money-row"><span class="ml">เงินประกันรื้อถอน</span><span class="mr">฿${d.demolish.toLocaleString()}</span></div>` : ''}
-      ${d.fee ? `<div class="money-row"><span class="ml">ค่าธรรมเนียม</span><span class="mr">฿${d.fee.toLocaleString()}</span></div>` : ''}
-      ${d.other ? `<div class="money-row"><span class="ml">ค่าใช้จ่ายอื่นๆ</span><span class="mr">฿${d.other.toLocaleString()}</span></div>` : ''}
-    </div>
-    <div class="money-total"><span class="ml">รวมทั้งสิ้น</span><span class="mr">฿${d.total.toLocaleString()}</span></div>
-  </div>` : '';
       const remarkHTML = d.remark ? `<div style="margin-top:12px;padding:10px 12px;background:var(--orange-l);border-radius:var(--r-sm);font-size:12.5px;color:#92400e">📝 ${d.remark}</div>` : '';
 
-      detailBody.innerHTML = statusHTML + detailHTML + filesHTML + moneyHTML + remarkHTML;
-      document.getElementById('detailEditBtn').onclick = () => { closeModal('detailOverlay'); openEdit(id); };
+      // TL Action Section
+      let tlActionHTML = '';
+      if (isTL) {
+        if (d.complete_tl !== 'On Process') {
+          tlActionHTML = `
+            <div style="margin-top:25px; border-top:1px dashed var(--border); padding-top:20px; text-align:center;">
+              <button class="btn btn-primary" style="width:100%; height:48px; font-size:16px;" onclick="acceptJobTLDetail(${d.id})">✔️ ยืนยันรับงาน (Start Process)</button>
+            </div>
+          `;
+        } else if (!d.pdf_tl_work) {
+          tlActionHTML = `
+            <div style="margin-top:25px; border-top:1px dashed var(--border); padding-top:20px;">
+              <button id="finish-btn-tl" class="btn btn-violet" style="width:100%; height:48px; font-size:16px;" onclick="showUploadTL()">🏁 งานหน้างานเสร็จสิ้น</button>
+              <div id="tl-upload-ui" style="display:none; margin-top:15px; padding:15px; background:var(--bg-f); border-radius:var(--r-md); border:1px solid var(--border);">
+                 <label style="font-weight:700; font-size:13px; display:block; margin-bottom:10px;">📤 แนบหลักฐาน PDF (บังคับ)</label>
+                 <input type="file" id="f-pdf-tl-work-detail" accept=".pdf" class="form-control" style="margin-bottom:15px">
+                 <button class="btn btn-primary btn-sm" style="width:100%" onclick="saveTLWorkDetail(${d.id})">✅ บันทึกและส่งต่องาน</button>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      detailBody.innerHTML = headerHTML + detailHTML + filesHTML + remarkHTML + tlActionHTML;
+
+      // Footer buttons toggle
+      const detailEditBtn = document.getElementById('detailEditBtn');
+      if (detailEditBtn) {
+        if (isTL) {
+          detailEditBtn.style.display = 'none';
+        } else {
+          detailEditBtn.style.display = 'block';
+          detailEditBtn.onclick = () => { closeModal('detailOverlay'); openEdit(id); };
+        }
+      }
+
+      // Progress/Activity Log toggle
+      const progTrack = document.getElementById('detailProgress')?.closest('.progress-track');
+      const actLog = document.getElementById('detailActivityLog');
+
+      if (isTL) {
+        if (progTrack) progTrack.style.display = 'none';
+        if (actLog) actLog.style.display = 'none';
+      } else {
+        if (progTrack) progTrack.style.display = 'block';
+        if (actLog) actLog.style.display = 'block';
+        renderWFProgress(d, 'detailProgress');
+        renderActivityLog(d.log, 'detailActivityLog', 'detailActivityItems');
+      }
+
       openModal('detailOverlay');
+    }
+
+    /* ════════ TL ACTIONS (DETAIL VIEW) ════════ */
+    async function acceptJobTLDetail(id) {
+      if (!confirm('ยืนยันการรับงานหน้างาน?')) return;
+      const d = DB.find(x => x.id === id);
+      if (!d) return;
+
+      toast('กำลังบันทึกการรับงาน...', 'info');
+      addLogEntry(d, 'TL รับงานเข้าดำเนินการ', '✔️');
+
+      try {
+        const updateObj = { status: 'On Process', complete_tl: 'On Process', log: d.log };
+        let updated;
+        if (USE_MOCK) {
+          updated = { ...d, ...updateObj };
+          const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+        } else {
+          updated = await updateDeposit(id, updateObj);
+          const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+        }
+        openDetail(id); // Reload view
+        renderTable(); renderKPI();
+        toast('รับงานสำเร็จ ✓', 'success');
+      } catch (err) {
+        toast('ผิดพลาด: ' + err.message, 'error');
+      }
+    }
+
+    function showUploadTL() {
+      const btn = document.getElementById('finish-btn-tl');
+      const ui = document.getElementById('tl-upload-ui');
+      if (btn) btn.style.display = 'none';
+      if (ui) ui.style.display = 'block';
+    }
+
+    async function saveTLWorkDetail(id) {
+      const input = document.getElementById('f-pdf-tl-work-detail');
+      if (!input || !input.files[0]) {
+        toast('กรุณาเลือกไฟล์ PDF หลักฐานงาน TL', 'error'); return;
+      }
+
+      const d = DB.find(x => x.id === id);
+      const file = input.files[0];
+      const btn = event.target;
+      const originText = btn.textContent;
+
+      btn.disabled = true; btn.textContent = '⌛ กำลังบันทึก...';
+
+      try {
+        let url = '';
+        if (USE_MOCK) {
+          url = `mock://uploads/tl_works/${file.name}`;
+          toast('จำลองการอัปโหลดไฟล์สำเร็จ', 'info');
+        } else {
+          url = await uploadFile(file, 'tl_works');
+        }
+
+        if (url) {
+          addLogEntry(d, 'TL ดำเนินการเสร็จสิ้นและแนบหลักฐาน', '🏁');
+          const updateObj = { status: 'ret', pdf_tl_work: url, log: d.log };
+
+          let updated;
+          if (USE_MOCK) {
+            updated = { ...d, ...updateObj };
+            const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+          } else {
+            updated = await updateDeposit(id, updateObj);
+            const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+          }
+
+          closeModal('detailOverlay');
+          renderTable(); renderKPI();
+          toast('ดำเนินการเสร็จสิ้น ✓', 'success');
+        }
+      } catch (err) {
+        toast('ผิดพลาด: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false; btn.textContent = originText;
+      }
     }
 
     /* ════════ CANCEL / DELETE ════════ */
