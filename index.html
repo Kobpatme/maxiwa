@@ -4720,14 +4720,16 @@
         if (addBtn) addBtn.style.display = 'none';
 
         // Ensure Removal Deposit nav is visible
-        document.getElementById('nav-active-demo').style.display = 'block';
+        const navDemo = document.getElementById('nav-active-demo');
+        if (navDemo) navDemo.style.display = 'block';
 
         // Auto land on TL tasks
         showPage('tl-tasks');
       } else {
         document.getElementById('nav-db').style.display = 'block';
         document.getElementById('nav-list').style.display = 'block';
-        document.getElementById('nav-active-demo').style.display = 'block';
+        const navDemo = document.getElementById('nav-active-demo');
+        if (navDemo) navDemo.style.display = 'block';
 
         const exportBtn = document.getElementById('export-btn');
         const addBtn = document.getElementById('add-btn');
