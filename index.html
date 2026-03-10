@@ -3542,24 +3542,41 @@
         ];
 
         const fileUrls = {};
+        const pendingCleanups = [];
+        const oldData = editingId ? DB.find(x => x.id === editingId) : null;
+
         for (const ff of fileFields) {
           const input = document.getElementById(ff.id);
-          // Only upload if a NEW file is selected (input.value is not empty)
+          // Only upload if a NEW file is selected
           if (input && input.files && input.files[0] && input.value !== '') {
+            const file = input.files[0];
+            const fileKey = file.name + file.size;
+
+            // Session Cache: Avoid re-uploading if same file was uploaded in this session (e.g. after error)
+            if (input.dataset.uploadedUrl && input.dataset.uploadedKey === fileKey) {
+              fileUrls[ff.key] = input.dataset.uploadedUrl;
+              continue;
+            }
+
             if (USE_MOCK) {
-              // Mock upload: Create a fake URL
-              const mockUrl = `mock://uploads/${ff.folder}/${input.files[0].name}`;
+              const mockUrl = `mock://uploads/${ff.folder}/${file.name}`;
               fileUrls[ff.key] = mockUrl;
+              input.dataset.uploadedUrl = mockUrl;
+              input.dataset.uploadedKey = fileKey;
               toast(`จำลองการอัปโหลด ${ff.key} สำเร็จ`, 'info');
-              input.value = ''; // Clear after "upload"
             } else {
               toast(`กำลังอัปโหลด ${ff.key}...`, 'info');
-              const url = await uploadFile(input.files[0], ff.folder);
+              const url = await uploadFile(file, ff.folder);
               if (url) {
                 fileUrls[ff.key] = url;
-                input.value = ''; // Clear after upload
+                input.dataset.uploadedUrl = url;
+                input.dataset.uploadedKey = fileKey;
+
+                // Queue old file for deletion if this is an update
+                if (oldData && oldData[ff.key]) {
+                  pendingCleanups.push(oldData[ff.key]);
+                }
               } else {
-                // Upload failed
                 btn.disabled = false;
                 btn.textContent = originalText;
                 return;
@@ -3570,7 +3587,6 @@
 
         // Explicit Status Determination Logic
         const depositVal = +document.getElementById('f-deposit').value || 0;
-        const oldData = editingId ? DB.find(x => x.id === editingId) : null;
         let finalStatus = oldData ? oldData.status : 'new';
 
         // Automatic Status Transitions
@@ -3704,6 +3720,26 @@
           }
           toast('เพิ่มรายการใหม่สำเร็จ ✓' + (depositVal === 0 ? ' (ระบบปิดงานอัตโนมัติเนื่องจากไม่มีเงินประกันติดตั้ง)' : ''), 'success');
         }
+
+        // --- POST-SAVE SUCCESS CLEANUP ---
+
+        // 1. Delete old files from storage (now that DB is pointing to new ones)
+        if (!USE_MOCK) {
+          for (const oldUrl of pendingCleanups) {
+            deleteFileFromUrl(oldUrl);
+          }
+        }
+
+        // 2. Clear file inputs and session cache
+        fileFields.forEach(ff => {
+          const input = document.getElementById(ff.id);
+          if (input) {
+            input.value = '';
+            delete input.dataset.uploadedUrl;
+            delete input.dataset.uploadedKey;
+          }
+        });
+
         closeModal('formOverlay');
         renderTable(); renderKPI();
       } catch (err) {

@@ -82,6 +82,27 @@ async function uploadFile(file, folder = 'misc') {
     return publicUrl;
 }
 
+async function deleteFileFromUrl(url) {
+    if (!url || typeof url !== 'string') return;
+    try {
+        // Extract path from public URL
+        // Format: .../storage/v1/object/public/deposits_files/folder/filename.ext
+        const parts = url.split('/deposits_files/');
+        if (parts.length < 2) return;
+
+        const filePath = parts[1];
+        const { error } = await _supabase.storage
+            .from('deposits_files')
+            .remove([filePath]);
+
+        if (error) {
+            console.error('Error deleting file from storage:', error);
+        }
+    } catch (err) {
+        console.error('Failed to parse storage URL for deletion:', err);
+    }
+}
+
 /* ─── USER MANAGEMENT (Auth/Admin) ─── */
 
 async function validateUser(employeeId) {
