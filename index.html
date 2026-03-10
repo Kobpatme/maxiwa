@@ -2909,6 +2909,14 @@
     };
 
     /* ════════ HELPERS ════════ */
+    function parseFixed(val) {
+      if (typeof val === 'number') return val || 0;
+      if (!val) return 0;
+      // Remove commas and parse
+      const n = parseFloat(val.toString().replace(/,/g, ''));
+      return isNaN(n) ? 0 : n;
+    }
+
     function getStepIndex(d) {
       if (d.status && STATUS_MAP[d.status] !== undefined) {
         return STATUS_MAP[d.status];
@@ -3120,11 +3128,11 @@
       const done = filteredData.filter(d => ((d.status || '').trim().toLowerCase() === 'done')).length;
       const proc = filteredData.filter(d => d.status === 'On Process').length;
 
-      const buildingFee = filteredData.reduce((s, d) => s + (d.fee || 0) + (d.other || 0), 0);
-      const installDep = filteredData.reduce((s, d) => s + (d.deposit || 0), 0);
-      const demoDep = filteredData.reduce((s, d) => s + (d.demolish || 0), 0);
-      const amt = filteredData.reduce((s, d) => s + (d.total || 0), 0);
-      const dep = filteredData.filter(d => (d.depReturn || '').trim().toLowerCase() !== 'yes').reduce((s, d) => s + (+(d.deposit || 0)), 0);
+      const buildingFee = filteredData.reduce((s, d) => s + parseFixed(d.fee) + parseFixed(d.other), 0);
+      const installDep = filteredData.reduce((s, d) => s + parseFixed(d.deposit), 0);
+      const demoDep = filteredData.reduce((s, d) => s + parseFixed(d.demolish), 0);
+      const amt = filteredData.reduce((s, d) => s + parseFixed(d.total), 0);
+      const dep = filteredData.filter(d => (d.depReturn || '').trim().toLowerCase() !== 'yes').reduce((s, d) => s + parseFixed(d.deposit), 0);
 
       document.getElementById('kpiRow').innerHTML = `
     <div class="kpi" style="border-left: 4px solid var(--blue)">
@@ -4426,16 +4434,20 @@
     let trendChart, allocationChart, ownerFinanceChart;
 
     function renderExecutiveDashboard() {
-      const totalInstall = DB.reduce((s, d) => s + (+(d.deposit || 0)), 0);
-      const totalDemo = DB.reduce((s, d) => s + (+(d.demolish || 0)), 0);
+      const totalInstall = DB.reduce((s, d) => s + parseFixed(d.deposit), 0);
+      const totalDemo = DB.reduce((s, d) => s + parseFixed(d.demolish), 0);
       const totalInsuranceVal = totalInstall + totalDemo;
 
-      // 1. Installation Refund (status === 'Done')
-      const installRefunded = DB.filter(d => (d.status || '').trim().toLowerCase() === 'done').reduce((s, d) => s + (+(d.deposit || 0)), 0);
+      // 1. Installation Refund (status === 'Done' OR depReturn === 'Yes')
+      const installRefunded = DB.filter(d => {
+        const isDone = (d.status || '').trim().toLowerCase() === 'done';
+        const isReturned = (d.depReturn || '').trim().toLowerCase() === 'yes';
+        return isDone || isReturned;
+      }).reduce((s, d) => s + parseFixed(d.deposit), 0);
       const installPending = totalInstall - installRefunded;
 
       // 2. Removal Refund (demoReturn === 'Yes')
-      const demoRefunded = DB.filter(d => (d.demoReturn || '').trim().toLowerCase() === 'yes').reduce((s, d) => s + (+(d.demolish || 0)), 0);
+      const demoRefunded = DB.filter(d => (d.demoReturn || '').trim().toLowerCase() === 'yes').reduce((s, d) => s + parseFixed(d.demolish), 0);
       const demoPending = totalDemo - demoRefunded;
 
       // 3. Overall Summary (Hero)
