@@ -3132,11 +3132,15 @@
       <td class="nowrap">${stepLabel(d)}</td>
       <td class="nowrap">
         <div class="actions">
-          <button class="act-btn view" title="ดูรายละเอียด" onclick="openDetail(${d.id})">👁</button>
-          <button class="act-btn edit" title="แก้ไข" onclick="openEdit(${d.id})">✏️</button>
-          <button class="act-btn" title="อัปเดตสถานะ" onclick="openEdit(${d.id}, 'auto')" style="font-size:13px" onmouseover="this.style.background='var(--orange-l)'" onmouseout="this.style.background='var(--white)'">🔄</button>
-          <button class="act-btn" title="ยกเลิกรายการ" onclick="confirmCancel(${d.id})" style="font-size:13px" onmouseover="this.style.background='var(--red-l);border-color:#fecdca'" onmouseout="this.style.background='var(--white);border-color:var(--border)'">🚫</button>
-          ${CURRENT_USER?.role === 'admin' ? `<button class="act-btn delete" title="ลบถาวร" onclick="confirmDelete(${d.id})">🗑</button>` : ''}
+          ${window.CURRENT_USER?.role === 'tl' ? `
+            <button class="btn btn-primary btn-sm" onclick="openDetail(${d.id})" style="font-size:12px; padding:4px 10px;">จัดการงาน</button>
+          ` : `
+            <button class="act-btn view" title="ดูรายละเอียด" onclick="openDetail(${d.id})">👁</button>
+            <button class="act-btn edit" title="แก้ไข" onclick="openEdit(${d.id})">✏️</button>
+            <button class="act-btn" title="อัปเดตสถานะ" onclick="openEdit(${d.id}, 'auto')" style="font-size:13px" onmouseover="this.style.background='var(--orange-l)'" onmouseout="this.style.background='var(--white)'">🔄</button>
+            <button class="act-btn" title="ยกเลิกรายการ" onclick="confirmCancel(${d.id})" style="font-size:13px" onmouseover="this.style.background='var(--red-l);border-color:#fecdca'" onmouseout="this.style.background='var(--white);border-color:var(--border)'">🚫</button>
+            ${window.CURRENT_USER?.role === 'admin' ? `<button class="act-btn delete" title="ลบถาวร" onclick="confirmDelete(${d.id})">🗑</button>` : ''}
+          `}
         </div>
       </td>
     </tr>
@@ -3787,12 +3791,12 @@
 
       if (isTL) {
         let helpMsg = [];
-        if ((+d.deposit || 0) > 0) helpMsg.push('<span style="color:var(--green);font-weight:700">✅ มีเงินประกันติดตั้ง</span>');
-        if ((+d.demolish || 0) > 0) helpMsg.push('<span style="color:var(--green);font-weight:700">✅ มีเงินประกันรื้อถอน</span>');
+        if ((+d.deposit || 0) > 0) helpMsg.push('<span style="color:#065f46; font-weight:700;">💰 มีเงินประกันติดตั้ง (฿' + (+d.deposit).toLocaleString() + ')</span>');
+        if ((+d.demolish || 0) > 0) helpMsg.push('<span style="color:#065f46; font-weight:700;">💰 มีเงินประกันรื้อถอน (฿' + (+d.demolish).toLocaleString() + ')</span>');
         headerHTML += `
-          <div style="padding:15px; background:var(--blue-l); border:1px solid var(--blue); border-radius:var(--r-md); margin-bottom:20px;">
-            <div style="font-size:13px; color:var(--blue-d); font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:6px;">💰 ข้อมูลเงินประกันคงค้าง</div>
-            <div style="font-size:14px; line-height:1.6">${helpMsg.length > 0 ? helpMsg.join('<br>') : 'ℹ️ ไม่มีรายการเงินประกันคงค้าง'}</div>
+          <div style="padding:18px; background:linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border:2px solid #10b981; border-radius:var(--r-lg); margin-bottom:24px; box-shadow:0 4px 15px rgba(16, 185, 129, 0.1);">
+            <div style="font-size:14px; color:#065f46; font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:8px;">💎 ข้อมูลเงินประกันคงค้าง (Insurance Overview)</div>
+            <div style="font-size:15px; line-height:1.7">${helpMsg.length > 0 ? helpMsg.join('<br>') : '<span style="color:#6b7280;">ℹ️ ไม่มีรายการเงินประกันคงค้างสำหรับงานนี้</span>'}</div>
           </div>
         `;
       }
@@ -3828,18 +3832,18 @@
       if (isTL) {
         if (d.complete_tl !== 'On Process') {
           tlActionHTML = `
-            <div style="margin-top:25px; border-top:1px dashed var(--border); padding-top:20px; text-align:center;">
-              <button class="btn btn-primary" style="width:100%; height:48px; font-size:16px;" onclick="acceptJobTLDetail(${d.id})">✔️ ยืนยันรับงาน (Start Process)</button>
+            <div style="margin-top:25px; border-top:2px solid var(--blue-l); padding-top:20px; text-align:center;">
+              <button class="btn btn-primary" style="width:100%; height:54px; font-size:18px; font-weight:700; box-shadow:0 4px 12px rgba(var(--blue-rgb), 0.2)" onclick="acceptJobTLDetail(${d.id})">✔️ ยืนยันรับงาน (Start Process)</button>
             </div>
           `;
         } else if (!d.pdf_tl_work) {
           tlActionHTML = `
-            <div style="margin-top:25px; border-top:1px dashed var(--border); padding-top:20px;">
-              <button id="finish-btn-tl" class="btn btn-violet" style="width:100%; height:48px; font-size:16px;" onclick="showUploadTL()">🏁 งานหน้างานเสร็จสิ้น</button>
-              <div id="tl-upload-ui" style="display:none; margin-top:15px; padding:15px; background:var(--bg-f); border-radius:var(--r-md); border:1px solid var(--border);">
-                 <label style="font-weight:700; font-size:13px; display:block; margin-bottom:10px;">📤 แนบหลักฐาน PDF (บังคับ)</label>
-                 <input type="file" id="f-pdf-tl-work-detail" accept=".pdf" class="form-control" style="margin-bottom:15px">
-                 <button class="btn btn-primary btn-sm" style="width:100%" onclick="saveTLWorkDetail(${d.id})">✅ บันทึกและส่งต่องาน</button>
+            <div style="margin-top:25px; border-top:2px solid var(--blue-l); padding-top:20px;">
+              <button id="finish-btn-tl" class="btn btn-violet" style="width:100%; height:54px; font-size:18px; font-weight:700;" onclick="showUploadTL()">🏁 งานหน้างานเสร็จสิ้น</button>
+              <div id="tl-upload-ui" style="display:none; margin-top:20px; padding:20px; background:var(--blue-l); border-radius:var(--r-md); border:1px solid var(--blue);">
+                 <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">📤 แนบหลักฐาน PDF (บังคับ)</div>
+                 <input type="file" id="f-pdf-tl-work-detail" accept=".pdf" class="form-control" style="margin-bottom:15px; background:var(--white);">
+                 <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveTLWorkDetail(${d.id})">✅ บันทึกและส่งต่องาน</button>
               </div>
             </div>
           `;
