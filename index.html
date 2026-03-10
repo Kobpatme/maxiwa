@@ -3349,17 +3349,16 @@
       document.getElementById('formSubmitBtn').textContent = '✅ ยืนยัน';
       clearForm();
 
-      // Lock Owner to Current User
+      // Lock Owner logic
       const ownerEl = document.getElementById('f-owner');
       if (CURRENT_USER) {
-        // Ensure current user is an option
         if (![...ownerEl.options].some(opt => opt.value === CURRENT_USER.name)) {
           const opt = document.createElement('option');
           opt.value = opt.textContent = CURRENT_USER.name;
           ownerEl.appendChild(opt);
         }
         ownerEl.value = CURRENT_USER.name;
-        ownerEl.disabled = true;
+        ownerEl.disabled = (CURRENT_USER.role !== 'admin');
       }
 
       openModal('formOverlay');
@@ -3376,7 +3375,11 @@
       document.getElementById('formSub').textContent = d.place;
       document.getElementById('formSubmitBtn').textContent = '✅ ยืนยัน';
       fillForm(d, targetStep);
-      document.getElementById('f-owner').disabled = false;
+      // Lock Owner for non-admins
+      const ownerEl = document.getElementById('f-owner');
+      if (CURRENT_USER) {
+        ownerEl.disabled = (CURRENT_USER.role !== 'admin');
+      }
       openModal('formOverlay');
     }
 
