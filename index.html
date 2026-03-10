@@ -3731,9 +3731,13 @@
         if (finalStatus === 'tl' && (fileUrls.pdf_tl_work || oldData?.pdf_tl_work)) {
           finalStatus = 'ret'; // Move to Return process step
         }
-        if (finalStatus === 'ret' && getVal('f-return-status') === 'On Process') {
-          // User accepted the return task, keep as 'ret' until Done
+
+        // Step 5: "รับงาน" button clicked -> Move to Step 6 (clo)
+        if (currentStep === 5 && finalStatus === 'ret') {
+          finalStatus = 'clo';
+          obj.return_status = 'Done'; // Set return_status to Done automatically
         }
+
         if (finalStatus === 'ret' && getVal('f-return-status') === 'Done') {
           finalStatus = 'clo';
         }
