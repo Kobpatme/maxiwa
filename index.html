@@ -4446,18 +4446,8 @@
       // Update UI Elements
       document.getElementById('db-success-rate-pct').textContent = successPct + '%';
 
-      // Update Hero with primary focus on Refunded (Cash Back)
-      document.getElementById('db-total-valuation').innerHTML = `
-        <div style="font-size:16px; opacity:0.8; font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
-           <span style="font-size:20px;">💰</span> ยอดเงินประกันที่ได้รับคืน (Cash Back)
-        </div>
-        <div style="color:#4ade80; display:flex; align-items:baseline; gap:8px;">
-          <span style="font-size:24px; opacity:0.7;">฿</span>${overallRefunded.toLocaleString()}
-        </div>
-        <div style="font-size:14px; opacity:0.6; margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">
-          รายจ่าย (Total Valuation): ฿${totalInsuranceVal.toLocaleString()} | คงค้าง: ฿${overallPending.toLocaleString()}
-        </div>
-      `;
+      // Update Hero: Only Total Project Valuation as requested
+      document.getElementById('db-total-valuation').innerHTML = `<span style="font-size:24px; opacity:0.7; font-weight:600; margin-right:8px">฿</span>${totalInsuranceVal.toLocaleString()}`;
 
       // Installation Group
       document.getElementById('db-total-install').innerHTML = `<span class="currency-symbol">฿</span>${totalInstall.toLocaleString()}`;
