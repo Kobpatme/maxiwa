@@ -3595,27 +3595,32 @@
         // Automatic Status Transitions
         if (!editingId) {
           finalStatus = 'new';
-        } else {
-          // Rule 1: Step 2 (Financial) - If PR or Deposit info is added
-          if (finalStatus === 'new' && (getVal('f-pr') || depositVal > 0)) {
-            finalStatus = 'fin';
-          }
-          // Rule 2: Step 3 (Attachment) - If PDF Payment or Layout is added
-          if (finalStatus === 'fin' && (fileUrls.pdf_payment || fileUrls.pdf_layout || oldData.pdf_payment || oldData.pdf_layout)) {
-            finalStatus = 'att';
-          }
-          // Rule 3: Step 4 (TL) - If attachment step is done, move to TL
-          if (finalStatus === 'att') {
-            finalStatus = 'tl';
-          }
-          // Rule 4: Auto-complete to 'done' if no deposit and moving past Step 3
-          if (depositVal === 0 && finalStatus !== 'Cancel' && finalStatus !== 'done') {
-            if (getStepIndex({ status: finalStatus }) >= 2) {
-              finalStatus = 'done';
-            }
-          }
         }
 
+        // Action-based Progression (Rule: Confirm = Move to Next Status)
+        if (currentStep === 1 && finalStatus === 'new') finalStatus = 'fin';
+        else if (currentStep === 2 && finalStatus === 'fin') finalStatus = 'att';
+        else if (currentStep === 3 && (finalStatus === 'att' || finalStatus === 'fin' || finalStatus === 'new')) {
+          finalStatus = 'tl';
+        }
+
+        // Data-aware fallback (Detection logic)
+        if (finalStatus === 'new' && (getVal('f-pr') || depositVal > 0)) {
+          finalStatus = 'fin';
+        }
+        if (finalStatus === 'fin' && (fileUrls.pdf_payment || fileUrls.pdf_layout || oldData?.pdf_payment || oldData?.pdf_layout)) {
+          finalStatus = 'att';
+        }
+        if (finalStatus === 'att') {
+          finalStatus = 'tl';
+        }
+
+        // Rule: Auto-complete to 'done' if no deposit and moving past Step 3
+        if (depositVal === 0 && finalStatus !== 'Cancel' && finalStatus !== 'done') {
+          if (getStepIndex({ status: finalStatus }) >= 2) {
+            finalStatus = 'done';
+          }
+        }
         // Automatic TL Routing Logic
         let areaVal = getVal('f-area');
         let tlTeamVal = getVal('f-tl-team');
@@ -3626,6 +3631,11 @@
         // Handle TL Completion (Step 5 -> Step 6)
         let completeVal = getVal('f-complete');
         let completeTlVal = getVal('f-complete-tl');
+
+        // Force Handover: If status just moved to 'tl' via Step 3 confirm, mark as Complete
+        if (currentStep === 3 && finalStatus === 'tl') {
+          completeVal = 'Complete';
+        }
 
         if (finalStatus === 'tl' && (fileUrls.pdf_tl_work || oldData?.pdf_tl_work)) {
           finalStatus = 'ret'; // Move to Return process step
