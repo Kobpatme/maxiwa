@@ -3942,6 +3942,37 @@
 
       const detailHTML = `<div class="detail-grid">${rows.map(([k, v], i) => `<div class="detail-row"><div class="detail-key">${k}</div><div class="detail-val">${v}</div></div>`).join('')}</div>`;
 
+      // Financial Breakdown Section [NEW]
+      const financialHTML = `
+        <div style="margin-top:24px; padding:20px; background:var(--bg-f); border:1px solid var(--border); border-radius:var(--r-lg);">
+          <div style="font-size:14px; font-weight:800; color:var(--txt); margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:10px; display:flex; align-items:center; gap:8px;">
+            <span style="font-size:18px">📊</span> ข้อมูลสรุปค่าใช้จ่าย (Financial Breakdown)
+          </div>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:13px; color:var(--txt2)">เงินประกันติดตั้ง/Installation</span>
+              <span style="font-weight:700; color:var(--blue)">฿${parseFixed(d.deposit).toLocaleString()}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:13px; color:var(--txt2)">เงินประกันรื้อถอน/Removal</span>
+              <span style="font-weight:700; color:var(--orange)">฿${parseFixed(d.demolish).toLocaleString()}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:13px; color:var(--txt2)">ค่าธรรมเนียมอาคาร/Fee</span>
+              <span style="font-weight:700; color:var(--txt)">฿${parseFixed(d.fee).toLocaleString()}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:13px; color:var(--txt2)">ค่าใช้จ่ายอื่นๆ/Other</span>
+              <span style="font-weight:700; color:var(--txt)">฿${parseFixed(d.other).toLocaleString()}</span>
+            </div>
+            <div style="margin-top:8px; padding-top:12px; border-top:2px solid var(--blue-l); display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:14px; font-weight:800; color:var(--txt)">ยอดรวมสุทธิ (Total Amount)</span>
+              <span style="font-size:18px; font-weight:900; color:var(--blue-d)">฿${parseFixed(d.total).toLocaleString()}</span>
+            </div>
+          </div>
+        </div>
+      `;
+
       const fileRows = [
         { label: 'หลักฐานการจ่าย', key: 'pdf_payment' },
         { label: 'แบบ / Drawing', key: 'pdf_layout' },
@@ -3990,7 +4021,7 @@
         }
       }
 
-      detailBody.innerHTML = headerHTML + detailHTML + filesHTML + remarkHTML + tlActionHTML;
+      detailBody.innerHTML = headerHTML + detailHTML + financialHTML + filesHTML + remarkHTML + tlActionHTML;
 
       // Special 'Off Service' button for On Service items
       if ((d.status || '').toLowerCase() === 'done' && (d.demolish > 0 && d.demoReturn !== 'Yes')) {
