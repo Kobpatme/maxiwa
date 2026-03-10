@@ -2185,7 +2185,7 @@
                     <th>วันที่ต้องได้</th>
                     <th>ยอดรวม</th>
                     <th>ขั้นตอน</th>
-                    <th>การดำเนินการ</th>
+                    <th id="th-action">การดำเนินการ</th>
                   </tr>
                 </thead>
                 <tbody id="tbody"></tbody>
@@ -3128,6 +3128,12 @@
 
       document.getElementById('tableCount').textContent = data.length + ' รายการ';
       const empty = document.getElementById('emptyState');
+      const thAction = document.getElementById('th-action');
+      const isTL = CURRENT_USER && CURRENT_USER.role === 'tl';
+
+      if (thAction) {
+        thAction.style.display = isTL ? 'none' : '';
+      }
 
       if (!data.length) {
         document.getElementById('tbody').innerHTML = '';
@@ -3136,7 +3142,7 @@
       empty.style.display = 'none';
 
       document.getElementById('tbody').innerHTML = data.map(d => `
-    <tr onclick="if(event.target.tagName !== 'BUTTON' && event.target.tagName !== 'SELECT') { if(window.CURRENT_USER?.role === 'tl') openTLModal(${d.id}); else openEdit(${d.id}, 'auto'); }" style="cursor:pointer;" title="คลิกเพื่ออัปเดตสถานะงาน">
+    <tr onclick="if(event.target.tagName !== 'BUTTON' && event.target.tagName !== 'SELECT') { if(window.CURRENT_USER?.role === 'tl') openTLModal(${d.id}); else openEdit(${d.id}, 'auto'); }" style="cursor:pointer;" title="${isTL ? 'คลิกเพื่อเข้าสู่หน้าต่างงานหน้างาน (TL)' : 'คลิกเพื่ออัปเดตสถานะงาน'}">
       <td class="nowrap" style="color:var(--txt3);font-size:12px">#${d.id}</td>
       <td class="nowrap">
         <div style="${statusSelectStyle(d.status)}; font-size:13px; font-weight:600; text-align:center;">
@@ -3155,19 +3161,17 @@
       <td class="nowrap" style="color:${isOverdue(d) ? 'var(--red)' : 'var(--txt2)'};font-size:12px;font-weight:${isOverdue(d) ? '600' : '400'}">${d.dateDue || '—'}${isOverdue(d) ? ' ⚠️' : ''}</td>
       <td class="nowrap"><span class="amt ${d.total > 0 ? 'pos' : ''}">${d.total > 0 ? '฿' + d.total.toLocaleString() : '—'}</span></td>
       <td class="nowrap">${stepLabel(d)}</td>
+      ${isTL ? '' : `
       <td class="nowrap">
         <div class="actions">
-          ${window.CURRENT_USER?.role === 'tl' ? `
-            <button class="btn btn-primary btn-sm" onclick="openTLModal(${d.id})" style="font-size:12px; padding:4px 10px;">จัดการงาน</button>
-          ` : `
             <button class="act-btn view" title="ดูรายละเอียด" onclick="openDetail(${d.id})">👁</button>
             <button class="act-btn edit" title="แก้ไข" onclick="openEdit(${d.id})">✏️</button>
             <button class="act-btn" title="อัปเดตสถานะ" onclick="openEdit(${d.id}, 'auto')" style="font-size:13px" onmouseover="this.style.background='var(--orange-l)'" onmouseout="this.style.background='var(--white)'">🔄</button>
             <button class="act-btn" title="ยกเลิกรายการ" onclick="confirmCancel(${d.id})" style="font-size:13px" onmouseover="this.style.background='var(--red-l);border-color:#fecdca'" onmouseout="this.style.background='var(--white);border-color:var(--border)'">🚫</button>
             ${window.CURRENT_USER?.role === 'admin' ? `<button class="act-btn delete" title="ลบถาวร" onclick="confirmDelete(${d.id})">🗑</button>` : ''}
-          `}
         </div>
       </td>
+      `}
     </tr>
   `).join('');
     }
