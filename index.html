@@ -2152,6 +2152,7 @@
             <div class="pill-group" id="statusPills">
               <span class="pill active" data-val="" onclick="setStatusFilter('')">ทั้งหมด</span>
               <span class="pill o" data-val="On Process" onclick="setStatusFilter('On Process')">⏳ กำลังดำเนินการ</span>
+              <span class="pill b" data-val="On Service" onclick="setStatusFilter('On Service')">🚧 On Service</span>
               <span class="pill g" data-val="Done" onclick="setStatusFilter('Done')">✓ เสร็จแล้ว</span>
               <span class="pill r" data-val="Cancel" onclick="setStatusFilter('Cancel')">✕ ยกเลิก</span>
             </div>
@@ -2223,23 +2224,6 @@
               <div class="db-hero-val" id="db-total-valuation"
                 style="font-size:56px; font-weight:900; color:#fff; line-height:1; letter-spacing:-2px; display:flex; align-items:baseline; gap:8px">
                 <span style="font-size:24px; opacity:0.7; font-weight:600">฿</span>0
-              </div>
-
-              <!-- Overall Summary Metrics -->
-              <div
-                style="margin-top:24px; display:flex; gap:32px; border-top:1px solid rgba(255,255,255,0.1); padding-top:20px">
-                <div>
-                  <div
-                    style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px">
-                    เงินที่ได้คืนแล้ว</div>
-                  <div id="db-overall-refunded" style="font-size:24px; font-weight:800; color:#4ade80">฿0</div>
-                </div>
-                <div>
-                  <div
-                    style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px">
-                    ยอดเงินคงค้าง</div>
-                  <div id="db-overall-pending" style="font-size:24px; font-weight:800; color:#fb923c">฿0</div>
-                </div>
               </div>
             </div>
 
@@ -2467,6 +2451,29 @@
       </form>
     </div>
   </div>
+  <div class="overlay" id="offServiceOverlay" style="z-index: 10001;">
+    <div class="modal" style="max-width:400px">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title">Off Service / ยกเลิกบริการ</div>
+          <div class="modal-sub">แนบหลักฐานเพื่อยืนยันการขอคืนเงินประกันรื้อถอน</div>
+        </div>
+        <button type="button" class="modal-close" onclick="closeModal('offServiceOverlay')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>หลักฐานการยกเลิกบริการ (PDF) <span class="required">*</span></label>
+          <input type="file" id="f-off-pdf" class="form-control" accept="application/pdf">
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('offServiceOverlay')">ยกเลิก</button>
+        <button type="button" class="btn btn-primary" id="offServiceSubmitBtn" onclick="handleOffServiceSubmit()">💾
+          ยืนยัน Off Service</button>
+      </div>
+    </div>
+  </div>
+
   <div class="overlay" id="formOverlay">
     <div class="modal lg" id="formModal">
       <div class="modal-head">
@@ -2921,7 +2928,10 @@
     }
 
     function getStatusLabel(d) {
-      if (d.status === 'Done' || d.status === 'done') return '✅ เสร็จสมบูรณ์';
+      if (d.status === 'Done' || d.status === 'done') {
+        if (d.demolish > 0 && d.demoReturn !== 'Yes') return '🚧 On Service';
+        return '✅ เสร็จสมบูรณ์';
+      }
       if (d.status === 'Cancel') return '✕ ยกเลิก';
       if (d.status === 'tl') {
         return d.complete_tl === 'On Process' ? '⏳ กำลังดำเนินการ' : '🔴 รอ TL รับงาน';
@@ -2932,7 +2942,10 @@
       return 'ใหม่';
     }
 
-    function statusBadge(s) {
+    function statusBadge(s, d) {
+      if (d && d.status === 'Done' && (d.demolish > 0 && d.demoReturn !== 'Yes')) {
+        return `<span class="badge b-wait"><span class="dot"></span>On Service</span>`;
+      }
       if (s === 'Done') return `<span class="badge b-done"><span class="dot"></span>Done</span>`;
       if (s === 'On Process') return `<span class="badge b-process"><span class="dot"></span>กำลังดำเนินการ</span>`;
       if (s === 'Cancel') return `<span class="badge b-cancel"><span class="dot"></span>ยกเลิก</span>`;
@@ -3163,7 +3176,12 @@
       }
 
       let data = roleAllowedData.filter(d => {
-        const ms = !filterStatus || d.status === filterStatus;
+        let ms = !filterStatus || d.status === filterStatus;
+        if (filterStatus === 'On Service') {
+          ms = d.status === 'Done' && (d.demolish > 0 && d.demoReturn !== 'Yes');
+        } else if (filterStatus === 'Done') {
+          ms = d.status === 'Done' && !(d.demolish > 0 && d.demoReturn !== 'Yes');
+        }
         const mo = !filterOwner || d.owner === filterOwner;
         const ma = !filterArea || d.area === filterArea;
         const mq = !searchQ || [d.place, d.customer, d.owner, d.project, d.pr].join(' ').toLowerCase().includes(searchQ);
@@ -3889,7 +3907,7 @@
       const isTL = user.role === 'tl';
 
       // Insurance/Detail Header
-      let headerHTML = `<div style="margin-bottom:14px;display:flex;gap:10px;align-items:center">${statusBadge(d.status)} ${d.complete === 'Complete' ? '<span class="badge b-done">ส่งมอบงานแล้ว</span>' : ''}</div>`;
+      let headerHTML = `<div style="margin-bottom:14px;display:flex;gap:10px;align-items:center">${statusBadge(d.status, d)} ${d.complete === 'Complete' ? '<span class="badge b-done">ส่งมอบงานแล้ว</span>' : ''}</div>`;
 
       if (isTL) {
         let helpMsg = [];
@@ -3909,7 +3927,8 @@
         { label: 'หลักฐานการจ่าย', key: 'pdf_payment' },
         { label: 'แบบ / Drawing', key: 'pdf_layout' },
         { label: 'หลักฐานงาน TL', key: 'pdf_tl_work' },
-        { label: 'เอกสารปิดงาน', key: 'pdf_user_final' }
+        { label: 'เอกสารปิดงาน', key: 'pdf_user_final' },
+        { label: 'หลักฐาน Off Service', key: 'pdf_demo_off' }
       ].filter(f => d[f.key]).map(f => `
       <a href="${d[f.key]}" target="_blank" class="detail-row" style="text-decoration:none; display:flex; align-items:center; gap:8px; background:var(--blue-l); border:1px solid var(--blue-m); padding:8px 12px; border-radius:var(--r-sm)">
         <span style="font-size:18px">📄</span>
@@ -3953,6 +3972,19 @@
       }
 
       detailBody.innerHTML = headerHTML + detailHTML + filesHTML + remarkHTML + tlActionHTML;
+
+      // Special 'Off Service' button for On Service items
+      if (d.status === 'Done' && (d.demolish > 0 && d.demoReturn !== 'Yes')) {
+        const offServiceHTML = `
+           <div style="margin-top:20px; padding:15px; background:var(--bg-f); border:1px dashed var(--border); border-radius:var(--r-md); text-align:center;">
+             <div style="font-size:12px; color:var(--txt2); margin-bottom:10px;">รายการนี้มี "เงินประกันรื้อถอน" คงค้างอยู่ (On Service)</div>
+             <button class="btn btn-primary" style="width:100%" onclick="openOffServiceModal(${d.id})">
+               🏃 Off Service / แจ้งคืนประกันรื้อถอน
+             </button>
+           </div>
+        `;
+        detailBody.innerHTML += offServiceHTML;
+      }
 
       // Footer buttons toggle
       const detailEditBtn = document.getElementById('detailEditBtn');
@@ -4244,8 +4276,8 @@
 
     /* ════════ PAGE SWITCHING ════════ */
     function showPage(id) {
-      // Security: TL role can ONLY see 'tl-tasks'
-      if (CURRENT_USER?.role === 'tl' && id !== 'tl-tasks') {
+      // Security: TL role can ONLY see 'tl-tasks' AND 'active-demo'
+      if (CURRENT_USER?.role === 'tl' && (id !== 'tl-tasks' && id !== 'active-demo')) {
         id = 'tl-tasks';
       }
 
@@ -4266,6 +4298,10 @@
         document.getElementById('nav-users').classList.add('active');
         document.getElementById('topbar-sub').textContent = 'จัดการสิทธิ์ผู้เข้าใช้งานระบบ';
         loadUserTable();
+      } else if (id === 'active-demo') {
+        document.getElementById('nav-active-demo').classList.add('active');
+        document.getElementById('topbar-sub').textContent = 'ติดตามเงินประกันรื้อถอน (On Service)';
+        renderActiveDemoPage();
       } else {
         document.getElementById('nav-list').classList.add('active');
         document.getElementById('topbar-sub').textContent = 'ข้อมูลทั้งหมด · 2026';
@@ -4303,6 +4339,89 @@
       `).join('');
     }
 
+    function renderActiveDemoPage() {
+      const items = DB.filter(d => (d.demolish > 0) && d.demoReturn !== 'Yes');
+      document.getElementById('demoTableCount').textContent = (items.length) + ' รายการ';
+      document.getElementById('demoTbody').innerHTML = items.map((d, i) => `
+        <tr onclick="openDetail(${d.id})">
+          <td>${i + 1}</td>
+          <td><span class="badge b-wait">On Service</span></td>
+          <td>
+            <div style="font-weight:700">${d.place}</div>
+            <div style="font-size:10px; color:var(--txt3)">${d.customer || '-'}</div>
+          </td>
+          <td>${d.owner}</td>
+          <td><span class="badge b-wait" style="font-size:10px">${d.area || '-'}</span></td>
+          <td><span style="font-weight:700; color:var(--blue)">฿${(d.demolish || 0).toLocaleString()}</span></td>
+          <td>
+            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openOffServiceModal(${d.id})">
+              Off Service
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    let demoOffTargetId = null;
+    function openOffServiceModal(id) {
+      demoOffTargetId = id;
+      document.getElementById('f-off-pdf').value = '';
+      openModal('offServiceOverlay');
+    }
+
+    async function handleOffServiceSubmit() {
+      const fileInput = document.getElementById('f-off-pdf');
+      const file = fileInput.files[0];
+      if (!file) {
+        toast('กรุณาแนบไฟล์หลักฐาน PDF', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('offServiceSubmitBtn');
+      btn.disabled = true;
+      const oldText = btn.textContent;
+      btn.textContent = 'กำลังบันทึก...';
+
+      try {
+        const url = await uploadFile(file, 'demo_off_evidence');
+        if (!url) {
+          toast('อัปโหลดไฟล์ไม่สำเร็จ', 'error');
+          return;
+        }
+
+        const d = DB.find(x => x.id === demoOffTargetId);
+        addLogEntry(d, 'ยกเลิกบริการ (Off Service)', `แนบไฟล์หลักฐาน: ${file.name}`);
+
+        const updateObj = {
+          demoReturn: 'Yes',
+          pdf_demo_off: url,
+          log: d.log
+        };
+
+        if (USE_MOCK) {
+          const idx = DB.findIndex(x => x.id === demoOffTargetId);
+          DB[idx] = { ...d, ...updateObj };
+        } else {
+          const updated = await updateDeposit(demoOffTargetId, updateObj);
+          const idx = DB.findIndex(x => x.id === demoOffTargetId);
+          DB[idx] = updated;
+        }
+
+        closeModal('offServiceOverlay');
+        renderActiveDemoPage();
+        renderTable();
+        renderKPI();
+        renderExecutiveDashboard();
+        toast('บันทึก Off Service เรียบร้อยแล้ว', 'success');
+      } catch (err) {
+        console.error(err);
+        toast('เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = oldText;
+      }
+    }
+
     /* ════════ EXECUTIVE DASHBOARD LOGIC ════════ */
     let trendChart, allocationChart, ownerFinanceChart;
 
@@ -4326,10 +4445,19 @@
 
       // Update UI Elements
       document.getElementById('db-success-rate-pct').textContent = successPct + '%';
-      document.getElementById('db-total-valuation').innerHTML = `<span style="font-size:32px; opacity:0.5; font-weight:700; margin-right:8px">฿</span>${totalInsuranceVal.toLocaleString()}`;
 
-      document.getElementById('db-overall-refunded').textContent = '฿' + overallRefunded.toLocaleString();
-      document.getElementById('db-overall-pending').textContent = '฿' + overallPending.toLocaleString();
+      // Update Hero with primary focus on Refunded (Cash Back)
+      document.getElementById('db-total-valuation').innerHTML = `
+        <div style="font-size:16px; opacity:0.8; font-weight:700; margin-bottom:8px; display:flex; align-items:center; gap:8px;">
+           <span style="font-size:20px;">💰</span> ยอดเงินประกันที่ได้รับคืน (Cash Back)
+        </div>
+        <div style="color:#4ade80; display:flex; align-items:baseline; gap:8px;">
+          <span style="font-size:24px; opacity:0.7;">฿</span>${overallRefunded.toLocaleString()}
+        </div>
+        <div style="font-size:14px; opacity:0.6; margin-top:15px; border-top:1px solid rgba(255,255,255,0.1); padding-top:12px;">
+          รายจ่าย (Total Valuation): ฿${totalInsuranceVal.toLocaleString()} | คงค้าง: ฿${overallPending.toLocaleString()}
+        </div>
+      `;
 
       // Installation Group
       document.getElementById('db-total-install').innerHTML = `<span class="currency-symbol">฿</span>${totalInstall.toLocaleString()}`;
@@ -4577,11 +4705,15 @@
         if (exportBtn) exportBtn.style.display = 'none';
         if (addBtn) addBtn.style.display = 'none';
 
+        // Ensure Removal Deposit nav is visible
+        document.getElementById('nav-active-demo').style.display = 'block';
+
         // Auto land on TL tasks
         showPage('tl-tasks');
       } else {
         document.getElementById('nav-db').style.display = 'block';
         document.getElementById('nav-list').style.display = 'block';
+        document.getElementById('nav-active-demo').style.display = 'block';
 
         const exportBtn = document.getElementById('export-btn');
         const addBtn = document.getElementById('add-btn');
