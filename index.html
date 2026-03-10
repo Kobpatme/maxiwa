@@ -3117,14 +3117,14 @@
       }
 
       const total = filteredData.length;
-      const done = filteredData.filter(d => d.status === 'Done').length;
+      const done = filteredData.filter(d => ((d.status || '').trim().toLowerCase() === 'done')).length;
       const proc = filteredData.filter(d => d.status === 'On Process').length;
 
       const buildingFee = filteredData.reduce((s, d) => s + (d.fee || 0) + (d.other || 0), 0);
       const installDep = filteredData.reduce((s, d) => s + (d.deposit || 0), 0);
       const demoDep = filteredData.reduce((s, d) => s + (d.demolish || 0), 0);
       const amt = filteredData.reduce((s, d) => s + (d.total || 0), 0);
-      const dep = filteredData.filter(d => d.depReturn !== 'Yes').reduce((s, d) => s + (d.deposit || 0), 0);
+      const dep = filteredData.filter(d => (d.depReturn || '').trim().toLowerCase() !== 'yes').reduce((s, d) => s + (+(d.deposit || 0)), 0);
 
       document.getElementById('kpiRow').innerHTML = `
     <div class="kpi" style="border-left: 4px solid var(--blue)">
@@ -3178,9 +3178,9 @@
       let data = roleAllowedData.filter(d => {
         let ms = !filterStatus || d.status === filterStatus;
         if (filterStatus === 'On Service') {
-          ms = d.status === 'Done' && (d.demolish > 0 && d.demoReturn !== 'Yes');
+          ms = (d.status || '').trim().toLowerCase() === 'done' && (+(d.demolish || 0) > 0 && d.demoReturn !== 'Yes');
         } else if (filterStatus === 'Done') {
-          ms = d.status === 'Done' && !(d.demolish > 0 && d.demoReturn !== 'Yes');
+          ms = (d.status || '').trim().toLowerCase() === 'done' && !(+(d.demolish || 0) > 0 && d.demoReturn !== 'Yes');
         }
         const mo = !filterOwner || d.owner === filterOwner;
         const ma = !filterArea || d.area === filterArea;
@@ -3302,7 +3302,7 @@
       const newNotifs = [];
 
       // 1. Overdue items
-      DB.filter(d => d.status !== 'Done' && d.dateDue && new Date(d.dateDue) <= today).forEach(d => {
+      DB.filter(d => (d.status || '').toLowerCase() !== 'done' && d.dateDue && new Date(d.dateDue) <= today).forEach(d => {
         newNotifs.push({
           id: `due-${d.id}`,
           taskId: d.id,
@@ -3722,12 +3722,12 @@
         // Linear Progression (Rule: Confirm strictly moves to the next stage)
         if (currentStep === 1 && finalStatus === 'new') finalStatus = 'fin';
         else if (currentStep === 2 && finalStatus === 'fin') finalStatus = 'att';
-        else if (currentStep === 3 && (finalStatus === 'att' || finalStatus === 'fin' || finalStatus === 'new')) {
+        else if (currentStep === 3 && ((finalStatus || '').toLowerCase() === 'att' || (finalStatus || '').toLowerCase() === 'fin' || (finalStatus || '').toLowerCase() === 'new')) {
           finalStatus = 'tl';
         }
 
         // Data-aware completion logic (Auto-complete to 'done' only if NO deposit)
-        if (depositVal === 0 && finalStatus !== 'Cancel' && finalStatus !== 'done') {
+        if (depositVal === 0 && (finalStatus || '').toLowerCase() !== 'cancel' && (finalStatus || '').toLowerCase() !== 'done') {
           if (getStepIndex({ status: finalStatus }) >= 2) {
             finalStatus = 'done';
           }
@@ -3815,7 +3815,7 @@
           addLogEntry(obj, 'สร้างรายการใหม่', '➕');
         } else {
           const oldData = DB.find(x => x.id === editingId);
-          if (oldData && oldData.status !== obj.status) {
+          if (oldData && (oldData.status || '').toLowerCase() !== (obj.status || '').toLowerCase()) {
             addLogEntry(obj, `เปลี่ยนสถานะเป็น: ${obj.status}`, '🔄');
           }
           if (fileUrls.pdf_payment) addLogEntry(obj, 'อัปโหลดหลักฐานการจ่ายเงิน', '📄');
@@ -3974,7 +3974,7 @@
       detailBody.innerHTML = headerHTML + detailHTML + filesHTML + remarkHTML + tlActionHTML;
 
       // Special 'Off Service' button for On Service items
-      if (d.status === 'Done' && (d.demolish > 0 && d.demoReturn !== 'Yes')) {
+      if ((d.status || '').toLowerCase() === 'done' && (d.demolish > 0 && d.demoReturn !== 'Yes')) {
         const offServiceHTML = `
            <div style="margin-top:20px; padding:15px; background:var(--bg-f); border:1px dashed var(--border); border-radius:var(--r-md); text-align:center;">
              <div style="font-size:12px; color:var(--txt2); margin-bottom:10px;">รายการนี้มี "เงินประกันรื้อถอน" คงค้างอยู่ (On Service)</div>
@@ -4074,14 +4074,14 @@
       const actionsContainer = document.getElementById('tlModalActions');
       actionsContainer.innerHTML = ''; // clear
 
-      if (d.status === 'Cancel') {
+      if ((d.status || '').toLowerCase() === 'cancel') {
         actionsContainer.innerHTML = `<span class="badge b-red" style="padding:10px 15px; font-size:14px;">งานถูกยกเลิกแล้ว</span>`;
-      } else if (['new', 'fin', 'att'].includes(d.status)) {
+      } else if (['new', 'fin', 'att'].includes((d.status || '').toLowerCase())) {
         actionsContainer.innerHTML = `<span class="badge b-wait" style="padding:10px 15px; font-size:14px;">รอทีมอื่นดำเนินการ</span>`;
-      } else if (d.status === 'tl' && d.complete_tl !== 'On Process') {
+      } else if ((d.status || '').toLowerCase() === 'tl' && d.complete_tl !== 'On Process') {
         // "ปุ่มก็เปลี่ยนจาก แก้ไขข้อมูลเป็นรับงาน"
         actionsContainer.innerHTML = `<button class="btn btn-primary" style="padding:10px 18px; font-size:15px;" onclick="acceptJobTLDetail(${d.id}, true)">✔️ รับงาน</button>`;
-      } else if ((d.status === 'On Process' || d.complete_tl === 'On Process') && !d.pdf_tl_work) {
+      } else if (((d.status || '').toLowerCase() === 'on process' || d.complete_tl === 'On Process') && !d.pdf_tl_work) {
         // "จากนั้นปุ่มจะเปลี่ยนเป็นเสร็จสิ้น เมื่อคลิก เสร็จสิ้น ให้แสดงส่วนที่ต้องแนบไฟล์หลักฐาน (บังคับ)"
         actionsContainer.innerHTML = `
           <button id="modal-finish-btn" class="btn btn-violet" style="padding:10px 18px; font-size:15px;" onclick="showUploadTLModal()">🏁 เสร็จสิ้น</button>
@@ -4113,7 +4113,7 @@
       if (!confirm('ยืนยันการรับงานหน้างาน?')) return;
       const d = DB.find(x => x.id === id);
       if (!d) return;
-      if (d.status !== 'tl') {
+      if ((d.status || '').toLowerCase() !== 'tl') {
         toast('งานนี้ยังไม่ถึงขั้นตอนของ TL หรือถูกดำเนินการไปแล้ว', 'error');
         return;
       }
@@ -4163,7 +4163,7 @@
       }
 
       const d = DB.find(x => x.id === id);
-      if (d.status !== 'On Process' && d.complete_tl !== 'On Process') {
+      if ((d.status || '').toLowerCase() !== 'on process' && d.complete_tl !== 'On Process') {
         toast('สถานะงานไม่ถูกต้อง งานจำเป็นต้องถูกกดยืนยันรับงานก่อน', 'error');
         return;
       }
@@ -4311,7 +4311,7 @@
     /* ════════ TL TASKS PAGE ════════ */
     function renderTLTasksPage() {
       // Show all tasks that are at the TL step or have been processed by TL
-      const tlData = DB.filter(d => ['tl', 'On Process'].includes(d.status) || d.complete_tl === 'On Process' || d.pdf_tl_work);
+      const tlData = DB.filter(d => ['tl', 'on process'].includes((d.status || '').toLowerCase()) || d.complete_tl === 'On Process' || d.pdf_tl_work);
       document.getElementById('tlTaskCount').textContent = tlData.length + ' รายการ';
       const empty = document.getElementById('tlEmptyState');
       if (!tlData.length) {
@@ -4426,16 +4426,16 @@
     let trendChart, allocationChart, ownerFinanceChart;
 
     function renderExecutiveDashboard() {
-      const totalInstall = DB.reduce((s, d) => s + (d.deposit || 0), 0);
-      const totalDemo = DB.reduce((s, d) => s + (d.demolish || 0), 0);
+      const totalInstall = DB.reduce((s, d) => s + (+(d.deposit || 0)), 0);
+      const totalDemo = DB.reduce((s, d) => s + (+(d.demolish || 0)), 0);
       const totalInsuranceVal = totalInstall + totalDemo;
 
       // 1. Installation Refund (status === 'Done')
-      const installRefunded = DB.filter(d => d.status === 'Done').reduce((s, d) => s + (d.deposit || 0), 0);
+      const installRefunded = DB.filter(d => (d.status || '').trim().toLowerCase() === 'done').reduce((s, d) => s + (+(d.deposit || 0)), 0);
       const installPending = totalInstall - installRefunded;
 
       // 2. Removal Refund (demoReturn === 'Yes')
-      const demoRefunded = DB.filter(d => d.demoReturn === 'Yes').reduce((s, d) => s + (d.demolish || 0), 0);
+      const demoRefunded = DB.filter(d => (d.demoReturn || '').trim().toLowerCase() === 'yes').reduce((s, d) => s + (+(d.demolish || 0)), 0);
       const demoPending = totalDemo - demoRefunded;
 
       // 3. Overall Summary (Hero)
@@ -4532,9 +4532,9 @@
         }
       });
 
-      // 3. Area Outstanding Value (Installation Only)
+      // 3. Area Outstanding Value
       const areaFin = {};
-      DB.filter(d => d.status !== 'Done' && d.status !== 'Cancel').forEach(d => {
+      DB.filter(d => (d.status || '').toLowerCase() !== 'done' && (d.status || '').toLowerCase() !== 'cancel').forEach(d => {
         if (d.area) areaFin[d.area] = (areaFin[d.area] || 0) + (d.deposit || 0);
       });
 
@@ -4576,7 +4576,7 @@
 
       // 4. Render Top 5 Outstanding (Installation Only)
       const topOutstanding = [...DB]
-        .filter(d => d.status !== 'Done' && d.status !== 'Cancel')
+        .filter(d => (d.status || '').toLowerCase() !== 'done' && (d.status || '').toLowerCase() !== 'cancel')
         .map(d => ({
           ...d,
           totalOutstanding: (d.deposit || 0) + (d.demolish || 0)
