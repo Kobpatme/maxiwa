@@ -4021,7 +4021,7 @@
         .filter(d => d.status !== 'Done' && d.status !== 'Cancel')
         .map(d => ({
           ...d,
-          totalOutstanding: (d.deposit || 0)
+          totalOutstanding: (d.deposit || 0) + (d.demolish || 0)
         }))
         .sort((a, b) => b.totalOutstanding - a.totalOutstanding)
         .slice(0, 5);
