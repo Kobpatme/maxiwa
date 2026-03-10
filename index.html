@@ -2190,7 +2190,6 @@
                     <th>เจ้าของงาน</th>
                     <th>PR No.</th>
                     <th>วันที่ตั้งเบิก</th>
-                    <th>วันที่ต้องได้</th>
                     <th>ยอดรวม</th>
                     <th>ขั้นตอน</th>
                     <th id="th-action">การดำเนินการ</th>
@@ -2600,8 +2599,6 @@
               </div>
               <div class="form-group"><label>วันที่จ่าย</label><input type="date" class="form-control" id="f-date-acc">
               </div>
-              <div class="form-group"><label>วันที่ควรได้ (Due)</label><input type="date" class="form-control"
-                  id="f-date-due"></div>
             </div>
             <div class="form-grid">
               <div class="form-group">
@@ -2884,7 +2881,7 @@
     ];
 
     const STATUS_MAP = {
-      'new': 0, 'fin': 1, 'att': 2, 'tl': 3, 'ret': 4, 'clo': 5, 'done': 6
+      'new': 0, 'fin': 1, 'att': 2, 'tl': 3, 'On Process': 3, 'ret': 4, 'clo': 5, 'done': 6
     };
 
     /* ════════ HELPERS ════════ */
@@ -2893,6 +2890,8 @@
         return STATUS_MAP[d.status];
       }
       // Legacy fallback
+      if (d.status === 'Done' || d.status === 'done') return 6;
+      if (d.status === 'Cancel') return 0;
       if (!d.pr && !d.deposit) return 0;
       if ((d.pr || d.deposit) && !d.pdf_payment) return 1;
       if (d.pdf_payment && !d.tl_team) return 2;
@@ -2901,7 +2900,19 @@
       if (d.complete_tl === 'On Process' && !d.pdf_tl_work) return 5;
       if (d.pdf_tl_work && !d.return_status) return 6;
       if (d.return_status && !d.pdf_user_final) return 7;
-      return 6; // Default to 'done' index if unknown
+      return 6;
+    }
+
+    function getStatusLabel(d) {
+      if (d.status === 'Done' || d.status === 'done') return '✅ เสร็จสมบูรณ์';
+      if (d.status === 'Cancel') return '✕ ยกเลิก';
+      if (d.status === 'tl') {
+        return d.complete_tl === 'On Process' ? '⏳ กำลังดำเนินการ' : '🔴 รอ TL รับงาน';
+      }
+      if (d.status === 'On Process' || d.complete_tl === 'On Process') return '⏳ กำลังดำเนินการ';
+      if (d.status === 'ret') return '📄 รอ User ตรวจรับ';
+      if (d.status === 'clo') return '🏁 รอแนบหลักฐานปิดงาน';
+      return 'ใหม่';
     }
 
     function statusBadge(s) {
@@ -3162,7 +3173,7 @@
       <td class="nowrap" style="color:var(--txt3);font-size:12px">#${d.id}</td>
       <td class="nowrap">
         <div style="${statusSelectStyle(d.status)}; font-size:13px; font-weight:600; text-align:center;">
-          ${d.status === 'Done' ? '✓ ปิดงาน' : d.status === 'Cancel' ? '✕ ยกเลิก' : d.status === 'On Process' ? '⏳ กำลังดำเนินการ' : 'ใหม่'}
+          ${getStatusLabel(d)}
         </div>
       </td>
       <td class="td-place">
@@ -3174,7 +3185,6 @@
       </td>
       <td class="nowrap" style="color:var(--txt2)">${d.pr || '—'}</td>
       <td class="nowrap" style="color:var(--txt2);font-size:12px">${d.dateReq || '—'}</td>
-      <td class="nowrap" style="color:${isOverdue(d) ? 'var(--red)' : 'var(--txt2)'};font-size:12px;font-weight:${isOverdue(d) ? '600' : '400'}">${d.dateDue || '—'}${isOverdue(d) ? ' ⚠️' : ''}</td>
       <td class="nowrap"><span class="amt ${d.total > 0 ? 'pos' : ''}">${d.total > 0 ? '฿' + d.total.toLocaleString() : '—'}</span></td>
       <td class="nowrap">${stepLabel(d)}</td>
       ${isTL ? '' : `
@@ -3233,7 +3243,7 @@
     function checkDueDates() {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const overdue = DB.filter(d => d.status !== 'Done' && d.dateDue && new Date(d.dateDue) <= today);
+      const overdue = [];
       if (overdue.length > 0) {
         toast(`⚠️ คุณมีงานค้างกำหนด ${overdue.length} รายการ`, 'error');
       }
@@ -3336,10 +3346,7 @@
       return 'color:var(--txt3)';
     }
 
-    function isOverdue(d) {
-      if (!d.dateDue || d.status === 'Done') return false;
-      return new Date(d.dateDue) < new Date();
-    }
+    function isOverdue(d) { return false; }
 
     /* ════════ QUICK STATUS CHANGE ════════ */
     async function quickStatus(id, val) {
@@ -3469,7 +3476,6 @@
       setVal('f-deal', d.deal || '');
       setVal('f-pr', d.pr || '');
       setVal('f-date-req', d.dateReq || '');
-      setVal('f-date-due', d.dateDue || '');
       setVal('f-date-check', d.dateCheck || '');
       setVal('f-date-acc', d.dateAcc || '');
       setVal('f-payto', d.payTo || '');
@@ -3671,6 +3677,7 @@
         // Explicit Status Determination Logic
         const depositVal = +document.getElementById('f-deposit').value || 0;
         let finalStatus = oldData ? oldData.status : 'new';
+        let autoReturnStatus = getVal('f-return-status');
 
         // Automatic Status Transitions
         if (!editingId) {
@@ -3713,10 +3720,10 @@
         // Step 5: "รับงาน" button clicked -> Move to Step 6 (clo)
         if (currentStep === 5 && finalStatus === 'ret') {
           finalStatus = 'clo';
-          obj.return_status = 'Done'; // Set return_status to Done automatically
+          autoReturnStatus = 'Done'; // Set return_status to Done automatically
         }
 
-        if (finalStatus === 'ret' && getVal('f-return-status') === 'Done') {
+        if (finalStatus === 'ret' && autoReturnStatus === 'Done') {
           finalStatus = 'clo';
         }
         if (finalStatus === 'clo' && (fileUrls.pdf_user_final || oldData?.pdf_user_final)) {
@@ -3732,7 +3739,6 @@
           deal: getVal('f-deal'),
           pr: getVal('f-pr'),
           dateReq: getVal('f-date-req'),
-          dateDue: getVal('f-date-due'),
           dateCheck: getVal('f-date-check'),
           dateAcc: getVal('f-date-acc'),
           payTo: getVal('f-payto'),
@@ -3759,7 +3765,7 @@
           complete_tl: completeTlVal,
           complete: completeVal,
           status_final: finalStatus,
-          return_status: getVal('f-return-status'),
+          return_status: autoReturnStatus,
           cost_sheet: getVal('f-cost-sheet'),
           date_return: getVal('f-date-return'),
           return_type: getVal('f-return-type'),
@@ -3857,7 +3863,6 @@
         ['พื้นที่', d.area || '—'],
         ['Project Code', d.project || '—'],
         ['PR No.', d.pr || '—'],
-        ['วันที่ต้องได้', d.dateDue || '—'],
         ['ทีม TL กทม/ตจว', d.tl_team || '—'],
         ['ผู้ประสานงาน', d.contact || '—'],
         ['เบอร์โทร (มือถือ)', d.tel || '—'],
@@ -3983,7 +3988,6 @@
       // Format exactly same as detail-grid for required fields only
       const infoRows = [
         ['วันที่แจ้งงาน', d.dateReq || '—'],
-        ['วันที่ต้องเสร็จ', d.dateDue || '—'],
         ['📍 ชื่อสถานที่/โครงการ', d.place],
         ['🏠 พื้นที่ (Area)', d.area || '—'],
         ['🏢 ชื่อลูกค้า/ผู้เช่า', d.customer || '—'],
@@ -4081,6 +4085,7 @@
         if (fromModal) openTLModal(id);
         else openDetail(id); // Reload view
         renderTable(); renderKPI();
+        renderTLTasksPage(); // Fix: Re-render TL View immediately
         toast('รับงานสำเร็จ ✓', 'success');
       } catch (err) {
         toast('ผิดพลาด: ' + err.message, 'error');
@@ -4144,6 +4149,7 @@
           if (fromModal) openTLModal(id);
           else openDetail(id);
           renderTable(); renderKPI();
+          renderTLTasksPage(); // Fix: Re-render TL View immediately
           toast('บันทึกสำเร็จและส่งต่องานแล้ว ✓', 'success');
         }
       } catch (err) {
@@ -4210,7 +4216,7 @@
     /* ════════ EXPORT CSV ════════ */
     function exportCSV() {
       const headers = ['ID', 'สถานะ', 'อาคาร', 'ลูกค้า', 'เจ้าของงาน', 'พื้นที่', 'PR No.', 'วันตั้งเบิก', 'วันDue', 'ยอดรวม', 'ประกันติดตั้ง', 'ประกันรื้อถอน', 'ค่าธรรมเนียม', 'คืนประกันติดตั้ง', 'คืนประกันรื้อถอน'];
-      const rows = DB.map(d => [d.id, d.status, d.place, d.customer, d.owner, d.area, d.pr, d.dateReq, d.dateDue, d.total, d.deposit, d.demolish, d.fee, d.depReturn, d.demoReturn]);
+      const rows = DB.map(d => [d.id, d.status, d.place, d.customer, d.owner, d.area, d.pr, d.dateReq, d.total, d.deposit, d.demolish, d.fee, d.depReturn, d.demoReturn]);
       const csv = [headers, ...rows].map(r => r.map(v => `"${v || ''}"`).join(',')).join('\n');
       const a = document.createElement('a');
       a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
@@ -4265,7 +4271,7 @@
           <td class="nowrap" style="color:var(--txt3);font-size:12px">#${d.id}</td>
           <td class="nowrap">
             <div style="${statusSelectStyle(d.status)}; font-size:13px; font-weight:600; text-align:center;">
-              ${d.status === 'tl' ? '🔴 รอ TL รับงาน' : d.status === 'On Process' ? '⏳ กำลังดำเนินการ' : d.status === 'Done' ? '✓ ปิดงาน' : d.status}
+              ${getStatusLabel(d)}
             </div>
           </td>
           <td class="td-place">
