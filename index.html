@@ -1723,7 +1723,7 @@
 
     .db-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 24px;
       margin-top: 24px;
     }
@@ -3983,23 +3983,25 @@
         if (d.area) areaFin[d.area] = (areaFin[d.area] || 0) + (d.deposit || 0);
       });
 
+      const areaColors = ['#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#f97316', '#14b8a6', '#6366f1'];
+      const areaKeys = Object.keys(areaFin);
+      const areaVals = Object.values(areaFin);
+
       if (ownerFinanceChart) ownerFinanceChart.destroy();
       ownerFinanceChart = new Chart(document.getElementById('areaOutstandingChart'), {
         type: 'bar',
         data: {
-          labels: Object.keys(areaFin),
+          labels: areaKeys,
           datasets: [{
             label: 'ยอดเงินประกันคงค้าง (฿)',
-            data: Object.values(areaFin),
-            backgroundColor: '#1e293b',
-            hoverBackgroundColor: '#d4af37',
-            borderRadius: 8,
-            barThickness: 24
+            data: areaVals,
+            backgroundColor: areaKeys.map((_, i) => areaColors[i % areaColors.length]),
+            hoverBackgroundColor: areaKeys.map((_, i) => areaColors[i % areaColors.length] + 'cc'),
+            borderRadius: 8
           }]
         },
         options: {
           maintainAspectRatio: false,
-          indexAxis: 'y',
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -4007,12 +4009,12 @@
               titleFont: { size: 13 },
               bodyFont: { size: 12 },
               padding: 12,
-              displayColors: false
+              displayColors: true
             }
           },
           scales: {
-            x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10 } } },
-            y: { grid: { display: false }, border: { display: false }, ticks: { font: { weight: 'bold' } } }
+            x: { grid: { display: false }, border: { display: false }, ticks: { font: { weight: 'bold' } } },
+            y: { grid: { color: 'rgba(0,0,0,0.05)' }, border: { display: false }, ticks: { font: { size: 10 } } }
           }
         }
       });
