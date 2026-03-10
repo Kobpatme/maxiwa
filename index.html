@@ -2074,6 +2074,9 @@
         <div class="nav-item" id="nav-list" onclick="showPage('list'); setStatusFilter('')">
           <span class="icon">💼</span> เงินประกันอาคาร
         </div>
+        <div class="nav-item" id="nav-active-demo" onclick="showPage('active-demo')">
+          <span class="icon">🚧</span> มีประกันรื้อถอน (On Service)
+        </div>
 
 
         <!-- TL Section -->
@@ -2374,6 +2377,35 @@
           </div>
         </div>
       </div><!-- /page-tl-tasks -->
+
+      <!-- On Service (Removal Deposit) Page -->
+      <div class="page" id="page-active-demo">
+        <div style="padding:24px 28px 0">
+          <div class="card">
+            <div class="card-header" style="justify-content:space-between">
+              <span class="card-title">🚧 รายการ On Service (ประกันรื้อถอน)</span>
+              <span style="font-size:13px; color:var(--txt3)">รายการที่ปิดงานติดตั้งแล้ว
+                แต่ยังมีเงินประกันรื้อถอนคงค้าง</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>อาคาร / ลูกค้า</th>
+                    <th>พื้นที่ / ทีม TL</th>
+                    <th style="text-align:right">เงินประกันรื้อถอน</th>
+                    <th style="text-align:center">สถานะ</th>
+                    <th style="text-align:right">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody id="active-demo-tbody">
+                  <!-- JS Render -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- User Management Page -->
       <div class="page" id="page-users">
@@ -2857,6 +2889,32 @@
     </div>
   </div>
 
+  <!-- ═══════ MODAL: OFF SERVICE / DEMO RETURN ═══════ -->
+  <div class="overlay" id="offServiceOverlay">
+    <div class="modal sm">
+      <div class="modal-head">
+        <div class="modal-title">Off Service / คืนประกันรื้อถอน</div>
+        <button class="modal-close" onclick="closeModal('offServiceOverlay')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div style="text-align:center; margin-bottom:20px">
+          <div style="font-size:40px">🏃</div>
+          <div style="font-weight:700; margin-top:10px" id="offServiceTitle">—</div>
+        </div>
+        <div class="form-group">
+          <label>หลักฐานการรื้อถอน / Off Service (PDF) <span class="required">*</span></label>
+          <input type="file" id="f-pdf-demo-off" accept=".pdf" class="form-control">
+          <p style="font-size:11px; color:var(--txt3); margin-top:6px">ต้องแนบไฟล์ PDF
+            เพื่อยืนยันการขอคืนเงินประกันรื้อถอน</p>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeModal('offServiceOverlay')">ปิด</button>
+        <button class="btn btn-primary" id="offServiceSaveBtn">ยืนยัน Off Service</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast container -->
   <div class="toast-wrap" id="toastWrap"></div>
 
@@ -3171,6 +3229,110 @@
       if (document.getElementById('sb-dep-amt')) document.getElementById('sb-dep-amt').textContent = '฿' + dep.toLocaleString();
       const now = new Date();
       if (document.getElementById('sb-updated')) document.getElementById('sb-updated').textContent = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    /* ════════ OFF SERVICE LOGIC ════════ */
+    function openOffServiceModal(id) {
+      const d = DB.find(x => x.id === id);
+      if (!d) return;
+      document.getElementById('offServiceTitle').textContent = d.place;
+      document.getElementById('f-pdf-demo-off').value = '';
+      const btn = document.getElementById('offServiceSaveBtn');
+      btn.onclick = () => saveOffService(id);
+      openModal('offServiceOverlay');
+    }
+
+    async function saveOffService(id) {
+      const fileInput = document.getElementById('f-pdf-demo-off');
+      if (!fileInput.files || fileInput.files.length === 0) {
+        return toast('กรุณาแนบไฟล์ PDF หลักฐาน Off Service', 'error');
+      }
+
+      const btn = document.getElementById('offServiceSaveBtn');
+      const originalText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'กำลังบันทึก...';
+
+      try {
+        const file = fileInput.files[0];
+        const fileName = `${id}_off_service_${Date.now()}.pdf`;
+        const { data: uploadData, error: uploadError } = await CONFIG.supabase.storage
+          .from('demo_off_evidence')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = CONFIG.supabase.storage
+          .from('demo_off_evidence')
+          .getPublicUrl(fileName);
+
+        const { error: updateError } = await CONFIG.supabase
+          .from('deposits')
+          .update({
+            demoReturn: 'Yes',
+            pdf_demo_off: publicUrl,
+            status: 'Done' // Force status to remain Done
+          })
+          .eq('id', id);
+
+        if (updateError) throw updateError;
+
+        toast('บันทึก Off Service เรียบร้อยแล้ว', 'success');
+        closeModal('offServiceOverlay');
+        closeModal('detailOverlay');
+        await fetchData();
+        if (typeof showPage === 'function') showPage('active-demo');
+      } catch (err) {
+        console.error(err);
+        toast('เกิดข้อผิดพลาด: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    }
+
+    /* ════════ RENDER: ON SERVICE (ACTIVE DEMO) ════════ */
+    function renderActiveDemoTable() {
+      const tbody = document.getElementById('active-demo-tbody');
+      if (!tbody) return;
+
+      const items = DB.filter(d => {
+        const s = (d.status || '').toLowerCase();
+        const hasDemo = parseFixed(d.demolish) > 0;
+        const notReturned = (d.demoReturn || '').trim().toLowerCase() !== 'yes';
+        // "On Service" logic: Status is DONE/CLO and has pending removal deposit
+        return (s === 'done' || s === 'clo') && hasDemo && notReturned;
+      });
+
+      if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--txt3)">ไม่พบรายการ On Service</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = items.map(d => `
+        <tr>
+          <td>
+            <div style="font-weight:700; color:var(--txt)">${d.place}</div>
+            <div style="font-size:11px; color:var(--txt3)">${d.customer || '-'}</div>
+          </td>
+          <td>
+            <div style="font-size:13px">${d.area || '-'}</div>
+            <div style="font-size:11px; color:var(--blue)">${d.tl_team || '-'}</div>
+          </td>
+          <td style="text-align:right; font-weight:700; color:var(--orange)">
+            ฿${parseFixed(d.demolish).toLocaleString()}
+          </td>
+          <td style="text-align:center">
+            <span class="badge b-on">On Service</span>
+          </td>
+          <td style="text-align:right">
+            <div style="display:flex; justify-content:flex-end; gap:6px">
+              <button class="btn btn-primary btn-sm" onclick="openOffServiceModal(${d.id})">Off Service</button>
+              <button class="icon-btn" onclick="openDetail(${d.id})">👁️</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
     }
 
     /* ════════ RENDER TABLE ════════ */
@@ -4344,14 +4506,14 @@
         document.getElementById('nav-tl-tasks').classList.add('active');
         document.getElementById('topbar-sub').textContent = 'งานหน้างานที่ดำเนินการโดย TL';
         renderTLTasksPage();
+      } else if (id === 'active-demo') {
+        document.getElementById('nav-active-demo').classList.add('active');
+        document.getElementById('topbar-sub').textContent = 'รายการที่มีเงินประกันรื้อถอนคงค้าง (On Service)';
+        renderActiveDemoTable();
       } else if (id === 'users') {
         document.getElementById('nav-users').classList.add('active');
         document.getElementById('topbar-sub').textContent = 'จัดการสิทธิ์ผู้เข้าใช้งานระบบ';
         loadUserTable();
-      } else if (id === 'active-demo') {
-        document.getElementById('nav-active-demo').classList.add('active');
-        document.getElementById('topbar-sub').textContent = 'ติดตามเงินประกันรื้อถอน (On Service)';
-        renderActiveDemoPage();
       } else {
         document.getElementById('nav-list').classList.add('active');
         document.getElementById('topbar-sub').textContent = 'ข้อมูลทั้งหมด · 2026';
