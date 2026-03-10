@@ -1605,7 +1605,7 @@
     /* Dashboard Enhancement - Blue & White Theme */
     .db-hero-stats {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 20px;
       margin-top: 20px;
       margin-bottom: 32px;
@@ -1646,10 +1646,6 @@
 
     .db-hero-stat-card.span-2 {
       grid-column: span 2;
-    }
-
-    .db-hero-stat-card.span-3 {
-      grid-column: span 3;
     }
 
     .db-hero-stat-card.span-1 {
@@ -2242,8 +2238,8 @@
 
           <!-- Secondary Metrics Bar - White Cards -->
           <div class="db-hero-stats" style="padding:0">
-            <!-- Group 1: Installation Lifecycle (Span 3) -->
-            <div class="db-hero-stat-card span-2 install-theme">
+            <!-- Group 1: Installation Lifecycle -->
+            <div class="db-hero-stat-card install-theme">
               <div
                 style="font-size:12px; font-weight:800; color:#1e40af; text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
                 <span style="font-size:18px">🛡️</span> การขอคืนเงินประกันติดตั้ง
@@ -2267,8 +2263,8 @@
               </div>
             </div>
 
-            <!-- Group 2: Removal Deposit (Span 2 - Grid Layout) -->
-            <div class="db-hero-stat-card span-2 demo-theme">
+            <!-- Group 2: Removal Deposit (Grid Layout) -->
+            <div class="db-hero-stat-card demo-theme">
               <div
                 style="font-size:12px; font-weight:800; color:#92400e; text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
                 <span style="font-size:18px">🚧</span> เงินประกันรื้อถอน
@@ -2310,7 +2306,7 @@
                 <canvas id="financeAllocationChart"></canvas>
               </div>
             </div>
-            <div class="db-card">
+            <div class="db-card" style="grid-column: span 2;">
               <h3>
                 <div class="card-icon-box">📍</div> ยอดเงินประกันคงค้างแยกตามพื้นที่ (Area)
               </h3>
@@ -2320,7 +2316,7 @@
             </div>
 
             <!-- Executive Highlight: Top Outstanding -->
-            <div class="db-card" style="grid-column: span 3; min-height: auto;">
+            <div class="db-card" style="grid-column: span 2; min-height: auto;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
                 <h3 style="margin-bottom:0">
                   <div class="card-icon-box">🏆</div> 5 อันดับอาคารที่มียอดเงินประกันคงค้างสูงสุด
