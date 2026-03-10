@@ -3111,7 +3111,7 @@
       empty.style.display = 'none';
 
       document.getElementById('tbody').innerHTML = data.map(d => `
-    <tr onclick="if(event.target.tagName !== 'BUTTON' && event.target.tagName !== 'SELECT') openDetail(${d.id})" style="cursor:pointer;" title="คลิกเพื่อดูรายละเอียด">
+    <tr onclick="if(event.target.tagName !== 'BUTTON' && event.target.tagName !== 'SELECT') openEdit(${d.id}, 'auto')" style="cursor:pointer;" title="คลิกเพื่ออัปเดตสถานะงาน">
       <td class="nowrap" style="color:var(--txt3);font-size:12px">#${d.id}</td>
       <td class="nowrap">
         <div style="${statusSelectStyle(d.status)}; font-size:13px; font-weight:600; text-align:center;">
@@ -3740,8 +3740,13 @@
           }
         });
 
-        closeModal('formOverlay');
-        renderTable(); renderKPI();
+        if (currentStep < 6) {
+          goToStep(currentStep + 1);
+          renderTable(); renderKPI();
+        } else {
+          closeModal('formOverlay');
+          renderTable(); renderKPI();
+        }
       } catch (err) {
         console.error(err);
         toast('เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + err.message, 'error');
