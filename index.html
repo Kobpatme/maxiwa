@@ -2630,6 +2630,10 @@
                   <option>แคชเชียร์เช็ค</option>
                 </select>
               </div>
+              <div class="form-group" style="grid-column: span 2">
+                <label>รายละเอียดค่าใช้จ่ายอื่นๆ</label>
+                <input type="text" class="form-control" id="f-other-desc" placeholder="เช่น ค่าปรับ, ค่าดำเนินการ...">
+              </div>
             </div>
             <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); margin-top:15px">
               <div class="form-group"><label>เงินประกันติดตั้ง</label><input type="number" class="form-control"
@@ -3637,7 +3641,7 @@
     function clearForm() {
       ['f-place', 'f-customer', 'f-owner', 'f-area', 'f-project', 'f-deal',
         'f-pr', 'f-date-req', 'f-date-due', 'f-date-check', 'f-date-acc',
-        'f-payto', 'f-paytype', 'f-deposit', 'f-demolish', 'f-fee', 'f-other', 'f-total',
+        'f-payto', 'f-paytype', 'f-deposit', 'f-demolish', 'f-fee', 'f-other', 'f-other-desc', 'f-total',
         'f-dep-status', 'f-demo-status', 'f-complete',
         'f-dep-return', 'f-demo-return', 'f-contact', 'f-tel', 'f-office-tel', 'f-email', 'f-mobile', 'f-remark',
         'f-cost-sheet', 'f-date-return', 'f-return-type', 'f-final-remark', 'f-date-accounting',
@@ -3692,6 +3696,7 @@
       setVal('f-demolish', d.demolish || '');
       setVal('f-fee', d.fee || '');
       setVal('f-other', d.other || '');
+      setVal('f-other-desc', d.other_desc || '');
       setVal('f-total', d.total || '');
       setVal('f-complete', d.complete || '');
       setVal('f-tl-team', d.tl_team || '');
@@ -3963,6 +3968,7 @@
           demolish: +document.getElementById('f-demolish').value || 0,
           fee: +document.getElementById('f-fee').value || 0,
           other: +document.getElementById('f-other').value || 0,
+          other_desc: document.getElementById('f-other-desc').value.trim(),
           total: +document.getElementById('f-total').value || 0,
           status: finalStatus,
           depStatus: getVal('f-dep-status'),
@@ -4124,7 +4130,7 @@
               <span style="font-weight:700; color:var(--txt)">฿${parseFixed(d.fee).toLocaleString()}</span>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:13px; color:var(--txt2)">ค่าใช้จ่ายอื่นๆ/Other</span>
+              <span style="font-size:13px; color:var(--txt2)">ค่าใช้จ่ายอื่นๆ/Other ${d.other_desc ? '<span style="color:var(--txt3);font-size:11px">(' + d.other_desc + ')</span>' : ''}</span>
               <span style="font-weight:700; color:var(--txt)">฿${parseFixed(d.other).toLocaleString()}</span>
             </div>
             <div style="margin-top:8px; padding-top:12px; border-top:2px solid var(--blue-l); display:flex; justify-content:space-between; align-items:center;">
@@ -4279,7 +4285,7 @@
               <span style="font-weight:700; color:var(--txt)">฿${parseFixed(d.fee).toLocaleString()}</span>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:13px; color:var(--txt2)">ค่าใช้จ่ายอื่นๆ/Other</span>
+              <span style="font-size:13px; color:var(--txt2)">ค่าใช้จ่ายอื่นๆ/Other ${d.other_desc ? '<span style="color:var(--txt3);font-size:11px">(' + d.other_desc + ')</span>' : ''}</span>
               <span style="font-weight:700; color:var(--txt)">฿${parseFixed(d.other).toLocaleString()}</span>
             </div>
             <div style="margin-top:8px; padding-top:12px; border-top:2px solid var(--blue-l); display:flex; justify-content:space-between; align-items:center;">
