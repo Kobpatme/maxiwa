@@ -2224,6 +2224,23 @@
                 style="font-size:56px; font-weight:900; color:#fff; line-height:1; letter-spacing:-2px; display:flex; align-items:baseline; gap:8px">
                 <span style="font-size:24px; opacity:0.7; font-weight:600">฿</span>0
               </div>
+
+              <!-- Overall Summary Metrics -->
+              <div
+                style="margin-top:24px; display:flex; gap:32px; border-top:1px solid rgba(255,255,255,0.1); padding-top:20px">
+                <div>
+                  <div
+                    style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px">
+                    เงินที่ได้คืนแล้ว</div>
+                  <div id="db-overall-refunded" style="font-size:24px; font-weight:800; color:#4ade80">฿0</div>
+                </div>
+                <div>
+                  <div
+                    style="font-size:11px; font-weight:700; color:rgba(255,255,255,0.6); text-transform:uppercase; letter-spacing:1px; margin-bottom:4px">
+                    ยอดเงินคงค้าง</div>
+                  <div id="db-overall-pending" style="font-size:24px; font-weight:800; color:#fb923c">฿0</div>
+                </div>
+              </div>
             </div>
 
             <!-- Hero Success Rate (Right) -->
@@ -4292,19 +4309,34 @@
     function renderExecutiveDashboard() {
       const totalInstall = DB.reduce((s, d) => s + (d.deposit || 0), 0);
       const totalDemo = DB.reduce((s, d) => s + (d.demolish || 0), 0);
-      const totalInsuranceVal = totalInstall + totalDemo; // Only insurance, no fees
+      const totalInsuranceVal = totalInstall + totalDemo;
 
-      // Success Rate Calculation (Installation Refund Focus)
-      const totalRefundedVal = DB.filter(d => d.status === 'Done').reduce((s, d) => s + (d.deposit || 0), 0);
-      const successPct = totalInstall > 0 ? Math.round((totalRefundedVal / totalInstall) * 100) : 0;
+      // 1. Installation Refund (status === 'Done')
+      const installRefunded = DB.filter(d => d.status === 'Done').reduce((s, d) => s + (d.deposit || 0), 0);
+      const installPending = totalInstall - installRefunded;
 
-      // Demo Refund Tracking
+      // 2. Removal Refund (demoReturn === 'Yes')
       const demoRefunded = DB.filter(d => d.demoReturn === 'Yes').reduce((s, d) => s + (d.demolish || 0), 0);
       const demoPending = totalDemo - demoRefunded;
 
+      // 3. Overall Summary (Hero)
+      const overallRefunded = installRefunded + demoRefunded;
+      const overallPending = installPending + demoPending;
+      const successPct = totalInsuranceVal > 0 ? Math.round((overallRefunded / totalInsuranceVal) * 100) : 0;
+
+      // Update UI Elements
       document.getElementById('db-success-rate-pct').textContent = successPct + '%';
       document.getElementById('db-total-valuation').innerHTML = `<span style="font-size:32px; opacity:0.5; font-weight:700; margin-right:8px">฿</span>${totalInsuranceVal.toLocaleString()}`;
+
+      document.getElementById('db-overall-refunded').textContent = '฿' + overallRefunded.toLocaleString();
+      document.getElementById('db-overall-pending').textContent = '฿' + overallPending.toLocaleString();
+
+      // Installation Group
       document.getElementById('db-total-install').innerHTML = `<span class="currency-symbol">฿</span>${totalInstall.toLocaleString()}`;
+      document.getElementById('db-total-refunded').innerHTML = `<span class="currency-symbol">฿</span>${installRefunded.toLocaleString()}`;
+      document.getElementById('db-total-pending').innerHTML = `<span class="currency-symbol">฿</span>${installPending.toLocaleString()}`;
+
+      // Removal Group
       document.getElementById('db-total-demo').innerHTML = `<span class="currency-symbol">฿</span>${totalDemo.toLocaleString()}`;
       document.getElementById('db-demo-refunded').innerHTML = `<span class="currency-symbol">฿</span>${demoRefunded.toLocaleString()}`;
       document.getElementById('db-demo-pending').innerHTML = `<span class="currency-symbol">฿</span>${demoPending.toLocaleString()}`;
@@ -4381,12 +4413,6 @@
           plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } } }
         }
       });
-
-      // Update Refunded vs Pending Hero Stats (Installation Only)
-      const totalRefunded = DB.filter(d => d.status === 'Done').reduce((s, d) => s + (d.deposit || 0), 0);
-      const totalPending = DB.filter(d => d.status !== 'Done' && d.status !== 'Cancel').reduce((s, d) => s + (d.deposit || 0), 0);
-      document.getElementById('db-total-refunded').innerHTML = `<span class="currency-symbol">฿</span>${totalRefunded.toLocaleString()}`;
-      document.getElementById('db-total-pending').innerHTML = `<span class="currency-symbol">฿</span>${totalPending.toLocaleString()}`;
 
       // 3. Area Outstanding Value (Installation Only)
       const areaFin = {};
