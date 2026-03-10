@@ -3711,7 +3711,6 @@
             const idx = DB.findIndex(x => x.id === editingId);
             DB[idx] = updated;
           }
-          toast('แก้ไขข้อมูลสำเร็จ ✓' + (depositVal === 0 ? ' (ระบบปิดงานอัตโนมัติเนื่องจากไม่มีเงินประกันติดตั้ง)' : ''), 'success');
         } else {
           let inserted;
           if (USE_MOCK) {
@@ -3722,6 +3721,7 @@
             DB.unshift(inserted);
           }
           toast('เพิ่มรายการใหม่สำเร็จ ✓' + (depositVal === 0 ? ' (ระบบปิดงานอัตโนมัติเนื่องจากไม่มีเงินประกันติดตั้ง)' : ''), 'success');
+          if (inserted && inserted.id) editingId = inserted.id; // Fix: Track the new ID for workflow continuity
         }
 
         // --- POST-SAVE SUCCESS CLEANUP ---
