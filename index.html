@@ -3125,7 +3125,10 @@
       }
 
       const total = filteredData.length;
-      const done = filteredData.filter(d => ((d.status || '').trim().toLowerCase() === 'done')).length;
+      const done = filteredData.filter(d => {
+        const s = (d.status || '').trim().toLowerCase();
+        return s === 'done' || s === 'clo';
+      }).length;
       const proc = filteredData.filter(d => d.status === 'On Process').length;
 
       const buildingFee = filteredData.reduce((s, d) => s + parseFixed(d.fee) + parseFixed(d.other), 0);
@@ -3773,6 +3776,14 @@
           finalStatus = 'done';
         }
 
+        // Automated Return Flags
+        let depReturnVal = getVal('f-dep-return');
+        let demoReturnVal = getVal('f-demo-return');
+        const sLow = (finalStatus || '').toLowerCase();
+        if (sLow === 'clo' || sLow === 'done') {
+          depReturnVal = 'Yes';
+        }
+
         const obj = {
           place, owner,
           created_by: editingId ? (oldData?.created_by || 'Unknown') : (CURRENT_USER?.name || 'Unknown'),
@@ -3795,8 +3806,8 @@
           depStatus: getVal('f-dep-status'),
           demoStatus: getVal('f-demo-status'),
           complete: getVal('f-complete'),
-          depReturn: getVal('f-dep-return'),
-          demoReturn: getVal('f-demo-return'),
+          depReturn: depReturnVal,
+          demoReturn: demoReturnVal,
           contact: getVal('f-contact'),
           tel: getVal('f-tel'),
           office_tel: getVal('f-office-tel'),
@@ -4438,9 +4449,10 @@
       const totalDemo = DB.reduce((s, d) => s + parseFixed(d.demolish), 0);
       const totalInsuranceVal = totalInstall + totalDemo;
 
-      // 1. Installation Refund (status === 'Done' OR depReturn === 'Yes')
+      // 1. Installation Refund (status === 'Done' OR status === 'clo' OR depReturn === 'Yes')
       const installRefunded = DB.filter(d => {
-        const isDone = (d.status || '').trim().toLowerCase() === 'done';
+        const s = (d.status || '').trim().toLowerCase();
+        const isDone = s === 'done' || s === 'clo';
         const isReturned = (d.depReturn || '').trim().toLowerCase() === 'yes';
         return isDone || isReturned;
       }).reduce((s, d) => s + parseFixed(d.deposit), 0);
