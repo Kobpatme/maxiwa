@@ -2569,8 +2569,6 @@
               <div class="form-group"><label>PR No.</label><input class="form-control" id="f-pr"></div>
               <div class="form-group"><label>วันที่ตั้งเบิก</label><input type="date" class="form-control"
                   id="f-date-req"></div>
-              <div class="form-group"><label>วันที่ควรได้ (Due)</label><input type="date" class="form-control"
-                  id="f-date-due"></div>
               <div class="form-group"><label>จ่ายให้</label><input class="form-control" id="f-payto"></div>
               <div class="form-group">
                 <label>ประเภทชำระ</label>
@@ -2581,10 +2579,6 @@
                   <option>แคชเชียร์เช็ค</option>
                 </select>
               </div>
-              <div class="form-group"><label>วันที่ได้รับเช็ค</label><input type="date" class="form-control"
-                  id="f-date-check"></div>
-              <div class="form-group"><label>วันที่ลงบัญชี</label><input type="date" class="form-control"
-                  id="f-date-acc"></div>
             </div>
             <div class="form-grid" style="grid-template-columns: repeat(4, 1fr); margin-top:15px">
               <div class="form-group"><label>เงินประกันติดตั้ง</label><input type="number" class="form-control"
@@ -2605,6 +2599,14 @@
           <!-- STEP 3: PDF Evidence 1 -->
           <div class="form-step" id="step-3">
             <div class="form-section">📄 Step 3: แนบหลักฐานการจ่าย & แบบ</div>
+            <div class="form-grid cols3">
+              <div class="form-group"><label>วันที่รับ</label><input type="date" class="form-control" id="f-date-check">
+              </div>
+              <div class="form-group"><label>วันที่จ่าย</label><input type="date" class="form-control" id="f-date-acc">
+              </div>
+              <div class="form-group"><label>วันที่ควรได้ (Due)</label><input type="date" class="form-control"
+                  id="f-date-due"></div>
+            </div>
             <div class="form-grid">
               <div class="form-group">
                 <label>หลักฐานการจ่ายเงิน (PDF)</label>
@@ -2635,7 +2637,7 @@
 
           </div>
 
-          <!-- STEP 4: TL Process (Merged 4-6) -->
+          <!-- STEP 4: TL Process -->
           <div class="form-step" id="step-4">
             <div class="form-section">🛠️ Step 4: ทีม TL ดำเนินการงานหน้างาน</div>
             <div class="form-grid">
@@ -2647,14 +2649,14 @@
                 <input type="hidden" id="f-tl-team">
               </div>
               <div class="form-group">
-                <label>สถานะการมอบหมาย</label>
-                <select class="form-control" id="f-complete">
-                  <option value="">Pending</option>
-                  <option value="Complete">Complete (เจ้าของงานส่งมอบแล้ว)</option>
-                </select>
+                <label>สถานะ TL</label>
+                <div id="step4-tl-status"
+                  style="padding:14px; background:var(--bg-f); border-radius:var(--r-sm); border:1px solid var(--border); font-size:14px; font-weight:600; text-align:center; color:var(--txt2);">
+                  ⏳ Pending (รอ TL กดรับงาน)
+                </div>
+                <input type="hidden" id="f-complete-tl">
               </div>
             </div>
-
             <div class="form-grid" style="margin-top:15px">
               <div class="form-group">
                 <label>รายการเงินประกันที่ต้องตรวจสอบ</label>
@@ -2663,56 +2665,30 @@
                   —
                 </div>
               </div>
-              <div class="form-group">
-                <label>สถานะการรับงานของ TL</label>
-                <select class="form-control" id="f-complete-tl">
-                  <option value="Pending">Pending (รอกดรับงาน)</option>
-                  <option value="On Process">รับงานแล้ว (ดำเนินการอยู่)</option>
-                </select>
-              </div>
             </div>
-
-            <div class="form-group" style="margin-top:15px">
-              <label>หลักฐานการดำเนินการของ TL (PDF)</label>
-              <div class="file-upload-box">
-                <div class="file-upload-icon">✅</div>
-                <div class="file-upload-text">เอกสารตรวจรับ/ส่งมอบงานอาคาร (PDF)</div>
-                <input type="file" id="f-pdf-tl-work" accept=".pdf" onchange="handleFileSelect(this)">
-                <div class="file-upload-name" id="f-pdf-tl-work-name"></div>
-                <a id="f-pdf-tl-work-link" class="file-link" target="_blank" style="display:none">ดูไฟล์ปัจจุบัน</a>
-              </div>
-            </div>
+            <input type="hidden" id="f-complete">
           </div>
 
-          <!-- STEP 5: User Return Process -->
+          <!-- STEP 5: TL Evidence & Accept -->
           <div class="form-step" id="step-5">
-            <div class="form-section">🔄 Step 5: ขั้นตอนขอคืนเงินประกัน (User)</div>
+            <div class="form-section">📝 Step 5: หลักฐานจาก TL & ยืนยันรับงาน</div>
+
+            <!-- TL Evidence Display -->
             <div class="form-group">
-              <label style="margin-bottom:10px">สถานะการขอคืนเงิน (Return Status)</label>
-              <input type="hidden" id="f-return-status" value="Pending">
-              <div style="display:flex; gap:10px; flex-wrap:wrap">
-                <button type="button" class="ret-status-btn active" data-val="Pending"
-                  onclick="setReturnStatus('Pending')"
-                  style="flex:1; padding:14px 12px; border-radius:var(--r-sm); border:2px solid var(--border); background:var(--white); cursor:pointer; text-align:center; transition:all .2s; font-size:13px; font-weight:600;">
-                  <div style="font-size:22px; margin-bottom:4px">⏳</div>
-                  <div>Pending</div>
-                  <div style="font-size:11px; font-weight:400; color:var(--txt3); margin-top:2px">รอ User กดรับงาน</div>
-                </button>
-                <button type="button" class="ret-status-btn" data-val="On Process"
-                  onclick="setReturnStatus('On Process')"
-                  style="flex:1; padding:14px 12px; border-radius:var(--r-sm); border:2px solid var(--border); background:var(--white); cursor:pointer; text-align:center; transition:all .2s; font-size:13px; font-weight:600;">
-                  <div style="font-size:22px; margin-bottom:4px">🔄</div>
-                  <div>On Process</div>
-                  <div style="font-size:11px; font-weight:400; color:var(--txt3); margin-top:2px">
-                    กำลังดำเนินการขอคืนเงิน</div>
-                </button>
-                <button type="button" class="ret-status-btn" data-val="Done" onclick="setReturnStatus('Done')"
-                  style="flex:1; padding:14px 12px; border-radius:var(--r-sm); border:2px solid var(--border); background:var(--white); cursor:pointer; text-align:center; transition:all .2s; font-size:13px; font-weight:600;">
-                  <div style="font-size:22px; margin-bottom:4px">✅</div>
-                  <div>Done</div>
-                  <div style="font-size:11px; font-weight:400; color:var(--txt3); margin-top:2px">ดำเนินการแล้ว</div>
-                </button>
+              <label>หลักฐานงาน TL (ไฟล์จากทีม TL)</label>
+              <div id="step5-tl-evidence"
+                style="padding:16px; background:var(--bg-f); border-radius:var(--r-md); border:1px solid var(--border); text-align:center; color:var(--txt3);">
+                ⏳ ยังไม่มีหลักฐานจาก TL
               </div>
+            </div>
+
+            <!-- Return Status (hidden, set automatically) -->
+            <input type="hidden" id="f-return-status" value="Pending">
+
+            <!-- Accept note -->
+            <div id="step5-accept-note"
+              style="margin-top:15px; padding:14px; background:#ecfdf5; border:1px solid #10b981; border-radius:var(--r-md); color:#065f46; font-size:13px; font-weight:600; display:none;">
+              ✅ เมื่อกด "ยืนยัน" ระบบจะบันทึกและไป Step ถัดไปโดยอัตโนมัติ
             </div>
           </div>
 
@@ -2991,7 +2967,14 @@
 
       if (btnPrev) btnPrev.style.display = (s === 1) ? 'none' : 'block';
       if (btnNext) btnNext.style.display = (s === 6) ? 'none' : 'block';
-      if (btnSave) btnSave.style.display = 'block';
+      if (btnSave) {
+        btnSave.style.display = 'block';
+        if (s === 5) {
+          btnSave.innerHTML = '✅ รับงาน';
+        } else {
+          btnSave.innerHTML = '💾 ยืนยัน / บันทึกข้อมูล';
+        }
+      }
 
       // Role validation (Step 4 for TL only)
       const user = CURRENT_USER || {};
@@ -3214,8 +3197,7 @@
             <button class="act-btn view" title="ดูรายละเอียด" onclick="openDetail(${d.id})">👁</button>
             <button class="act-btn edit" title="แก้ไข" onclick="openEdit(${d.id})">✏️</button>
             <button class="act-btn" title="อัปเดตสถานะ" onclick="openEdit(${d.id}, 'auto')" style="font-size:13px" onmouseover="this.style.background='var(--orange-l)'" onmouseout="this.style.background='var(--white)'">🔄</button>
-            <button class="act-btn" title="ยกเลิกรายการ" onclick="confirmCancel(${d.id})" style="font-size:13px" onmouseover="this.style.background='var(--red-l);border-color:#fecdca'" onmouseout="this.style.background='var(--white);border-color:var(--border)'">🚫</button>
-            ${window.CURRENT_USER?.role === 'admin' ? `<button class="act-btn delete" title="ลบถาวร" onclick="confirmDelete(${d.id})">🗑</button>` : ''}
+            <button class="act-btn" title="ลบรายการ" onclick="confirmDelete(${d.id})" style="font-size:13px" onmouseover="this.style.background='var(--red-l);border-color:#fecdca'" onmouseout="this.style.background='var(--white);border-color:var(--border)'">🗑</button>
         </div>
       </td>
       `}
@@ -3553,7 +3535,47 @@
 
       setVal('f-tl-team', d.tl_team || '');
       setVal('f-complete-tl', d.complete_tl || '');
-      setReturnStatus(d.return_status || 'Pending');
+
+      // Update Step 4: TL Status Display (read-only for User)
+      const step4StatusEl = document.getElementById('step4-tl-status');
+      if (step4StatusEl) {
+        if (d.complete_tl === 'On Process') {
+          step4StatusEl.innerHTML = '<span style="color:var(--orange)">⏳ กำลังดำเนินการ</span>';
+          step4StatusEl.style.borderColor = 'var(--orange)';
+          step4StatusEl.style.background = 'var(--orange-l)';
+        } else if (d.pdf_tl_work) {
+          step4StatusEl.innerHTML = '<span style="color:var(--green)">✅ TL ดำเนินการเสร็จสิ้น</span>';
+          step4StatusEl.style.borderColor = 'var(--green)';
+          step4StatusEl.style.background = '#f0fdf4';
+        } else {
+          step4StatusEl.innerHTML = '<span style="color:var(--txt3)">⏳ Pending (รอ TL กดรับงาน)</span>';
+          step4StatusEl.style.borderColor = 'var(--border)';
+          step4StatusEl.style.background = 'var(--bg-f)';
+        }
+      }
+
+      // Update Step 5: Show TL evidence
+      const step5EvidenceEl = document.getElementById('step5-tl-evidence');
+      const step5AcceptNote = document.getElementById('step5-accept-note');
+      if (step5EvidenceEl) {
+        if (d.pdf_tl_work) {
+          step5EvidenceEl.innerHTML = `
+            <a href="${d.pdf_tl_work}" target="_blank" style="display:flex; align-items:center; gap:10px; text-decoration:none; padding:12px; background:var(--blue-l); border:1px solid var(--blue); border-radius:var(--r-sm);">
+              <span style="font-size:24px">📄</span>
+              <div style="flex:1; text-align:left;">
+                <div style="font-size:12px; color:var(--blue); font-weight:700; text-transform:uppercase;">หลักฐานงาน TL</div>
+                <div style="font-size:13px; color:var(--txt2);">คลิกเพื่อดูไฟล์ PDF</div>
+              </div>
+            </a>
+          `;
+          if (step5AcceptNote) step5AcceptNote.style.display = 'block';
+        } else {
+          step5EvidenceEl.innerHTML = '⏳ ยังไม่มีหลักฐานจาก TL';
+          if (step5AcceptNote) step5AcceptNote.style.display = 'none';
+        }
+      }
+
+      setVal('f-return-status', d.return_status || 'Pending');
 
       setVal('f-date-return', d.date_return || '');
       setVal('f-return-type', d.return_type || '');
