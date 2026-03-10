@@ -2068,21 +2068,11 @@
         </div>
       </div>
       <nav class="sidebar-nav">
-        <div class="nav-label">เมนูหลัก</div>
-        <div class="nav-item" id="nav-db" onclick="showPage('dashboard')">
+        <div class="nav-item active" id="nav-db" onclick="showPage('dashboard')">
           <span class="icon">📊</span> Executive Dashboard
         </div>
-        <div class="nav-item active" id="nav-list" onclick="showPage('list')">
-          <span class="icon">📋</span> รายการทั้งหมด
-          <span class="nav-badge" id="nav-total">0</span>
-        </div>
-        <div class="nav-item" onclick="showPage('list');setStatusFilter('On Process')">
-          <span class="icon">⏳</span> กำลังดำเนินการ
-          <span class="nav-badge orange" id="nav-process">0</span>
-        </div>
-        <div class="nav-item" onclick="showPage('list');setStatusFilter('Done')">
-          <span class="icon">✅</span> เสร็จแล้ว
-          <span class="nav-badge green" id="nav-done">0</span>
+        <div class="nav-item" id="nav-list" onclick="showPage('list'); setStatusFilter('')">
+          <span class="icon">💼</span> เงินประกันอาคาร
         </div>
 
 
@@ -3081,13 +3071,13 @@
     </div>
   `;
 
-      document.getElementById('nav-total').textContent = total;
-      document.getElementById('nav-process').textContent = proc;
-      document.getElementById('nav-done').textContent = done;
-      document.getElementById('sb-total-amt').textContent = '฿' + amt.toLocaleString();
-      document.getElementById('sb-dep-amt').textContent = '฿' + dep.toLocaleString();
+      // document.getElementById('nav-total').textContent = total;
+      // document.getElementById('nav-process').textContent = proc;
+      // document.getElementById('nav-done').textContent = done;
+      if (document.getElementById('sb-total-amt')) document.getElementById('sb-total-amt').textContent = '฿' + amt.toLocaleString();
+      if (document.getElementById('sb-dep-amt')) document.getElementById('sb-dep-amt').textContent = '฿' + dep.toLocaleString();
       const now = new Date();
-      document.getElementById('sb-updated').textContent = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+      if (document.getElementById('sb-updated')) document.getElementById('sb-updated').textContent = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
     }
 
     /* ════════ RENDER TABLE ════════ */
