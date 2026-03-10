@@ -2753,19 +2753,20 @@
 
   <!-- ═════════ MODAL: TL SPECIALIZED WORKSPACE ═════════ -->
   <div class="overlay" id="tlWorkOverlay">
-    <div class="modal sm" id="tlWorkModal" style="max-width: 500px;">
-      <div class="modal-head" style="background: var(--blue-l); border-bottom: 2px solid var(--blue);">
+    <div class="modal lg" id="tlWorkModal">
+      <div class="modal-head">
         <div>
-          <div class="modal-title" id="tlWorkTitle" style="color: var(--blue-d);">งานทีม TL (On-site Work)</div>
-          <div class="modal-sub" id="tlWorkSub">จัดการงานและแนบหลักฐานหน้างาน</div>
+          <div class="modal-title" id="tlWorkTitle">งานทีม TL (On-site Work)</div>
+          <div class="modal-sub" id="tlWorkSub">จัดการงานหน้างานและส่งหลักฐาน</div>
         </div>
         <button class="modal-close" onclick="closeModal('tlWorkOverlay')">✕</button>
       </div>
-      <div class="modal-body" id="tlWorkBody" style="padding: 25px;">
+      <div class="modal-body" id="tlWorkBody" style="padding: 20px 25px;">
         <!-- Specialized content will be rendered here by JS -->
       </div>
-      <div class="modal-foot">
+      <div class="modal-foot" id="tlModalFoot" style="display:flex; justify-content:flex-end; gap:10px;">
         <button type="button" class="btn btn-ghost" onclick="closeModal('tlWorkOverlay')">ปิด</button>
+        <div id="tlModalActions"></div>
       </div>
     </div>
   </div>
@@ -3924,72 +3925,78 @@
         </div>
       `;
 
-      // Simplified Info
+      // Format exactly same as detail-grid for required fields only
       const infoRows = [
-        ['📍 สถานที่', d.place],
+        ['วันที่แจ้งงาน', d.dateReq || '—'],
+        ['วันที่ต้องเสร็จ', d.dateDue || '—'],
+        ['📍 ชื่อสถานที่/โครงการ', d.place],
         ['🏠 พื้นที่ (Area)', d.area || '—'],
+        ['🏢 ชื่อลูกค้า/ผู้เช่า', d.customer || '—'],
         ['👤 เจ้าของงาน', d.owner || '—'],
         ['📞 ผู้ประสานงาน', d.contact || '—'],
         ['📱 เบอร์ติดต่อ', d.mobile || d.tel || '—']
       ];
 
-      const infoHTML = `
-        <div style="display:grid; grid-template-columns:1fr; gap:12px; margin-bottom:24px;">
-          ${infoRows.map(([k, v]) => `
-            <div style="display:flex; justify-content:space-between; padding-bottom:10px; border-bottom:1px solid #f3f4f6;">
-              <span style="color:var(--txt3); font-size:13px;">${k}</span>
-              <span style="font-weight:600; color:var(--txt2); font-size:13px;">${v}</span>
-            </div>
-          `).join('')}
-        </div>
-      `;
+      const infoHTML = `<div class="detail-grid" style="margin-bottom:24px">${infoRows.map(([k, v]) => `<div class="detail-row"><div class="detail-key">${k}</div><div class="detail-val">${v}</div></div>`).join('')}</div>`;
 
-      // Files (Minimal)
-      const files = [];
-      if (d.pdf_payment) files.push({ label: 'หลักฐานจ่าย', url: d.pdf_payment });
-      if (d.pdf_layout) files.push({ label: 'แบบ Drawings', url: d.pdf_layout });
-
-      const filesHTML = files.length > 0 ? `
-        <div style="margin-bottom:24px;">
-          <div style="font-size:12px; font-weight:700; color:var(--blue-d); margin-bottom:8px; text-transform:uppercase;">📂 ไฟล์แนบจากโครงการ</div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-            ${files.map(f => `
-              <a href="${f.url}" target="_blank" style="text-decoration:none; padding:10px; background:var(--bg-f); border:1px solid var(--border); border-radius:var(--r-sm); font-size:12px; color:var(--txt); display:flex; align-items:center; gap:6px;">
-                <span>📄</span> ${f.label}
-              </a>
-            `).join('')}
-          </div>
+      // Native Style Files list
+      const fileRows = [
+        { label: 'หลักฐานการจ่าย', key: 'pdf_payment' },
+        { label: 'แบบ / Drawing', key: 'pdf_layout' }
+      ].filter(f => d[f.key]).map(f => `
+      <a href="${d[f.key]}" target="_blank" class="detail-row" style="text-decoration:none; display:flex; align-items:center; gap:8px; background:var(--bg-f); border:1px solid var(--border); padding:8px 12px; border-radius:var(--r-sm)">
+        <span style="font-size:18px">📄</span>
+        <div style="flex:1">
+          <div style="font-size:11px; color:var(--txt2); font-weight:700; text-transform:uppercase">${f.label}</div>
+          <div style="font-size:12px; color:var(--blue)">คลิกเพื่อดู PDF</div>
         </div>
+      </a>
+      `).join('');
+
+      const filesHTML = fileRows ? `
+      <div style="margin-top:0px; margin-bottom:24px;">
+        <div class="money-title" style="margin-bottom:10px">📁 ไฟล์อ้างอิงของงานประจำรอบ (PDF)</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">${fileRows}</div>
+      </div>
       ` : '';
 
-      // Action Buttons
-      let actionHTML = '';
-      if (d.complete_tl !== 'On Process') {
-        actionHTML = `
-          <div style="text-align:center;">
-             <button class="btn btn-primary" style="width:100%; height:54px; font-size:18px; font-weight:700;" onclick="acceptJobTLDetail(${d.id}, true)">✔️ ยืนยันรับงาน (Start Process)</button>
-          </div>
+      body.innerHTML = insuranceHTML + infoHTML + filesHTML;
+
+      // ACTION BUTTONS IN FOOTER (Just like the 'Edit' button in detailModal)
+      const actionsContainer = document.getElementById('tlModalActions');
+      actionsContainer.innerHTML = ''; // clear
+
+      if (d.status === 'Cancel') {
+        actionsContainer.innerHTML = `<span class="badge b-red" style="padding:10px 15px; font-size:14px;">งานถูกยกเลิกแล้ว</span>`;
+      } else if (['new', 'fin', 'att'].includes(d.status)) {
+        actionsContainer.innerHTML = `<span class="badge b-wait" style="padding:10px 15px; font-size:14px;">รอทีมอื่นดำเนินการ</span>`;
+      } else if (d.status === 'tl' && d.complete_tl !== 'On Process') {
+        // "ปุ่มก็เปลี่ยนจาก แก้ไขข้อมูลเป็นรับงาน"
+        actionsContainer.innerHTML = `<button class="btn btn-primary" style="padding:10px 18px; font-size:15px;" onclick="acceptJobTLDetail(${d.id}, true)">✔️ รับงาน</button>`;
+      } else if ((d.status === 'On Process' || d.complete_tl === 'On Process') && !d.pdf_tl_work) {
+        // "จากนั้นปุ่มจะเปลี่ยนเป็นเสร็จสิ้น เมื่อคลิก เสร็จสิ้น ให้แสดงส่วนที่ต้องแนบไฟล์หลักฐาน (บังคับ)"
+        actionsContainer.innerHTML = `
+          <button id="modal-finish-btn" class="btn btn-violet" style="padding:10px 18px; font-size:15px;" onclick="showUploadTLModal()">🏁 เสร็จสิ้น</button>
         `;
-      } else if (!d.pdf_tl_work) {
-        actionHTML = `
-          <div id="tl-modal-actions">
-            <button id="modal-finish-btn" class="btn btn-violet" style="width:100%; height:54px; font-size:18px; font-weight:700;" onclick="showUploadTLModal()">🏁 งานหน้างานเสร็จสิ้น</button>
-            <div id="tl-modal-upload-ui" style="display:none; margin-top:20px; padding:20px; background:var(--blue-l); border-radius:var(--r-md); border:1px solid var(--blue);">
-               <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">📤 แนบหลักฐาน PDF (บังคับ)</div>
-               <input type="file" id="f-pdf-tl-work-modal" accept=".pdf" class="form-control" style="margin-bottom:15px; background:var(--white);">
-               <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveTLWorkDetail(${d.id}, true)">✅ บันทึกและส่งต่องาน</button>
-            </div>
-          </div>
+        // We render the upload UI inside the body dynamically when clicked
+        const uploadUI = document.createElement('div');
+        uploadUI.id = 'tl-modal-upload-ui';
+        uploadUI.style.display = 'none';
+        uploadUI.style.marginTop = '20px';
+        uploadUI.style.padding = '20px';
+        uploadUI.style.background = 'var(--blue-l)';
+        uploadUI.style.borderRadius = 'var(--r-md)';
+        uploadUI.style.border = '1px solid var(--blue)';
+        uploadUI.innerHTML = `
+             <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">📤 แนบหลักฐาน PDF (บังคับ)</div>
+             <input type="file" id="f-pdf-tl-work-modal" accept=".pdf" class="form-control" style="margin-bottom:15px; background:var(--white);">
+             <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveTLWorkDetail(${d.id}, true)">✅ บันทึกและส่งต่องาน</button>
         `;
+        body.appendChild(uploadUI);
       } else {
-        actionHTML = `
-          <div style="padding:15px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:var(--r-md); color:#166534; font-weight:600; text-align:center;">
-            ✅ ดำเนินการเสร็จสิ้นแล้ว
-          </div>
-        `;
+        actionsContainer.innerHTML = `<span class="badge b-done" style="padding:10px 15px; font-size:14px;">ดำเนินการเสร็จสิ้นแล้ว</span>`;
       }
 
-      body.innerHTML = insuranceHTML + infoHTML + filesHTML + actionHTML;
       openModal('tlWorkOverlay');
     }
 
@@ -3998,6 +4005,10 @@
       if (!confirm('ยืนยันการรับงานหน้างาน?')) return;
       const d = DB.find(x => x.id === id);
       if (!d) return;
+      if (d.status !== 'tl') {
+        toast('งานนี้ยังไม่ถึงขั้นตอนของ TL หรือถูกดำเนินการไปแล้ว', 'error');
+        return;
+      }
 
       toast('กำลังบันทึกการรับงาน...', 'info');
       addLogEntry(d, 'TL รับงานเข้าดำเนินการ', '✔️');
@@ -4043,6 +4054,10 @@
       }
 
       const d = DB.find(x => x.id === id);
+      if (d.status !== 'On Process' && d.complete_tl !== 'On Process') {
+        toast('สถานะงานไม่ถูกต้อง งานจำเป็นต้องถูกกดยืนยันรับงานก่อน', 'error');
+        return;
+      }
       const file = input.files[0];
       const btn = event.target;
       const originText = btn.textContent;
