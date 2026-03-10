@@ -2732,30 +2732,54 @@
 
   <!-- ═══════ MODAL: DETAIL VIEW ═══════ -->
   <div class="overlay" id="detailOverlay">
-    <div class="modal lg" id="detailModal">
+    <div class="modal sm" id="detailModal">
       <div class="modal-head">
         <div>
-          <div class="modal-title" id="detailTitle">รายละเอียด</div>
-          <div class="modal-sub" id="detailSub"></div>
+          <div class="modal-title" id="detailTitle">รายละเอียดงาน</div>
+          <div class="modal-sub" id="detailSub">ข้อมูลสรุปการดำเนินงาน</div>
         </div>
         <button class="modal-close" onclick="closeModal('detailOverlay')">✕</button>
       </div>
-      <div class="modal-body">
-        <div class="progress-track" id="detailProgressTrack" style="display:none">
-          <div class="progress-steps-new" id="detailProgress"></div>
-        </div>
-        <div id="detailBody"></div>
-        <div id="detailActivityLog" class="activity-list"
-          style="display:none; padding: 20px; border-top: 1px solid var(--border); margin-top:20px;">
-          <div class="form-section">🕒 ประวัติการดำเนินการ</div>
-          <div id="detailActivityItems"></div>
-        </div>
+      <div class="modal-body" id="detailBody" style="padding:20px 25px">
+        <!-- JS Render -->
       </div>
       <div class="modal-foot">
-        <button class="btn btn-ghost" onclick="closeModal('detailOverlay')">ปิด</button>
-        <button class="btn btn-primary" id="detailEditBtn">✏️ แก้ไขข้อมูล</button>
+        <button type="button" class="btn btn-ghost" onclick="closeModal('detailOverlay')">ปิด</button>
+        <button type="button" class="btn btn-primary" id="detailEditBtn" style="display:none">✏️
+          แก้ไขข้อมูล</button>
       </div>
     </div>
+  </div>
+
+  <!-- ═════════ MODAL: TL SPECIALIZED WORKSPACE ═════════ -->
+  <div class="overlay" id="tlWorkOverlay">
+    <div class="modal sm" id="tlWorkModal" style="max-width: 500px;">
+      <div class="modal-head" style="background: var(--blue-l); border-bottom: 2px solid var(--blue);">
+        <div>
+          <div class="modal-title" id="tlWorkTitle" style="color: var(--blue-d);">งานทีม TL (On-site Work)</div>
+          <div class="modal-sub" id="tlWorkSub">จัดการงานและแนบหลักฐานหน้างาน</div>
+        </div>
+        <button class="modal-close" onclick="closeModal('tlWorkOverlay')">✕</button>
+      </div>
+      <div class="modal-body" id="tlWorkBody" style="padding: 25px;">
+        <!-- Specialized content will be rendered here by JS -->
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('tlWorkOverlay')">ปิด</button>
+      </div>
+    </div>
+  </div>
+  <div id="detailActivityLog" class="activity-list"
+    style="display:none; padding: 20px; border-top: 1px solid var(--border); margin-top:20px;">
+    <div class="form-section">🕒 ประวัติการดำเนินการ</div>
+    <div id="detailActivityItems"></div>
+  </div>
+  </div>
+  <div class="modal-foot">
+    <button class="btn btn-ghost" onclick="closeModal('detailOverlay')">ปิด</button>
+    <button class="btn btn-primary" id="detailEditBtn">✏️ แก้ไขข้อมูล</button>
+  </div>
+  </div>
   </div>
 
 
@@ -3111,7 +3135,7 @@
       empty.style.display = 'none';
 
       document.getElementById('tbody').innerHTML = data.map(d => `
-    <tr onclick="if(event.target.tagName !== 'BUTTON' && event.target.tagName !== 'SELECT') { if(window.CURRENT_USER?.role === 'tl') openDetail(${d.id}); else openEdit(${d.id}, 'auto'); }" style="cursor:pointer;" title="คลิกเพื่ออัปเดตสถานะงาน">
+    <tr onclick="if(event.target.tagName !== 'BUTTON' && event.target.tagName !== 'SELECT') { if(window.CURRENT_USER?.role === 'tl') openTLModal(${d.id}); else openEdit(${d.id}, 'auto'); }" style="cursor:pointer;" title="คลิกเพื่ออัปเดตสถานะงาน">
       <td class="nowrap" style="color:var(--txt3);font-size:12px">#${d.id}</td>
       <td class="nowrap">
         <div style="${statusSelectStyle(d.status)}; font-size:13px; font-weight:600; text-align:center;">
@@ -3133,7 +3157,7 @@
       <td class="nowrap">
         <div class="actions">
           ${window.CURRENT_USER?.role === 'tl' ? `
-            <button class="btn btn-primary btn-sm" onclick="openDetail(${d.id})" style="font-size:12px; padding:4px 10px;">จัดการงาน</button>
+            <button class="btn btn-primary btn-sm" onclick="openTLModal(${d.id})" style="font-size:12px; padding:4px 10px;">จัดการงาน</button>
           ` : `
             <button class="act-btn view" title="ดูรายละเอียด" onclick="openDetail(${d.id})">👁</button>
             <button class="act-btn edit" title="แก้ไข" onclick="openEdit(${d.id})">✏️</button>
@@ -3880,8 +3904,97 @@
       openModal('detailOverlay');
     }
 
+    /* ════════ Specialized TL Work Modal ════════ */
+    function openTLModal(id) {
+      const d = DB.find(x => x.id === id);
+      const body = document.getElementById('tlWorkBody');
+      if (!body) return;
+
+      document.getElementById('tlWorkTitle').textContent = d.place;
+
+      // Prepare Insurance Msg
+      let helpMsg = [];
+      if ((+d.deposit || 0) > 0) helpMsg.push('<span style="color:#065f46; font-weight:700;">💰 มีเงินประกันติดตั้ง (฿' + (+d.deposit).toLocaleString() + ')</span>');
+      if ((+d.demolish || 0) > 0) helpMsg.push('<span style="color:#065f46; font-weight:700;">💰 มีเงินประกันรื้อถอน (฿' + (+d.demolish).toLocaleString() + ')</span>');
+
+      const insuranceHTML = `
+        <div style="padding:18px; background:linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border:2px solid #10b981; border-radius:var(--r-lg); margin-bottom:24px; box-shadow:0 4px 15px rgba(16, 185, 129, 0.1);">
+          <div style="font-size:14px; color:#065f46; font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:8px;">💎 ข้อมูลเงินประกันคงค้าง (Insurance Overview)</div>
+          <div style="font-size:15px; line-height:1.7">${helpMsg.length > 0 ? helpMsg.join('<br>') : '<span style="color:#6b7280;">ℹ️ ไม่มีรายการเงินประกันคงค้างสำหรับงานนี้</span>'}</div>
+        </div>
+      `;
+
+      // Simplified Info
+      const infoRows = [
+        ['📍 สถานที่', d.place],
+        ['🏠 พื้นที่ (Area)', d.area || '—'],
+        ['👤 เจ้าของงาน', d.owner || '—'],
+        ['📞 ผู้ประสานงาน', d.contact || '—'],
+        ['📱 เบอร์ติดต่อ', d.mobile || d.tel || '—']
+      ];
+
+      const infoHTML = `
+        <div style="display:grid; grid-template-columns:1fr; gap:12px; margin-bottom:24px;">
+          ${infoRows.map(([k, v]) => `
+            <div style="display:flex; justify-content:space-between; padding-bottom:10px; border-bottom:1px solid #f3f4f6;">
+              <span style="color:var(--txt3); font-size:13px;">${k}</span>
+              <span style="font-weight:600; color:var(--txt2); font-size:13px;">${v}</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      // Files (Minimal)
+      const files = [];
+      if (d.pdf_payment) files.push({ label: 'หลักฐานจ่าย', url: d.pdf_payment });
+      if (d.pdf_layout) files.push({ label: 'แบบ Drawings', url: d.pdf_layout });
+
+      const filesHTML = files.length > 0 ? `
+        <div style="margin-bottom:24px;">
+          <div style="font-size:12px; font-weight:700; color:var(--blue-d); margin-bottom:8px; text-transform:uppercase;">📂 ไฟล์แนบจากโครงการ</div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            ${files.map(f => `
+              <a href="${f.url}" target="_blank" style="text-decoration:none; padding:10px; background:var(--bg-f); border:1px solid var(--border); border-radius:var(--r-sm); font-size:12px; color:var(--txt); display:flex; align-items:center; gap:6px;">
+                <span>📄</span> ${f.label}
+              </a>
+            `).join('')}
+          </div>
+        </div>
+      ` : '';
+
+      // Action Buttons
+      let actionHTML = '';
+      if (d.complete_tl !== 'On Process') {
+        actionHTML = `
+          <div style="text-align:center;">
+             <button class="btn btn-primary" style="width:100%; height:54px; font-size:18px; font-weight:700;" onclick="acceptJobTLDetail(${d.id}, true)">✔️ ยืนยันรับงาน (Start Process)</button>
+          </div>
+        `;
+      } else if (!d.pdf_tl_work) {
+        actionHTML = `
+          <div id="tl-modal-actions">
+            <button id="modal-finish-btn" class="btn btn-violet" style="width:100%; height:54px; font-size:18px; font-weight:700;" onclick="showUploadTLModal()">🏁 งานหน้างานเสร็จสิ้น</button>
+            <div id="tl-modal-upload-ui" style="display:none; margin-top:20px; padding:20px; background:var(--blue-l); border-radius:var(--r-md); border:1px solid var(--blue);">
+               <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">📤 แนบหลักฐาน PDF (บังคับ)</div>
+               <input type="file" id="f-pdf-tl-work-modal" accept=".pdf" class="form-control" style="margin-bottom:15px; background:var(--white);">
+               <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveTLWorkDetail(${d.id}, true)">✅ บันทึกและส่งต่องาน</button>
+            </div>
+          </div>
+        `;
+      } else {
+        actionHTML = `
+          <div style="padding:15px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:var(--r-md); color:#166534; font-weight:600; text-align:center;">
+            ✅ ดำเนินการเสร็จสิ้นแล้ว
+          </div>
+        `;
+      }
+
+      body.innerHTML = insuranceHTML + infoHTML + filesHTML + actionHTML;
+      openModal('tlWorkOverlay');
+    }
+
     /* ════════ TL ACTIONS (DETAIL VIEW) ════════ */
-    async function acceptJobTLDetail(id) {
+    async function acceptJobTLDetail(id, fromModal = false) {
       if (!confirm('ยืนยันการรับงานหน้างาน?')) return;
       const d = DB.find(x => x.id === id);
       if (!d) return;
@@ -3899,7 +4012,8 @@
           updated = await updateDeposit(id, updateObj);
           const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
         }
-        openDetail(id); // Reload view
+        if (fromModal) openTLModal(id);
+        else openDetail(id); // Reload view
         renderTable(); renderKPI();
         toast('รับงานสำเร็จ ✓', 'success');
       } catch (err) {
@@ -3914,8 +4028,16 @@
       if (ui) ui.style.display = 'block';
     }
 
-    async function saveTLWorkDetail(id) {
-      const input = document.getElementById('f-pdf-tl-work-detail');
+    function showUploadTLModal() {
+      const btn = document.getElementById('modal-finish-btn');
+      const ui = document.getElementById('tl-modal-upload-ui');
+      if (btn) btn.style.display = 'none';
+      if (ui) ui.style.display = 'block';
+    }
+
+    async function saveTLWorkDetail(id, fromModal = false) {
+      const inputId = fromModal ? 'f-pdf-tl-work-modal' : 'f-pdf-tl-work-detail';
+      const input = document.getElementById(inputId);
       if (!input || !input.files[0]) {
         toast('กรุณาเลือกไฟล์ PDF หลักฐานงาน TL', 'error'); return;
       }
@@ -3949,12 +4071,14 @@
             const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
           }
 
-          closeModal('detailOverlay');
+          if (fromModal) openTLModal(id);
+          else openDetail(id);
           renderTable(); renderKPI();
-          toast('ดำเนินการเสร็จสิ้น ✓', 'success');
+          toast('บันทึกสำเร็จและส่งต่องานแล้ว ✓', 'success');
         }
       } catch (err) {
-        toast('ผิดพลาด: ' + err.message, 'error');
+        console.error(err);
+        toast('บันทึกผิดพลาด: ' + err.message, 'error');
       } finally {
         btn.disabled = false; btn.textContent = originText;
       }
