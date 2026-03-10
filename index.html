@@ -3597,25 +3597,14 @@
           finalStatus = 'new';
         }
 
-        // Action-based Progression (Rule: Confirm = Move to Next Status)
+        // Linear Progression (Rule: Confirm strictly moves to the next stage)
         if (currentStep === 1 && finalStatus === 'new') finalStatus = 'fin';
         else if (currentStep === 2 && finalStatus === 'fin') finalStatus = 'att';
         else if (currentStep === 3 && (finalStatus === 'att' || finalStatus === 'fin' || finalStatus === 'new')) {
           finalStatus = 'tl';
         }
 
-        // Data-aware fallback (Detection logic)
-        if (finalStatus === 'new' && (getVal('f-pr') || depositVal > 0)) {
-          finalStatus = 'fin';
-        }
-        if (finalStatus === 'fin' && (fileUrls.pdf_payment || fileUrls.pdf_layout || oldData?.pdf_payment || oldData?.pdf_layout)) {
-          finalStatus = 'att';
-        }
-        if (finalStatus === 'att') {
-          finalStatus = 'tl';
-        }
-
-        // Rule: Auto-complete to 'done' if no deposit and moving past Step 3
+        // Data-aware completion logic (Auto-complete to 'done' only if NO deposit)
         if (depositVal === 0 && finalStatus !== 'Cancel' && finalStatus !== 'done') {
           if (getStepIndex({ status: finalStatus }) >= 2) {
             finalStatus = 'done';
