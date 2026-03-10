@@ -2076,6 +2076,14 @@
         </div>
 
 
+        <!-- TL Section -->
+        <div id="tl-nav" style="display:none">
+          <div class="nav-label" style="margin-top:8px">ดำเนินการโดย TL</div>
+          <div class="nav-item" id="nav-tl-tasks" onclick="showPage('tl-tasks')">
+            <span class="icon">🛠️</span> งานหน้างาน TL
+          </div>
+        </div>
+
         <!-- Admin Section -->
         <div id="admin-nav" style="display:none">
           <div class="nav-label" style="margin-top:8px">ผู้ดูแลระบบ</div>
@@ -2335,6 +2343,38 @@
         </div>
       </div><!-- /page-dashboard -->
 
+      <!-- TL Tasks Page -->
+      <div class="page" id="page-tl-tasks">
+        <div style="padding:24px 28px 0">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">🛠️ งานหน้างาน TL ทั้งหมด</span>
+              <span id="tlTaskCount" style="font-size:13px; color:var(--txt3)"></span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>สถานะ</th>
+                    <th>อาคาร / ลูกค้า</th>
+                    <th>พื้นที่</th>
+                    <th>TL รับงาน</th>
+                    <th>หลักฐาน TL</th>
+                    <th>ขั้นตอน</th>
+                  </tr>
+                </thead>
+                <tbody id="tl-task-tbody"></tbody>
+              </table>
+              <div class="empty" id="tlEmptyState" style="display:none">
+                <div class="ei">🔍</div>
+                <p>ไม่พบงาน TL ที่ตรงกับตัวกรอง</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /page-tl-tasks -->
+
       <!-- User Management Page -->
       <div class="page" id="page-users">
         <div style="padding:24px 28px 0">
@@ -2351,6 +2391,7 @@
                     <th>ชื่อ-นามสกุล</th>
                     <th>สิทธิ์การใช้งาน</th>
                     <th>พื้นที่ที่ดูได้ (Area)</th>
+                    <th>เข้าถึง TL</th>
                     <th>การดำเนินการ</th>
                   </tr>
                 </thead>
@@ -2395,6 +2436,12 @@
           <div class="form-group" style="margin-top:10px; display:none" id="u-area-group">
             <label>พื้นที่ที่รับผิดชอบ (Area - ระบุหลายพื้นที่ใช้ , คั่น)</label>
             <input class="form-control" id="u-area" placeholder="เช่น BKK 1, BKK 2">
+          </div>
+          <div class="form-group" style="margin-top:14px">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px;">
+              <input type="checkbox" id="u-can-see-tl" style="width:16px; height:16px; accent-color:var(--blue);">
+              🛠️ เข้าถึงหน้า "ดำเนินการโดย TL" ใน Sidebar
+            </label>
           </div>
         </div>
         <div class="modal-foot">
@@ -4179,6 +4226,10 @@
         document.getElementById('nav-db').classList.add('active');
         document.getElementById('topbar-sub').textContent = 'รายงานสรุปภาพรวมสำหรับผู้บริหาร';
         renderExecutiveDashboard();
+      } else if (id === 'tl-tasks') {
+        document.getElementById('nav-tl-tasks').classList.add('active');
+        document.getElementById('topbar-sub').textContent = 'งานหน้างานที่ดำเนินการโดย TL';
+        renderTLTasksPage();
       } else if (id === 'users') {
         document.getElementById('nav-users').classList.add('active');
         document.getElementById('topbar-sub').textContent = 'จัดการสิทธิ์ผู้เข้าใช้งานระบบ';
@@ -4187,6 +4238,37 @@
         document.getElementById('nav-list').classList.add('active');
         document.getElementById('topbar-sub').textContent = 'ข้อมูลทั้งหมด · 2026';
       }
+    }
+
+    /* ════════ TL TASKS PAGE ════════ */
+    function renderTLTasksPage() {
+      // Show all tasks that are at the TL step or have been processed by TL
+      const tlData = DB.filter(d => ['tl', 'On Process'].includes(d.status) || d.complete_tl === 'On Process' || d.pdf_tl_work);
+      document.getElementById('tlTaskCount').textContent = tlData.length + ' รายการ';
+      const empty = document.getElementById('tlEmptyState');
+      if (!tlData.length) {
+        document.getElementById('tl-task-tbody').innerHTML = '';
+        empty.style.display = 'block'; return;
+      }
+      empty.style.display = 'none';
+      document.getElementById('tl-task-tbody').innerHTML = tlData.map(d => `
+        <tr onclick="openTLModal(${d.id})" style="cursor:pointer" title="คลิกเพื่อดูรายละเอียด">
+          <td class="nowrap" style="color:var(--txt3);font-size:12px">#${d.id}</td>
+          <td class="nowrap">
+            <div style="${statusSelectStyle(d.status)}; font-size:13px; font-weight:600; text-align:center;">
+              ${d.status === 'tl' ? '🔴 รอ TL รับงาน' : d.status === 'On Process' ? '⏳ กำลังดำเนินการ' : d.status === 'Done' ? '✓ ปิดงาน' : d.status}
+            </div>
+          </td>
+          <td class="td-place">
+            <div class="place">${d.place}</div>
+            <div class="cust">${d.customer || '—'}</div>
+          </td>
+          <td class="nowrap">${d.area || '—'}</td>
+          <td class="nowrap">${d.complete_tl === 'On Process' ? '<span class="badge b-orange">รับแล้ว</span>' : '<span style="color:var(--txt3)">ยังไม่รับ</span>'}</td>
+          <td class="nowrap">${d.pdf_tl_work ? '<a href="' + d.pdf_tl_work + '" target="_blank" onclick="event.stopPropagation()" class="badge b-done" style="text-decoration:none">📄 ดู PDF</a>' : '<span style="color:var(--txt3)">—</span>'}</td>
+          <td class="nowrap">${stepLabel(d)}</td>
+        </tr>
+      `).join('');
     }
 
     /* ════════ EXECUTIVE DASHBOARD LOGIC ════════ */
@@ -4428,6 +4510,14 @@
       } else {
         document.getElementById('admin-nav').style.display = 'none';
       }
+
+      // TL Section visibility: show if user has can_see_tl=true OR role is 'tl'
+      if (CURRENT_USER.can_see_tl || CURRENT_USER.role === 'tl') {
+        document.getElementById('tl-nav').style.display = 'block';
+      } else {
+        document.getElementById('tl-nav').style.display = 'none';
+      }
+
       setupRealtime();
       initApp().then(() => {
         checkDueDates();
@@ -4494,6 +4584,7 @@
           <td>${u.name}</td>
           <td><span class="badge ${u.role === 'admin' ? 'b-violet' : u.role === 'tl' ? 'b-orange' : 'b-blue'}">${u.role}</span></td>
           <td>${u.area ? u.area : '<span style="color:var(--txt3);font-size:12px">ทุกพื้นที่/ไม่ได้ระบุ</span>'}</td>
+          <td class="nowrap">${u.can_see_tl ? '<span class="badge b-orange" style="font-size:11px">🛠️ TL</span>' : '<span style="color:var(--txt3);font-size:12px">—</span>'}</td>
           <td class="nowrap">
             <div class="actions">
               <button class="act-btn edit" onclick="openEditUserModal(${u.id})" title="แก้ไข">✏️</button>
@@ -4512,6 +4603,7 @@
       document.getElementById('u-name').value = '';
       document.getElementById('u-role').value = 'user';
       document.getElementById('u-area').value = '';
+      document.getElementById('u-can-see-tl').checked = false;
       toggleAreaSelect('user');
       openModal('userOverlay');
     }
@@ -4527,6 +4619,7 @@
       document.getElementById('u-name').value = u.name || '';
       document.getElementById('u-role').value = u.role || 'user';
       document.getElementById('u-area').value = u.area || '';
+      document.getElementById('u-can-see-tl').checked = !!u.can_see_tl;
       toggleAreaSelect(u.role);
       openModal('userOverlay');
     }
@@ -4537,7 +4630,8 @@
         employee_id: document.getElementById('u-id').value.trim(),
         name: document.getElementById('u-name').value.trim(),
         role: document.getElementById('u-role').value,
-        area: document.getElementById('u-area').value.trim()
+        area: document.getElementById('u-area').value.trim(),
+        can_see_tl: document.getElementById('u-can-see-tl').checked
       };
 
       try {
