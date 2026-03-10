@@ -3348,6 +3348,20 @@
       document.getElementById('formSub').textContent = 'กรอกข้อมูลการขอคืนเงินประกันอาคาร';
       document.getElementById('formSubmitBtn').textContent = '✅ ยืนยัน';
       clearForm();
+
+      // Lock Owner to Current User
+      const ownerEl = document.getElementById('f-owner');
+      if (CURRENT_USER) {
+        // Ensure current user is an option
+        if (![...ownerEl.options].some(opt => opt.value === CURRENT_USER.name)) {
+          const opt = document.createElement('option');
+          opt.value = opt.textContent = CURRENT_USER.name;
+          ownerEl.appendChild(opt);
+        }
+        ownerEl.value = CURRENT_USER.name;
+        ownerEl.disabled = true;
+      }
+
       openModal('formOverlay');
     }
 
@@ -3362,6 +3376,7 @@
       document.getElementById('formSub').textContent = d.place;
       document.getElementById('formSubmitBtn').textContent = '✅ ยืนยัน';
       fillForm(d, targetStep);
+      document.getElementById('f-owner').disabled = false;
       openModal('formOverlay');
     }
 
@@ -3608,6 +3623,7 @@
 
         const obj = {
           place, owner,
+          created_by: editingId ? (oldData?.created_by || 'Unknown') : (CURRENT_USER?.name || 'Unknown'),
           customer: getVal('f-customer'),
           area: getVal('f-area'),
           project: getVal('f-project'),
@@ -3713,6 +3729,7 @@
       const rows = [
         ['ลูกค้า', d.customer || '—'],
         ['เจ้าของงาน', d.owner || '—'],
+        ['ผู้รับผิดชอบการบันทึก', d.created_by || '—'],
         ['พื้นที่', d.area || '—'],
         ['Project Code', d.project || '—'],
         ['Deal No.', d.deal || '—'],
