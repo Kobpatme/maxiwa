@@ -2793,18 +2793,8 @@
       </div>
     </div>
   </div>
-  <div id="detailActivityLog" class="activity-list"
-    style="display:none; padding: 20px; border-top: 1px solid var(--border); margin-top:20px;">
-    <div class="form-section">🕒 ประวัติการดำเนินการ</div>
-    <div id="detailActivityItems"></div>
   </div>
-  </div>
-  <div class="modal-foot">
-    <button class="btn btn-ghost" onclick="closeModal('detailOverlay')">ปิด</button>
-    <button class="btn btn-primary" id="detailEditBtn">✏️ แก้ไขข้อมูล</button>
-  </div>
-  </div>
-  </div>
+
 
 
   <!-- ═══════ MODAL: CANCEL REASON ═══════ -->
@@ -4243,6 +4233,11 @@
 
     /* ════════ PAGE SWITCHING ════════ */
     function showPage(id) {
+      // Security: TL role can ONLY see 'tl-tasks'
+      if (CURRENT_USER?.role === 'tl' && id !== 'tl-tasks') {
+        id = 'tl-tasks';
+      }
+
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       document.getElementById('page-' + id).classList.add('active');
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -4538,10 +4533,30 @@
       }
 
       // TL Section visibility: show if user has can_see_tl=true OR role is 'tl'
-      if (CURRENT_USER.can_see_tl || CURRENT_USER.role === 'tl') {
+      const isTLOnly = CURRENT_USER.role === 'tl';
+      const canSeeTL = CURRENT_USER.can_see_tl || CURRENT_USER.role === 'tl';
+
+      if (canSeeTL) {
         document.getElementById('tl-nav').style.display = 'block';
       } else {
         document.getElementById('tl-nav').style.display = 'none';
+      }
+
+      // Hide other sections if strict TL role
+      if (isTLOnly) {
+        document.getElementById('nav-db').style.display = 'none';
+        document.getElementById('nav-list').style.display = 'none';
+        document.getElementById('admin-nav').style.display = 'none';
+
+        const statsEl = document.querySelector('.sidebar-stats');
+        if (statsEl) statsEl.style.display = 'none';
+
+        // Auto land on TL tasks
+        showPage('tl-tasks');
+      } else {
+        document.getElementById('nav-db').style.display = 'block';
+        document.getElementById('nav-list').style.display = 'block';
+        // Admin nav already handled by role check above
       }
 
       setupRealtime();
