@@ -2240,24 +2240,6 @@
 
           <!-- Individual Metrics Bar -->
           <div class="db-hero-stats" style="padding:0">
-            <!-- Fee & Other -->
-            <div class="db-hero-stat-card fee-theme">
-              <div
-                style="font-size:12px; font-weight:800; color:#475569; text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
-                <span style="font-size:18px">🧾</span> ค่าธรรมเนียม & อื่นๆ
-              </div>
-              <div class="card-group-grid">
-                <div class="db-hero-stat-item">
-                  <div class="db-hero-stat-lbl">ค่าธรรมเนียมรวม</div>
-                  <div class="db-hero-stat-val" id="my-total-fee"><span class="currency-symbol">฿</span>0</div>
-                </div>
-                <div class="db-hero-stat-item">
-                  <div class="db-hero-stat-lbl">ค่าใช้จ่ายอื่นๆ</div>
-                  <div class="db-hero-stat-val" id="my-total-other"><span class="currency-symbol">฿</span>0</div>
-                </div>
-              </div>
-            </div>
-
             <!-- Installation Deposit -->
             <div class="db-hero-stat-card install-theme">
               <div
@@ -2302,6 +2284,24 @@
                   <div class="db-hero-stat-lbl">คงค้าง</div>
                   <div class="db-hero-stat-val" id="my-demo-pending" style="color:#ea580c"><span
                       class="currency-symbol">฿</span>0</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Fee & Other -->
+            <div class="db-hero-stat-card fee-theme">
+              <div
+                style="font-size:12px; font-weight:800; color:#475569; text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
+                <span style="font-size:18px">🧾</span> ค่าธรรมเนียม & อื่นๆ
+              </div>
+              <div class="card-group-grid">
+                <div class="db-hero-stat-item">
+                  <div class="db-hero-stat-lbl">ค่าธรรมเนียมรวม</div>
+                  <div class="db-hero-stat-val" id="my-total-fee"><span class="currency-symbol">฿</span>0</div>
+                </div>
+                <div class="db-hero-stat-item">
+                  <div class="db-hero-stat-lbl">ค่าใช้จ่ายอื่นๆ</div>
+                  <div class="db-hero-stat-val" id="my-total-other"><span class="currency-symbol">฿</span>0</div>
                 </div>
               </div>
             </div>
@@ -4872,7 +4872,7 @@
 
       // Update UI Elements
       const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
-      setEl('my-total-valuation', `<span style="font-size:24px; opacity:0.7; font-weight:600">฿</span>${totalInstall.toLocaleString()}`);
+      setEl('my-total-valuation', `<span style="font-size:24px; opacity:0.7; font-weight:600">฿</span>${installRefunded.toLocaleString()}`);
       setEl('my-success-rate-pct', successPct + '%');
 
       setEl('my-total-fee', `<span class="currency-symbol">฿</span>${totalFee.toLocaleString()}`);
