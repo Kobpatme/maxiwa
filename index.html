@@ -2068,7 +2068,10 @@
         </div>
       </div>
       <nav class="sidebar-nav">
-        <div class="nav-item active" id="nav-db" onclick="showPage('dashboard')">
+        <div class="nav-item" id="nav-my-dashboard" onclick="showPage('my-dashboard')">
+          <span class="icon">👤</span> My Dashboard
+        </div>
+        <div class="nav-item" id="nav-db" onclick="showPage('dashboard')">
           <span class="icon">📊</span> Executive Dashboard
         </div>
         <div class="nav-item" id="nav-list" onclick="showPage('list'); setStatusFilter('')">
@@ -2210,6 +2213,122 @@
 
         </div>
       </div><!-- /page-list -->
+
+      <!-- My Dashboard Page -->
+      <div class="page" id="page-my-dashboard">
+        <div style="padding:24px 28px 0">
+
+          <!-- Individual Hero Section -->
+          <div class="db-hero"
+            style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding:32px 48px; border-radius:20px; box-shadow:0 4px 16px rgba(124,58,237,0.2); position:relative; overflow:hidden; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+
+            <div style="position:relative; z-index:2; text-align:left">
+              <h1
+                style="font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:2.5px; color:rgba(255,255,255,0.8); margin-bottom:12px">
+                My Total Project Valuation</h1>
+              <div class="db-hero-val" id="my-total-valuation"
+                style="font-size:56px; font-weight:900; color:#fff; line-height:1; letter-spacing:-2px; display:flex; align-items:baseline; gap:8px">
+                <span style="font-size:24px; opacity:0.7; font-weight:600">฿</span>0
+              </div>
+            </div>
+
+            <div class="hero-success-rate" style="position:relative; z-index:2;">
+              <div class="pct" id="my-success-rate-pct">0%</div>
+              <div class="lbl">My Refund Success Rate</div>
+            </div>
+          </div>
+
+          <!-- Individual Metrics Bar -->
+          <div class="db-hero-stats" style="padding:0">
+            <!-- Fee & Other -->
+            <div class="db-hero-stat-card fee-theme">
+              <div
+                style="font-size:12px; font-weight:800; color:#475569; text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
+                <span style="font-size:18px">🧾</span> ค่าธรรมเนียม & อื่นๆ
+              </div>
+              <div class="card-group-grid">
+                <div class="db-hero-stat-item">
+                  <div class="db-hero-stat-lbl">ค่าธรรมเนียมรวม</div>
+                  <div class="db-hero-stat-val" id="my-total-fee"><span class="currency-symbol">฿</span>0</div>
+                </div>
+                <div class="db-hero-stat-item">
+                  <div class="db-hero-stat-lbl">ค่าใช้จ่ายอื่นๆ</div>
+                  <div class="db-hero-stat-val" id="my-total-other"><span class="currency-symbol">฿</span>0</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Installation Deposit -->
+            <div class="db-hero-stat-card install-theme">
+              <div
+                style="font-size:12px; font-weight:800; color:#1e40af; text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
+                <span style="font-size:18px">🛡️</span> เงินประกันติดตั้ง (ของฉัน)
+              </div>
+              <div class="card-group-grid">
+                <div class="db-hero-stat-item">
+                  <div class="db-hero-stat-lbl">ยอดรวม</div>
+                  <div class="db-hero-stat-val" id="my-total-install"><span class="currency-symbol">฿</span>0</div>
+                </div>
+                <div class="db-hero-stat-item">
+                  <div class="db-hero-stat-lbl">ได้คืนแล้ว</div>
+                  <div class="db-hero-stat-val" id="my-install-refunded" style="color:#16a34a"><span
+                      class="currency-symbol">฿</span>0</div>
+                </div>
+                <div class="db-hero-stat-item">
+                  <div class="db-hero-stat-lbl">คงค้าง</div>
+                  <div class="db-hero-stat-val" id="my-install-pending" style="color:#ea580c"><span
+                      class="currency-symbol">฿</span>0</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Removal Deposit -->
+            <div class="db-hero-stat-card demo-theme">
+              <div
+                style="font-size:12px; font-weight:800; color:#92400e; text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
+                <span style="font-size:18px">🚧</span> เงินประกันรื้อถอน (ของฉัน)
+              </div>
+              <div class="card-group-grid">
+                <div class="db-hero-stat-item">
+                  <div class="db-hero-stat-lbl">ยอดรวม</div>
+                  <div class="db-hero-stat-val" id="my-total-demo"><span class="currency-symbol">฿</span>0</div>
+                </div>
+                <div class="db-hero-stat-item">
+                  <div class="db-hero-stat-lbl">ได้คืนแล้ว</div>
+                  <div class="db-hero-stat-val" id="my-demo-refunded" style="color:#16a34a"><span
+                      class="currency-symbol">฿</span>0</div>
+                </div>
+                <div class="db-hero-stat-item">
+                  <div class="db-hero-stat-lbl">คงค้าง</div>
+                  <div class="db-hero-stat-val" id="my-demo-pending" style="color:#ea580c"><span
+                      class="currency-symbol">฿</span>0</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="db-grid">
+            <div class="db-card">
+              <h3>
+                <div class="card-icon-box">📊</div> สถานะงานของฉัน
+              </h3>
+              <div class="chart-container" style="height:250px">
+                <canvas id="myStatusChart"></canvas>
+              </div>
+            </div>
+            <div class="db-card">
+              <h3>
+                <div class="card-icon-box">📈</div> สถิติการได้รับเงินคืนรายเดือน
+              </h3>
+              <div class="chart-container">
+                <canvas id="myTrendChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /page-my-dashboard -->
 
       <!-- Dashboard Page -->
       <div class="page" id="page-dashboard">
@@ -4071,9 +4190,13 @@
         if (currentStep < 6) {
           goToStep(currentStep + 1);
           renderTable(); renderKPI();
+          renderExecutiveDashboard();
+          renderMyDashboard();
         } else {
           closeModal('formOverlay');
           renderTable(); renderKPI();
+          renderExecutiveDashboard();
+          renderMyDashboard();
         }
       } catch (err) {
         console.error(err);
@@ -4550,7 +4673,11 @@
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
       // Update UI state
-      if (id === 'dashboard') {
+      if (id === 'my-dashboard') {
+        document.getElementById('nav-my-dashboard').classList.add('active');
+        document.getElementById('topbar-sub').textContent = 'แดชบอร์ดส่วนตัวและการติดตามผลงานรายบุคคล';
+        renderMyDashboard();
+      } else if (id === 'dashboard') {
         document.getElementById('nav-db').classList.add('active');
         document.getElementById('topbar-sub').textContent = 'รายงานสรุปภาพรวมสำหรับผู้บริหาร';
         renderExecutiveDashboard();
@@ -4696,6 +4823,7 @@
         renderTable();
         renderKPI();
         renderExecutiveDashboard();
+        renderMyDashboard();
         toast('บันทึก Off Service เรียบร้อยแล้ว', 'success');
       } catch (err) {
         console.error(err);
@@ -4708,6 +4836,124 @@
 
     /* ════════ EXECUTIVE DASHBOARD LOGIC ════════ */
     let trendChart, allocationChart, ownerFinanceChart;
+    let myStatusChart, myTrendChart; // For Individual Dashboard
+
+    function renderMyDashboard() {
+      if (!CURRENT_USER) return;
+      const myData = DB.filter(d => (d.owner || '').includes(CURRENT_USER.name) || (d.created_by || '').includes(CURRENT_USER.name));
+
+      const totalInstall = myData.reduce((s, d) => s + parseFixed(d.deposit), 0);
+      const totalDemo = myData.reduce((s, d) => s + parseFixed(d.demolish), 0);
+      const totalInsuranceVal = totalInstall + totalDemo;
+
+      // Fees & Other
+      const totalFee = myData.reduce((s, d) => s + parseFixed(d.fee), 0);
+      const totalOther = myData.reduce((s, d) => s + parseFixed(d.other), 0);
+
+      // Installation Refund
+      const installRefunded = myData.filter(d => {
+        const s = (d.status || '').trim().toLowerCase();
+        const isDone = s === 'done' || s === 'clo';
+        const isReturned = (d.depReturn || '').trim().toLowerCase() === 'yes';
+        return isDone || isReturned;
+      }).reduce((s, d) => s + parseFixed(d.deposit), 0);
+      const installPending = totalInstall - installRefunded;
+
+      // Removal Refund
+      const demoRefunded = myData.filter(d => (d.demoReturn || '').trim().toLowerCase() === 'yes').reduce((s, d) => s + parseFixed(d.demolish), 0);
+      const demoPending = totalDemo - demoRefunded;
+
+      // Overall Summary
+      const overallRefunded = installRefunded + demoRefunded;
+      const successPct = totalInsuranceVal > 0 ? Math.round((overallRefunded / totalInsuranceVal) * 100) : 0;
+
+      // Update UI Elements
+      const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
+      setEl('my-total-valuation', `<span style="font-size:24px; opacity:0.7; font-weight:600">฿</span>${totalInsuranceVal.toLocaleString()}`);
+      setEl('my-success-rate-pct', successPct + '%');
+
+      setEl('my-total-fee', `<span class="currency-symbol">฿</span>${totalFee.toLocaleString()}`);
+      setEl('my-total-other', `<span class="currency-symbol">฿</span>${totalOther.toLocaleString()}`);
+
+      setEl('my-total-install', `<span class="currency-symbol">฿</span>${totalInstall.toLocaleString()}`);
+      setEl('my-install-refunded', `<span class="currency-symbol">฿</span>${installRefunded.toLocaleString()}`);
+      setEl('my-install-pending', `<span class="currency-symbol">฿</span>${installPending.toLocaleString()}`);
+
+      setEl('my-total-demo', `<span class="currency-symbol">฿</span>${totalDemo.toLocaleString()}`);
+      setEl('my-demo-refunded', `<span class="currency-symbol">฿</span>${demoRefunded.toLocaleString()}`);
+      setEl('my-demo-pending', `<span class="currency-symbol">฿</span>${demoPending.toLocaleString()}`);
+
+      // Charts
+      // 1. Status Chart (Pie/Doughnut)
+      const statusCounts = {};
+      myData.forEach(d => {
+        const s = getStatusLabel(d);
+        statusCounts[s] = (statusCounts[s] || 0) + 1;
+      });
+
+      if (myStatusChart) myStatusChart.destroy();
+      const statusCanvas = document.getElementById('myStatusChart');
+      if (statusCanvas) {
+        myStatusChart = new Chart(statusCanvas, {
+          type: 'doughnut',
+          data: {
+            labels: Object.keys(statusCounts),
+            datasets: [{
+              data: Object.values(statusCounts),
+              backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#8b5cf6'],
+              borderWidth: 0
+            }]
+          },
+          options: {
+            maintainAspectRatio: false,
+            cutout: '60%',
+            plugins: { legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8 } } }
+          }
+        });
+      }
+
+      // 2. Individual Trend (Refunded Amount vs Month)
+      const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+      const myRefundData = new Array(12).fill(0);
+      myData.forEach(d => {
+        let date = d.date_accounting || d.date_return || d.dateReq;
+        if (date) {
+          const m = new Date(date).getMonth();
+          const s = (d.status || '').trim().toLowerCase();
+          const isDone = s === 'done' || s === 'clo';
+          const isInstallReturned = (d.depReturn || '').trim().toLowerCase() === 'yes';
+          const isDemoReturned = (d.demoReturn || '').trim().toLowerCase() === 'yes';
+
+          if (isDone || isInstallReturned) myRefundData[m] += (d.deposit || 0);
+          if (isDemoReturned) myRefundData[m] += (d.demolish || 0);
+        }
+      });
+
+      if (myTrendChart) myTrendChart.destroy();
+      const trendCanvas = document.getElementById('myTrendChart');
+      if (trendCanvas) {
+        myTrendChart = new Chart(trendCanvas, {
+          type: 'bar',
+          data: {
+            labels: months,
+            datasets: [{
+              label: 'ยอดเงินคืนที่ได้รับ (฿)',
+              data: myRefundData,
+              backgroundColor: '#4f46e5',
+              borderRadius: 5
+            }]
+          },
+          options: {
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, border: { display: false } },
+              x: { grid: { display: false }, border: { display: false } }
+            }
+          }
+        });
+      }
+    }
 
     function renderExecutiveDashboard() {
       const totalInstall = DB.reduce((s, d) => s + parseFixed(d.deposit), 0);
@@ -4971,6 +5217,7 @@
 
       // Hide other sections if strict TL role
       if (isTLOnly) {
+        document.getElementById('nav-my-dashboard').style.display = 'none';
         document.getElementById('nav-db').style.display = 'none';
         document.getElementById('nav-list').style.display = 'none';
         document.getElementById('admin-nav').style.display = 'none';
@@ -4991,6 +5238,7 @@
         // Auto land on TL tasks
         showPage('tl-tasks');
       } else {
+        document.getElementById('nav-my-dashboard').style.display = 'block';
         document.getElementById('nav-db').style.display = 'block';
         document.getElementById('nav-list').style.display = 'block';
         const navDemo = document.getElementById('nav-active-demo');
@@ -5000,7 +5248,12 @@
         const addBtn = document.getElementById('add-btn');
         if (exportBtn) exportBtn.style.display = 'block';
         if (addBtn) addBtn.style.display = 'block';
-        // Admin nav already handled by role check above
+
+        // Auto land on My Dashboard if not already on a page
+        const activePage = document.querySelector('.page.active');
+        if (!activePage || activePage.id === 'page-dashboard') {
+          showPage('my-dashboard');
+        }
       }
 
       setupRealtime();
@@ -5156,8 +5409,13 @@
         renderKPI();
         renderTable();
 
-        // If we want to auto-refresh users if we are on that page
-        if (["users"].includes(document.querySelector('.page.active')?.id)) {
+        // Specific page refreshes
+        const activePageId = document.querySelector('.page.active')?.id;
+        if (activePageId === 'page-my-dashboard') {
+          renderMyDashboard();
+        } else if (activePageId === 'page-dashboard') {
+          renderExecutiveDashboard();
+        } else if (activePageId === 'page-users') {
           loadUserTable();
         }
       } catch (err) {
