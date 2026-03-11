@@ -3061,7 +3061,8 @@
     };
 
     let DB = [];
-    let nextId = 1; // Used for new records before DB sync, or we can use Supabase IDs
+    let USER_LIST = []; // Cached user list for role-based filtering
+    let nextId = 1;
     let editingId = null;
     let filterStatus = '';
     let filterOwner = '';
@@ -3470,8 +3471,10 @@
       // Role-based filtering
       let roleAllowedData = DB;
       if (CURRENT_USER && CURRENT_USER.role === 'user') {
-        // user role (Owner) sees only their cases
-        roleAllowedData = DB.filter(d => d.owner === CURRENT_USER.name);
+        // user role can see all tasks owned by ANY 'user' (colleagues)
+        // Find names of all people with 'user' role
+        const userRoleNames = USER_LIST.filter(u => u.role === 'user').map(u => u.name);
+        roleAllowedData = DB.filter(d => userRoleNames.includes(d.owner) || d.owner === CURRENT_USER.name || d.created_by === CURRENT_USER.name);
       } else if (CURRENT_USER && CURRENT_USER.role === 'tl' && CURRENT_USER.area) {
         // tl role sees only their areas
         const allowedAreas = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
@@ -5403,8 +5406,10 @@
       try {
         if (USE_MOCK) {
           DB = JSON.parse(JSON.stringify(MOCK_CASES));
+          USER_LIST = Object.values(MOCK_USERS);
         } else {
           DB = await getDeposits();
+          USER_LIST = await getUsers();
         }
         renderKPI();
         renderTable();
