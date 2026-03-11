@@ -4868,7 +4868,7 @@
 
       // Overall Summary
       const overallRefunded = installRefunded; // Recalculated: success rate only for installation deposits
-      const successPct = totalInstall > 0 ? Math.round((overallRefunded / totalInstall) * 100) : 0;
+      const successPct = totalInstall > 0 ? (overallRefunded / totalInstall * 100).toFixed(2) : "0.00";
 
       // Update UI Elements
       const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
@@ -4979,7 +4979,7 @@
       // 3. Overall Summary (Hero)
       const overallRefunded = installRefunded + demoRefunded;
       const overallPending = installPending + demoPending;
-      const successPct = totalInsuranceVal > 0 ? Math.round((overallRefunded / totalInsuranceVal) * 100) : 0;
+      const successPct = totalInsuranceVal > 0 ? (overallRefunded / totalInsuranceVal * 100).toFixed(2) : "0.00";
 
       // Update UI Elements
       document.getElementById('db-success-rate-pct').textContent = successPct + '%';
