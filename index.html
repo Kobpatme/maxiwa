@@ -4581,8 +4581,13 @@
         filteredData = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
       }
 
-      // Show ALL tasks in the TL's area (no status filter)
-      const tlData = filteredData;
+      // Show all tasks that are at the TL step, processed by TL, OR are marked as "Done" (ปิดงาน)
+      const tlData = filteredData.filter(d => {
+        const s = (d.status || '').toLowerCase();
+        return ['tl', 'on process', 'done', 'clo'].includes(s) ||
+          d.complete_tl === 'On Process' ||
+          d.pdf_tl_work;
+      });
 
       document.getElementById('tlTaskCount').textContent = tlData.length + ' รายการ';
       const empty = document.getElementById('tlEmptyState');
