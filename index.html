@@ -3300,7 +3300,14 @@
       const tbody = document.getElementById('active-demo-tbody');
       if (!tbody) return;
 
-      const items = DB.filter(d => {
+      // Role-based area filtering: If TL, only show their areas
+      let filteredData = DB;
+      if (CURRENT_USER && CURRENT_USER.role === 'tl' && CURRENT_USER.area) {
+        const allowedAreas = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
+        filteredData = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
+      }
+
+      const items = filteredData.filter(d => {
         const s = (d.status || '').toLowerCase();
         const hasDemo = parseFixed(d.demolish) > 0;
         const notReturned = (d.demoReturn || '').trim().toLowerCase() !== 'yes';
@@ -3476,10 +3483,17 @@
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
+      // Role-based area filtering: If TL, only show their areas
+      let filteredData = DB;
+      if (CURRENT_USER && CURRENT_USER.role === 'tl' && CURRENT_USER.area) {
+        const allowedAreas = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
+        filteredData = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
+      }
+
       const newNotifs = [];
 
       // 1. Overdue items
-      DB.filter(d => (d.status || '').toLowerCase() !== 'done' && d.dateDue && new Date(d.dateDue) <= today).forEach(d => {
+      filteredData.filter(d => (d.status || '').toLowerCase() !== 'done' && d.dateDue && new Date(d.dateDue) <= today).forEach(d => {
         newNotifs.push({
           id: `due-${d.id}`,
           taskId: d.id,
@@ -3493,7 +3507,7 @@
 
       // 2. Recent uploads (simulated for now based on if they exist, 
       // in real use we'd track timestamp of upload)
-      DB.filter(d => d.pdf_payment || d.pdf_layout).sort((a, b) => b.id - a.id).slice(0, 5).forEach(d => {
+      filteredData.filter(d => d.pdf_payment || d.pdf_layout).sort((a, b) => b.id - a.id).slice(0, 5).forEach(d => {
         if (d.pdf_payment) {
           newNotifs.push({
             id: `pay-${d.id}`,
@@ -4560,8 +4574,21 @@
 
     /* ════════ TL TASKS PAGE ════════ */
     function renderTLTasksPage() {
-      // Show all tasks that are at the TL step or have been processed by TL
-      const tlData = DB.filter(d => ['tl', 'on process'].includes((d.status || '').toLowerCase()) || d.complete_tl === 'On Process' || d.pdf_tl_work);
+      // Role-based area filtering: If TL, only show their areas
+      let filteredData = DB;
+      if (CURRENT_USER && CURRENT_USER.role === 'tl' && CURRENT_USER.area) {
+        const allowedAreas = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
+        filteredData = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
+      }
+
+      // Show all tasks that are at the TL step, processed by TL, OR are marked as "Done" (ปิดงาน)
+      const tlData = filteredData.filter(d => {
+        const s = (d.status || '').toLowerCase();
+        return ['tl', 'on process', 'done', 'clo'].includes(s) ||
+          d.complete_tl === 'On Process' ||
+          d.pdf_tl_work;
+      });
+
       document.getElementById('tlTaskCount').textContent = tlData.length + ' รายการ';
       const empty = document.getElementById('tlEmptyState');
       if (!tlData.length) {
@@ -4590,7 +4617,14 @@
     }
 
     function renderActiveDemoPage() {
-      const items = DB.filter(d => (d.demolish > 0) && d.demoReturn !== 'Yes');
+      // Role-based area filtering: If TL, only show their areas
+      let filteredData = DB;
+      if (CURRENT_USER && CURRENT_USER.role === 'tl' && CURRENT_USER.area) {
+        const allowedAreas = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
+        filteredData = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
+      }
+
+      const items = filteredData.filter(d => (d.demolish > 0) && d.demoReturn !== 'Yes');
       document.getElementById('demoTableCount').textContent = (items.length) + ' รายการ';
       document.getElementById('demoTbody').innerHTML = items.map((d, i) => `
         <tr onclick="openDetail(${d.id})">
