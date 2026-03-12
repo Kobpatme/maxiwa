@@ -8,10 +8,12 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Figtree:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="supabase-config.js"></script>
-  <script src="supabase-client.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="firebase-client.js"></script>
   <style>
     /* ─── TOKENS ─────────────────────────────────── */
     :root {
@@ -2028,10 +2030,7 @@
       box-shadow: 0 0 0 3px var(--gold-l);
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="supabase-config.js"></script>
-  <script src="supabase-client.js"></script>
 </head>
 
 <body style="overflow: hidden;">
@@ -3114,7 +3113,7 @@
     /* ════════════════════════════════════════════════════════
        DATA STORE
     ════════════════════════════════════════════════════════ */
-    const USE_MOCK = false; // Set to false to use Supabase
+    const USE_MOCK = false; // Set to false to use Firebase
 
     const MOCK_CASES = [
       { "id": 1, "status": "Done", "depStatus": "Wait Insp. SC", "demoStatus": "On Service", "owner": "เจษฎาภรณ์", "place": "เซ็นทรัลเวิลด์ พลาซา", "area": "BKK 4", "customer": "MUJI (จากชั้น B1 - ชั้น 4)", "deal": "62741", "project": "HRA025", "pr": "001", "dateReq": "2026-01-13", "dateDue": "2026-01-16", "dateAcc": "2026-01-19", "payType": "เช็ค", "complete": "Complete", "payTo": "บมจ.เซ็นทรัลพัฒนา", "expense": "ค่าธรรมเนียม,ค่าประกันรื้อถอน,ค่าประกันติดตั้ง", "deposit": 50000, "demolish": 10700, "fee": 29960, "other": 0, "total": 90660, "depReturn": "Yes", "demoReturn": "Yes", "contact": "Thitnapha Khengkhan (Bee)", "tel": "02-640-7000 Ext.1005", "mobile": "06 1941 6966", "remark": "", "tl_team": "BKK", "complete_tl": "On Process" },
@@ -3448,27 +3447,18 @@
 
       try {
         const file = fileInput.files[0];
-        const fileName = `${id}_off_service_${Date.now()}.pdf`;
-        const { data: uploadData, error: uploadError } = await CONFIG.supabase.storage
-          .from('demo_off_evidence')
-          .upload(fileName, file);
+        const url = await uploadFile(file, 'demo_off_evidence');
 
-        if (uploadError) throw uploadError;
+        if (!url) throw new Error('Upload failed');
 
-        const { data: { publicUrl } } = CONFIG.supabase.storage
-          .from('demo_off_evidence')
-          .getPublicUrl(fileName);
+        const updateObj = {
+          demoReturn: 'Yes',
+          pdf_demo_off: url,
+          status: 'Done' // Force status to remain Done
+        };
 
-        const { error: updateError } = await CONFIG.supabase
-          .from('deposits')
-          .update({
-            demoReturn: 'Yes',
-            pdf_demo_off: publicUrl,
-            status: 'Done' // Force status to remain Done
-          })
-          .eq('id', id);
-
-        if (updateError) throw updateError;
+        const updated = await updateDeposit(id, updateObj);
+        if (!updated) throw new Error('Update failed');
 
         toast('บันทึก Off Service เรียบร้อยแล้ว', 'success');
         closeModal('offServiceOverlay');
@@ -3614,39 +3604,37 @@
     function setupRealtime() {
       if (USE_MOCK) return; // Skip in Mock Mode
 
-      _supabase
-        .channel('db-changes')
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'deposits' }, payload => {
-          console.log('Realtime change:', payload);
-          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-            // Notify if customer uploaded files
-            const old = DB.find(x => x.id === payload.new.id);
-            if (payload.new.pdf_payment && (!old || !old.pdf_payment)) {
-              toast(`🔔 ใหม่: ${payload.new.place} แนบหลักฐานการชำระเงินแล้ว`, 'info');
+      // Deposits real-time listener
+      db.collection('deposits').onSnapshot(snapshot => {
+        snapshot.docChanges().forEach(change => {
+          if (change.type === "added" || change.type === "modified") {
+            const data = change.doc.data();
+            const old = DB.find(x => x.id === data.id);
+            if (data.pdf_payment && (!old || !old.pdf_payment)) {
+              toast(`🔔 ใหม่: ${data.place} แนบหลักฐานการชำระเงินแล้ว`, 'info');
             }
-            if (payload.new.pdf_layout && (!old || !old.pdf_layout)) {
-              toast(`🔔 ใหม่: ${payload.new.place} แนบแบบ Drawing แล้ว`, 'info');
+            if (data.pdf_layout && (!old || !old.pdf_layout)) {
+              toast(`🔔 ใหม่: ${data.place} แนบแบบ Drawing แล้ว`, 'info');
             }
           }
-          // Simple approach: re-fetch and render
-          initApp().then(() => updateNotifs());
-        })
-        .subscribe();
+        });
+        // Refresh local data
+        initApp().then(() => typeof updateNotifs === 'function' && updateNotifs());
+      });
 
       // User duplicate login listener
-      _supabase
-        .channel('user-session')
-        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users', filter: `id=eq.${CURRENT_USER.id}` }, payload => {
-          const session = sessionStorage.getItem('deposit_session');
-          if (session) {
-            const data = JSON.parse(session);
-            if (payload.new.last_session_id && payload.new.last_session_id !== data.sessionId) {
-              alert('มีการเข้าสู่ระบบซ้อน: บัญชีของคุณถูกใช้งานเครื่องอื่น ระบบจะนำคุณออกจากระบบ');
-              logout();
-            }
+      db.collection('users').doc(CURRENT_USER.id).onSnapshot(doc => {
+        const data = doc.data();
+        if (!data) return;
+        const session = sessionStorage.getItem('deposit_session');
+        if (session) {
+          const sessionData = JSON.parse(session);
+          if (data.last_session_id && data.last_session_id !== sessionData.sessionId) {
+            alert('มีการเข้าสู่ระบบซ้อน: บัญชีของคุณถูกใช้งานเครื่องอื่น ระบบจะนำคุณออกจากระบบ');
+            logout();
           }
-        })
-        .subscribe();
+        }
+      });
     }
 
     function checkDueDates() {
