@@ -4479,6 +4479,31 @@
 
       const infoHTML = `<div class="detail-grid" style="margin-bottom:24px">${infoRows.map(([k, v]) => `<div class="detail-row"><div class="detail-key">${k}</div><div class="detail-val">${v}</div></div>`).join('')}</div>`;
 
+      // Check for 'Send Back' reason in logs
+      let sendBackAlertHTML = '';
+      if (d.status === 'tl' && d.complete_tl === 'Pending' && d.log) {
+        // Find the most recent "ส่งกลับแก้ไข" log entry
+        const sendBackLogs = d.log.filter(l => l.title.includes('ส่งกลับแก้ไข'));
+        if (sendBackLogs.length > 0) {
+          const latestLog = sendBackLogs[sendBackLogs.length - 1];
+          // Title format is "ส่งกลับแก้ไขโดย User: [reason]"
+          const reasonMatch = latestLog.title.match(/ส่งกลับแก้ไขโดย User:\s*(.*)/);
+          const reasonText = reasonMatch ? reasonMatch[1] : latestLog.title;
+          
+          sendBackAlertHTML = `
+            <div style="margin-bottom:20px; padding:16px; background:#fef2f2; border:1px solid #ef4444; border-left:4px solid #dc2626; border-radius:var(--r-md);">
+              <div style="color:#b91c1c; font-weight:800; font-size:15px; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
+                <span style="font-size:18px;">⚠️</span> งานถูกส่งกลับมาแก้ไข!
+              </div>
+              <div style="color:#991b1b; font-size:14px; line-height:1.5;">
+                <strong>เหตุผล:</strong> ${reasonText}
+              </div>
+              <div style="color:#ef4444; font-size:12px; margin-top:8px;">เวลาส่งกลับ: ${latestLog.time}</div>
+            </div>
+          `;
+        }
+      }
+
       // Financial Breakdown Section [NEW - Replicated from openDetail]
       const financialHTML = `
         <div style="margin-bottom:24px; padding:20px; background:var(--bg-f); border:1px solid var(--border); border-radius:var(--r-lg);">
@@ -4557,7 +4582,7 @@
         </div>
       `;
 
-      body.innerHTML = insuranceHTML + infoHTML + financialHTML + filesHTML + opInfoHTML;
+      body.innerHTML = sendBackAlertHTML + insuranceHTML + infoHTML + financialHTML + filesHTML + opInfoHTML;
 
       // ACTION BUTTONS IN FOOTER (Just like the 'Edit' button in detailModal)
       const actionsContainer = document.getElementById('tlModalActions');
@@ -4918,7 +4943,19 @@
         empty.style.display = 'block'; return;
       }
       empty.style.display = 'none';
-      document.getElementById('tl-task-tbody').innerHTML = tlData.map(d => `
+      document.getElementById('tl-task-tbody').innerHTML = tlData.map(d => {
+        let sendBackAlertHTML = '';
+        if (d.status === 'tl' && d.complete_tl === 'Pending' && d.log) {
+          const sendBackLogs = d.log.filter(l => l.title.includes('ส่งกลับแก้ไข'));
+          if (sendBackLogs.length > 0) {
+            const latestLog = sendBackLogs[sendBackLogs.length - 1];
+            const reasonMatch = latestLog.title.match(/ส่งกลับแก้ไขโดย User:\s*(.*)/);
+            const reasonText = reasonMatch ? reasonMatch[1] : latestLog.title;
+            sendBackAlertHTML = `<div style="margin-top:6px; padding:6px 10px; background:#fef2f2; border:1px solid #ef4444; border-radius:4px; font-size:11px; color:#b91c1c;">⚠️ งานส่งกลับ: ${reasonText}</div>`;
+          }
+        }
+        
+        return `
         <tr onclick="openTLModal(${d.id})" style="cursor:pointer" title="คลิกเพื่อดูรายละเอียด">
           <td class="nowrap" style="color:var(--txt3);font-size:12px">#${d.id}</td>
           <td class="nowrap">
@@ -4929,13 +4966,14 @@
           <td class="td-place">
             <div class="place">${d.place}</div>
             <div class="cust">${d.customer || '—'}</div>
+            ${sendBackAlertHTML}
           </td>
           <td class="nowrap">${d.area || '—'}</td>
           <td class="nowrap">${d.complete_tl === 'On Process' ? '<span class="badge b-orange">รับแล้ว</span>' : '<span style="color:var(--txt3)">ยังไม่รับ</span>'}</td>
           <td class="nowrap">${d.pdf_tl_work ? '<a href="' + d.pdf_tl_work + '" target="_blank" onclick="event.stopPropagation()" class="badge b-done" style="text-decoration:none">📄 ดู PDF</a>' : '<span style="color:var(--txt3)">—</span>'}</td>
           <td class="nowrap">${stepLabel(d)}</td>
         </tr>
-      `).join('');
+      `}).join('');
     }
 
     function renderActiveDemoPage() {
