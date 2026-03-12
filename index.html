@@ -1665,7 +1665,7 @@
     }
 
     .db-hero-stat-lbl {
-      font-size: 13px;
+      font-size: 20px;
       text-transform: uppercase;
       letter-spacing: 1px;
       font-weight: 800;
@@ -2138,16 +2138,28 @@
           <div style="display:flex; gap:8px; align-items:center; margin-right:15px">
             <select id="export-month" class="form-control" style="width:100px; height:32px; font-size:12px">
               <option value="">ทุกเดือน</option>
-              <option value="0">ม.ค.</option><option value="1">ก.พ.</option><option value="2">มี.ค.</option>
-              <option value="3">เม.ย.</option><option value="4">พ.ค.</option><option value="5">มิ.ย.</option>
-              <option value="6">ก.ค.</option><option value="7">ส.ค.</option><option value="8">ก.ย.</option>
-              <option value="9">ต.ค.</option><option value="10">พ.ย.</option><option value="11">ธ.ค.</option>
+              <option value="0">ม.ค.</option>
+              <option value="1">ก.พ.</option>
+              <option value="2">มี.ค.</option>
+              <option value="3">เม.ย.</option>
+              <option value="4">พ.ค.</option>
+              <option value="5">มิ.ย.</option>
+              <option value="6">ก.ค.</option>
+              <option value="7">ส.ค.</option>
+              <option value="8">ก.ย.</option>
+              <option value="9">ต.ค.</option>
+              <option value="10">พ.ย.</option>
+              <option value="11">ธ.ค.</option>
             </select>
             <select id="export-year" class="form-control" style="width:80px; height:32px; font-size:12px">
               <option value="">ทุกปี</option>
-              <option>2024</option><option>2025</option><option selected>2026</option><option>2027</option>
+              <option>2024</option>
+              <option>2025</option>
+              <option selected>2026</option>
+              <option>2027</option>
             </select>
-            <button class="btn btn-ghost btn-sm" id="export-btn" onclick="exportCSV()" style="height:32px">⬇ Export CSV</button>
+            <button class="btn btn-ghost btn-sm" id="export-btn" onclick="exportCSV()" style="height:32px">⬇ Export
+              CSV</button>
           </div>
           <button class="btn btn-primary" id="add-btn" onclick="openAddModal()">＋ เพิ่มรายการใหม่</button>
           <button class="btn btn-ghost btn-sm" onclick="logout()" style="padding:8px">🚪</button>
@@ -2390,7 +2402,8 @@
                 </div>
                 <div class="db-hero-stat-item">
                   <div class="db-hero-stat-lbl">ยอดคงค้าง</div>
-                  <div class="db-hero-stat-val" id="db-total-pending" style="color:#ea580c; flex-direction:column; align-items:flex-start; gap:0;">
+                  <div class="db-hero-stat-val" id="db-total-pending"
+                    style="color:#ea580c; flex-direction:column; align-items:flex-start; gap:0;">
                     <div><span class="currency-symbol">฿</span>0</div>
                   </div>
                 </div>
@@ -2416,7 +2429,8 @@
                 </div>
                 <div class="db-hero-stat-item">
                   <div class="db-hero-stat-lbl">คงค้าง</div>
-                  <div class="db-hero-stat-val" id="db-demo-pending" style="color:#ea580c; flex-direction:column; align-items:flex-start; gap:0;">
+                  <div class="db-hero-stat-val" id="db-demo-pending"
+                    style="color:#ea580c; flex-direction:column; align-items:flex-start; gap:0;">
                     <div><span class="currency-symbol">฿</span>0</div>
                   </div>
                 </div>
@@ -2826,7 +2840,8 @@
                   <div class="file-upload-text">คลิกหรือลากไฟล์ PDF มาวางที่นี่</div>
                   <input type="file" id="f-pdf-additional" accept=".pdf" onchange="handleFileSelect(this)">
                   <div class="file-upload-name" id="f-pdf-additional-name"></div>
-                  <a id="f-pdf-additional-link" class="file-link" target="_blank" style="display:none">ดูไฟล์ปัจจุบัน</a>
+                  <a id="f-pdf-additional-link" class="file-link" target="_blank"
+                    style="display:none">ดูไฟล์ปัจจุบัน</a>
                 </div>
               </div>
             </div>
@@ -2898,7 +2913,8 @@
 
             <!-- Send Back Button -->
             <div id="step5-sendback-ui" style="margin-top:20px; text-align:center;">
-              <button type="button" class="btn btn-ghost" style="color:var(--red); border-color:var(--red-l)" onclick="sendBackToTL(editingId)">🔙 ส่งกลับแก้ไข (Send Back to TL)</button>
+              <button type="button" class="btn btn-ghost" style="color:var(--red); border-color:var(--red-l)"
+                onclick="sendBackToTL(editingId)">🔙 ส่งกลับแก้ไข (Send Back to TL)</button>
               <p style="font-size:11px; color:var(--txt3); margin-top:6px">ใช้กรณีหลักฐานการตรวจรับไม่ถูกต้อง</p>
             </div>
           </div>
@@ -2941,7 +2957,8 @@
               <label>หลักฐานการปิดจบงาน (PDF)</label>
               <div class="file-upload-box">
                 <div class="file-upload-icon">🏁</div>
-                <div class="file-upload-text" id="final-upload-label">แนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF) <span class="required">*</span></div>
+                <div class="file-upload-text" id="final-upload-label">แนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF) <span
+                    class="required">*</span></div>
                 <input type="file" id="f-pdf-user-final" accept=".pdf" onchange="handleFileSelect(this)">
                 <div class="file-upload-name" id="f-pdf-user-final-name"></div>
                 <a id="f-pdf-user-final-link" class="file-link" target="_blank" style="display:none">ดูไฟล์ปัจจุบัน</a>
@@ -4491,7 +4508,7 @@
           // Title format is "ส่งกลับแก้ไขโดย User: [reason]"
           const reasonMatch = latestLog.title.match(/ส่งกลับแก้ไขโดย User:\s*(.*)/);
           const reasonText = reasonMatch ? reasonMatch[1] : latestLog.title;
-          
+
           sendBackAlertHTML = `
             <div style="margin-bottom:20px; padding:16px; background:#fef2f2; border:1px solid #ef4444; border-left:4px solid #dc2626; border-radius:var(--r-md);">
               <div style="color:#b91c1c; font-weight:800; font-size:15px; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
@@ -4695,13 +4712,13 @@
       if (saveOnlyInfo) {
         btn.disabled = true; btn.textContent = '⌛ กำลังบันทึก...';
         try {
-          const updateObj = { 
+          const updateObj = {
             tl_complete_date: tlCompleteDate,
             inspected_by: inspectedBy,
-            log: d.log 
+            log: d.log
           };
           addLogEntry(updateObj, 'บันทึกข้อมูลเบื้องต้น (วันที่/ผู้ตรวจรับ)', '📝');
-          
+
           let updated;
           if (USE_MOCK) {
             updated = { ...d, ...updateObj };
@@ -4741,12 +4758,12 @@
 
         if (url) {
           addLogEntry(d, 'TL ดำเนินการเสร็จสิ้นและแนบหลักฐาน', '🏁');
-          const updateObj = { 
-            status: 'ret', 
-            pdf_tl_work: url, 
+          const updateObj = {
+            status: 'ret',
+            pdf_tl_work: url,
             tl_complete_date: tlCompleteDate,
             inspected_by: inspectedBy,
-            log: d.log 
+            log: d.log
           };
 
           let updated;
@@ -4843,7 +4860,7 @@
       const csv = [headers, ...rows].map(r => r.map(v => `"${v || ''}"`).join(',')).join('\n');
       const a = document.createElement('a');
       a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
-      const filterLabel = (month !== '' ? `_M${parseInt(month)+1}` : '') + (year !== '' ? `_${year}` : '');
+      const filterLabel = (month !== '' ? `_M${parseInt(month) + 1}` : '') + (year !== '' ? `_${year}` : '');
       a.download = 'deposit_report' + filterLabel + '_' + new Date().toISOString().split('T')[0] + '.csv';
       a.click();
       toast('Export CSV สำเร็จ ✓' + (filtered.length < DB.length ? ` (กรองข้อมูล ${filtered.length} รายการ)` : ''), 'success');
@@ -4956,7 +4973,7 @@
             sendBackAlertHTML = `<div style="margin-top:6px; padding:6px 10px; background:#fef2f2; border:1px solid #ef4444; border-radius:4px; font-size:11px; color:#b91c1c;">⚠️ งานส่งกลับ: ${reasonText}</div>`;
           }
         }
-        
+
         return `
         <tr onclick="openTLModal(${d.id})" style="cursor:pointer" title="คลิกเพื่อดูรายละเอียด">
           <td class="nowrap" style="color:var(--txt3);font-size:12px">#${d.id}</td>
@@ -5239,7 +5256,7 @@
       document.getElementById('db-total-refunded').innerHTML = `<span class="currency-symbol">฿</span>${installRefunded.toLocaleString()}`;
       document.getElementById('db-total-pending').innerHTML = `
         <div><span class="currency-symbol">฿</span>${installPending.toLocaleString()}</div>
-        <div style="font-size:15px; color:#64748b; font-weight:700; margin-top:6px;">(${installPendingCount} งาน)</div>
+        <div style="font-size:20px; color:#64748b; font-weight:800; margin-top:6px;">(${installPendingCount} งาน)</div>
       `;
 
       // Removal Group
@@ -5247,7 +5264,7 @@
       document.getElementById('db-demo-refunded').innerHTML = `<span class="currency-symbol">฿</span>${demoRefunded.toLocaleString()}`;
       document.getElementById('db-demo-pending').innerHTML = `
         <div><span class="currency-symbol">฿</span>${demoPending.toLocaleString()}</div>
-        <div style="font-size:15px; color:#64748b; font-weight:700; margin-top:6px;">(${demoPendingCount} งาน)</div>
+        <div style="font-size:20px; color:#64748b; font-weight:800; margin-top:6px;">(${demoPendingCount} งาน)</div>
       `;
 
       const luxuryPalette = ['#1e293b', '#d4af37', '#94a3b8', '#334155', '#b8860b'];
