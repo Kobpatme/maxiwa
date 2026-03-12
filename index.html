@@ -2828,6 +2828,10 @@
                 </div>
                 <input type="hidden" id="f-complete-tl">
               </div>
+              <div class="form-group" id="f-tl-complete-date-group">
+                <label>วันที่ดำเนินการเสร็จสิ้น</label>
+                <input type="date" class="form-control" id="f-tl-complete-date">
+              </div>
             </div>
             <div class="form-grid" style="margin-top:15px">
               <div class="form-group">
@@ -2867,7 +2871,14 @@
           <!-- STEP 6: User Final -->
           <div class="form-step" id="step-6">
             <div class="form-section">🏁 Step 6: ปิดงาน (User) & แนบหลักฐานสุดท้าย</div>
-            <div class="form-grid cols3">
+            <div class="form-grid cols4">
+              <div class="form-group">
+                <label>ตรวจรับโดย</label>
+                <select class="form-control" id="f-inspected-by" onchange="toggleFinalFileUploadRequirement()">
+                  <option value="TL">TL</option>
+                  <option value="Building Dept">ฝ่ายอาคาร</option>
+                </select>
+              </div>
               <div class="form-group">
                 <label>วันที่ได้รับเงินประกันคืน</label>
                 <input type="date" class="form-control" id="f-date-return">
@@ -2895,7 +2906,7 @@
               <label>หลักฐานการปิดจบงาน (PDF)</label>
               <div class="file-upload-box">
                 <div class="file-upload-icon">🏁</div>
-                <div class="file-upload-text">แนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF)</div>
+                <div class="file-upload-text" id="final-upload-label">แนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF) <span class="required">*</span></div>
                 <input type="file" id="f-pdf-user-final" accept=".pdf" onchange="handleFileSelect(this)">
                 <div class="file-upload-name" id="f-pdf-user-final-name"></div>
                 <a id="f-pdf-user-final-link" class="file-link" target="_blank" style="display:none">ดูไฟล์ปัจจุบัน</a>
@@ -3836,6 +3847,7 @@
       setVal('f-total', d.total || '');
       setVal('f-complete', d.complete || '');
       setVal('f-tl-team', d.tl_team || '');
+      setVal('f-tl-complete-date', d.tl_complete_date || '');
 
       // Update Step 4 Display
       let tlDisp = document.getElementById('f-tl-team-display');
@@ -3868,6 +3880,9 @@
 
       setVal('f-tl-team', d.tl_team || '');
       setVal('f-complete-tl', d.complete_tl || '');
+      setVal('f-tl-complete-date', d.tl_complete_date || '');
+      setVal('f-inspected-by', d.inspected_by || 'TL');
+      toggleFinalFileUploadRequirement();
 
       // Update Step 4: TL Status Display (read-only for User)
       const step4StatusEl = document.getElementById('step4-tl-status');
@@ -4075,7 +4090,8 @@
         if (finalStatus === 'ret' && autoReturnStatus === 'Done') {
           finalStatus = 'clo';
         }
-        if (finalStatus === 'clo' && (fileUrls.pdf_user_final || oldData?.pdf_user_final)) {
+        const inspectedBy = getVal('f-inspected-by');
+        if (finalStatus === 'clo' && (fileUrls.pdf_user_final || oldData?.pdf_user_final || inspectedBy === 'Building Dept')) {
           finalStatus = 'done';
         }
 
@@ -4129,6 +4145,8 @@
           return_type: getVal('f-return-type'),
           final_remark: getVal('f-final-remark'),
           date_accounting: getVal('f-date-accounting'),
+          tl_complete_date: getVal('f-tl-complete-date'),
+          inspected_by: getVal('f-inspected-by'),
           ...fileUrls, // Spread uploaded URLs
           log: (editingId && DB.find(x => x.id === editingId)?.log) || []
         };
@@ -4400,7 +4418,8 @@
         ['🏢 ชื่อลูกค้า/ผู้เช่า', d.customer || '—'],
         ['👤 เจ้าของงาน', d.owner || '—'],
         ['📞 ผู้ประสานงาน', d.contact || '—'],
-        ['📱 เบอร์ติดต่อ', d.mobile || d.tel || '—']
+        ['📱 เบอร์ติดต่อ', d.mobile || d.tel || '—'],
+        ['📅 วันที่เสร็จสิ้น (TL)', d.tl_complete_date || '—']
       ];
 
       const infoHTML = `<div class="detail-grid" style="margin-bottom:24px">${infoRows.map(([k, v]) => `<div class="detail-row"><div class="detail-key">${k}</div><div class="detail-val">${v}</div></div>`).join('')}</div>`;
@@ -4487,6 +4506,10 @@
         uploadUI.style.border = '1px solid var(--blue)';
         uploadUI.innerHTML = `
              <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">📤 แนบหลักฐาน PDF (บังคับ)</div>
+             <div class="form-group" style="margin-bottom:15px">
+               <label style="font-size:13px; color:var(--blue-d); font-weight:600">วันที่ดำเนินการเสร็จสิ้น <span class="required">*</span></label>
+               <input type="date" id="f-tl-complete-date-modal" class="form-control" style="background:var(--white)" value="${d.tl_complete_date || ''}">
+             </div>
              <input type="file" id="f-pdf-tl-work-modal" accept=".pdf" class="form-control" style="margin-bottom:15px; background:var(--white);">
              <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveTLWorkDetail(${d.id}, true)">✅ บันทึกและส่งต่องาน</button>
         `;
@@ -4561,6 +4584,12 @@
       const btn = event.target;
       const originText = btn.textContent;
 
+      let tlCompleteDate = '';
+      if (fromModal) {
+        tlCompleteDate = document.getElementById('f-tl-complete-date-modal')?.value;
+        if (!tlCompleteDate) { toast('กรุณาระบุวันที่ดำเนินการเสร็จสิ้น', 'error'); return; }
+      }
+
       btn.disabled = true; btn.textContent = '⌛ กำลังบันทึก...';
 
       try {
@@ -4574,7 +4603,12 @@
 
         if (url) {
           addLogEntry(d, 'TL ดำเนินการเสร็จสิ้นและแนบหลักฐาน', '🏁');
-          const updateObj = { status: 'ret', pdf_tl_work: url, log: d.log };
+          const updateObj = { 
+            status: 'ret', 
+            pdf_tl_work: url, 
+            tl_complete_date: tlCompleteDate || d.tl_complete_date,
+            log: d.log 
+          };
 
           let updated;
           if (USE_MOCK) {
@@ -5441,6 +5475,17 @@
         await insertDeposit(item);
       }
       initApp();
+    }
+    function toggleFinalFileUploadRequirement() {
+      const val = document.getElementById('f-inspected-by')?.value;
+      const label = document.getElementById('final-upload-label');
+      if (label) {
+        if (val === 'Building Dept') {
+          label.innerHTML = 'แนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF) <span style="color:var(--txt3); font-weight:400;">(ไม่บังคับ - กรณีฝ่ายอาคาร)</span>';
+        } else {
+          label.innerHTML = 'แนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF) <span class="required">*</span>';
+        }
+      }
     }
   </script>
 </body>
