@@ -2215,7 +2215,7 @@
               <table>
                 <thead>
                   <tr>
-                    <th>#</th>
+                    <th>CID</th>
                     <th>สถานะ</th>
                     <th>อาคาร / ลูกค้า</th>
                     <th>เจ้าของงาน</th>
@@ -2505,7 +2505,7 @@
               <table>
                 <thead>
                   <tr>
-                    <th>#</th>
+                    <th>CID</th>
                     <th>สถานะ</th>
                     <th>อาคาร / ลูกค้า</th>
                     <th>พื้นที่</th>
@@ -3571,7 +3571,7 @@
 
       document.getElementById('tbody').innerHTML = data.map(d => `
     <tr onclick="if(event.target.tagName !== 'BUTTON' && event.target.tagName !== 'SELECT') { if(window.CURRENT_USER?.role === 'tl') openTLModal('${d.id}'); else openEdit('${d.id}', 'auto'); }" style="cursor:pointer;" title="${isTL ? 'คลิกเพื่อเข้าสู่หน้าต่างงานหน้างาน (TL)' : 'คลิกเพื่ออัปเดตสถานะงาน'}">
-      <td class="nowrap" style="color:var(--txt3);font-size:12px">#${d.id}</td>
+      <td class="nowrap" style="color:var(--txt3);font-size:12px">${d.cid || '—'}</td>
       <td class="nowrap">
         <div style="${statusSelectStyle(d.status)}; font-size:13px; font-weight:600; text-align:center;">
           ${getStatusLabel(d)}
@@ -4974,7 +4974,7 @@
 
         return `
         <tr onclick="openTLModal('${d.id}')" style="cursor:pointer" title="คลิกเพื่อดูรายละเอียด">
-          <td class="nowrap" style="color:var(--txt3);font-size:12px">#${d.id}</td>
+          <td class="nowrap" style="color:var(--txt3);font-size:12px">${d.cid || '—'}</td>
           <td class="nowrap">
             <div style="${statusSelectStyle(d.status)}; font-size:13px; font-weight:600; text-align:center;">
               ${getStatusLabel(d)}
