@@ -2623,6 +2623,12 @@
               🛠️ เข้าถึงหน้า "ดำเนินการโดย TL" ใน Sidebar
             </label>
           </div>
+          <div class="form-group" style="margin-top:14px">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px;">
+              <input type="checkbox" id="u-can-see-db" style="width:16px; height:16px; accent-color:var(--blue);">
+              📈 เข้าถึงหน้า "Executive Dashboard" ใน Sidebar
+            </label>
+          </div>
         </div>
         <div class="modal-foot">
           <button type="button" class="btn btn-ghost" onclick="closeModal('userOverlay')">ยกเลิก</button>
@@ -5488,10 +5494,19 @@
         document.getElementById('tl-nav').style.display = 'none';
       }
 
+      // Dashboard visibility
+      const canSeeDashboard = CURRENT_USER.role === 'admin' || CURRENT_USER.can_see_dashboard;
+
+      if (canSeeDashboard) {
+        document.getElementById('nav-db').style.display = 'block';
+      } else {
+        document.getElementById('nav-db').style.display = 'none';
+      }
+
       // Hide other sections if strict TL role
       if (isTLOnly) {
         document.getElementById('nav-my-dashboard').style.display = 'none';
-        document.getElementById('nav-db').style.display = 'none';
+        
         document.getElementById('nav-list').style.display = 'none';
         document.getElementById('admin-nav').style.display = 'none';
 
@@ -5512,7 +5527,7 @@
         showPage('tl-tasks');
       } else {
         document.getElementById('nav-my-dashboard').style.display = 'block';
-        document.getElementById('nav-db').style.display = 'block';
+        
         document.getElementById('nav-list').style.display = 'block';
         const navDemo = document.getElementById('nav-active-demo');
         if (navDemo) navDemo.style.display = 'block';
@@ -5596,6 +5611,7 @@
           <td><span class="badge ${u.role === 'admin' ? 'b-violet' : u.role === 'tl' ? 'b-orange' : 'b-blue'}">${u.role}</span></td>
           <td>${u.area ? u.area : '<span style="color:var(--txt3);font-size:12px">ทุกพื้นที่/ไม่ได้ระบุ</span>'}</td>
           <td class="nowrap">${u.can_see_tl ? '<span class="badge b-orange" style="font-size:11px">🛠️ TL</span>' : '<span style="color:var(--txt3);font-size:12px">—</span>'}</td>
+          <td class="nowrap">${u.can_see_dashboard ? '<span class="badge b-violet" style="font-size:11px">📈 Dashboard</span>' : '<span style="color:var(--txt3);font-size:12px">—</span>'}</td>
           <td class="nowrap">
             <div class="actions">
               <button class="act-btn edit" onclick="openEditUserModal(${u.id})" title="แก้ไข">✏️</button>
@@ -5615,6 +5631,7 @@
       document.getElementById('u-role').value = 'user';
       document.getElementById('u-area').value = '';
       document.getElementById('u-can-see-tl').checked = false;
+      document.getElementById('u-can-see-db').checked = false;
       toggleAreaSelect('user');
       openModal('userOverlay');
     }
@@ -5631,6 +5648,7 @@
       document.getElementById('u-role').value = u.role || 'user';
       document.getElementById('u-area').value = u.area || '';
       document.getElementById('u-can-see-tl').checked = !!u.can_see_tl;
+      document.getElementById('u-can-see-db').checked = !!u.can_see_dashboard;
       toggleAreaSelect(u.role);
       openModal('userOverlay');
     }
@@ -5642,7 +5660,8 @@
         name: document.getElementById('u-name').value.trim(),
         role: document.getElementById('u-role').value,
         area: document.getElementById('u-area').value.trim(),
-        can_see_tl: document.getElementById('u-can-see-tl').checked
+        can_see_tl: document.getElementById('u-can-see-tl').checked,
+        can_see_dashboard: document.getElementById('u-can-see-db').checked
       };
 
       try {
