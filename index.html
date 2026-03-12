@@ -5214,12 +5214,19 @@
     }
 
     function renderExecutiveDashboard() {
-      const totalInstall = DB.reduce((s, d) => s + parseFixed(d.deposit), 0);
-      const totalDemo = DB.reduce((s, d) => s + parseFixed(d.demolish), 0);
+      // Filtering logic for TL dashboard access
+      let filteredDB = DB;
+      if (CURRENT_USER && CURRENT_USER.role === 'tl' && CURRENT_USER.area) {
+        const allowedAreas = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
+        filteredDB = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
+      }
+
+      const totalInstall = filteredDB.reduce((s, d) => s + parseFixed(d.deposit), 0);
+      const totalDemo = filteredDB.reduce((s, d) => s + parseFixed(d.demolish), 0);
       const totalInsuranceVal = totalInstall + totalDemo;
 
       // 1. Installation Refund (status === 'Done' OR status === 'clo' OR depReturn === 'Yes')
-      const installDoneItems = DB.filter(d => {
+      const installDoneItems = filteredDB.filter(d => {
         const s = (d.status || '').trim().toLowerCase();
         const isDone = s === 'done' || s === 'clo';
         const isReturned = (d.depReturn || '').trim().toLowerCase() === 'yes';
@@ -5228,7 +5235,7 @@
       const installRefunded = installDoneItems.reduce((s, d) => s + parseFixed(d.deposit), 0);
       const installPending = totalInstall - installRefunded;
       
-      const installPendingCount = DB.filter(d => {
+      const installPendingCount = filteredDB.filter(d => {
         if (parseFixed(d.deposit) <= 0) return false;
         const s = (d.status || '').trim().toLowerCase();
         const isDone = s === 'done' || s === 'clo';
@@ -5237,11 +5244,11 @@
       }).length;
 
       // 2. Removal Refund (demoReturn === 'Yes')
-      const demoDoneItems = DB.filter(d => (d.demoReturn || '').trim().toLowerCase() === 'yes');
+      const demoDoneItems = filteredDB.filter(d => (d.demoReturn || '').trim().toLowerCase() === 'yes');
       const demoRefunded = demoDoneItems.reduce((s, d) => s + parseFixed(d.demolish), 0);
       const demoPending = totalDemo - demoRefunded;
       
-      const demoPendingCount = DB.filter(d => {
+      const demoPendingCount = filteredDB.filter(d => {
         if (parseFixed(d.demolish) <= 0) return false;
         return (d.demoReturn || '').trim().toLowerCase() !== 'yes';
       }).length;
@@ -5279,7 +5286,7 @@
       const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
       const feeData = new Array(12).fill(0);
       const depositData = new Array(12).fill(0);
-      DB.forEach(d => {
+      filteredDB.forEach(d => {
         if (d.dateReq) {
           const m = new Date(d.dateReq).getMonth();
           feeData[m] += (d.fee || 0);
@@ -5348,7 +5355,7 @@
 
       // 3. Area Outstanding Value
       const areaFin = {};
-      DB.filter(d => (d.status || '').toLowerCase() !== 'done' && (d.status || '').toLowerCase() !== 'cancel').forEach(d => {
+      filteredDB.filter(d => (d.status || '').toLowerCase() !== 'done' && (d.status || '').toLowerCase() !== 'cancel').forEach(d => {
         if (d.area) areaFin[d.area] = (areaFin[d.area] || 0) + (d.deposit || 0);
       });
 
@@ -5389,7 +5396,7 @@
       });
 
       // 4. Render Top 5 Outstanding (Installation Only)
-      const topOutstanding = [...DB]
+      const topOutstanding = [...filteredDB]
         .filter(d => (d.status || '').toLowerCase() !== 'done' && (d.status || '').toLowerCase() !== 'cancel')
         .map(d => ({
           ...d,
