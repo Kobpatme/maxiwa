@@ -2501,6 +2501,12 @@
               <span class="card-title">🛠️ งานหน้างาน TL ทั้งหมด</span>
               <span id="tlTaskCount" style="font-size:13px; color:var(--txt3)"></span>
             </div>
+            <div style="padding:0 20px 15px">
+              <div class="search-wrap">
+                <span class="search-icon">🔍</span>
+                <input type="text" placeholder="ค้นหา CID, อาคาร, ลูกค้า..." id="tlSearchInput" oninput="applyTLSearch()">
+              </div>
+            </div>
             <div class="table-wrap">
               <table>
                 <thead>
@@ -3136,6 +3142,7 @@
     let filterOwner = '';
     let filterArea = '';
     let searchQ = '';
+    let tlSearchQ = '';
 
     const AREA_TL_MAP = {
       'BKK 1': 'BKK', 'BKK 2': 'BKK', 'BKK 3': 'BKK', 'BKK 4': 'BKK',
@@ -3792,6 +3799,11 @@
       filterOwner = document.getElementById('ownerFilter').value;
       filterArea = document.getElementById('areaFilter').value;
       renderTable();
+    }
+
+    function applyTLSearch() {
+      tlSearchQ = document.getElementById('tlSearchInput').value.toLowerCase().trim();
+      renderTLTasksPage();
     }
 
     /* ════════ MODAL HELPERS ════════ */
@@ -4898,8 +4910,12 @@
 
     /* ════════ PAGE SWITCHING ════════ */
     function showPage(id) {
-      // Security: TL role can ONLY see 'tl-tasks' AND 'active-demo'
-      if (CURRENT_USER?.role === 'tl' && (id !== 'tl-tasks' && id !== 'active-demo')) {
+      // Security: TL role can ONLY see 'tl-tasks' AND 'active-demo' UNLESS they have can_see_dashboard
+      const canSeeAll = CURRENT_USER?.role === 'admin';
+      const isTL = CURRENT_USER?.role === 'tl';
+      const hasDashboardPerm = CURRENT_USER?.can_see_dashboard;
+
+      if (isTL && !hasDashboardPerm && (id !== 'tl-tasks' && id !== 'active-demo')) {
         id = 'tl-tasks';
       }
 
@@ -4948,9 +4964,12 @@
       // Show all tasks that are at the TL step, processed by TL, OR are marked as "Done" (ปิดงาน)
       const tlData = filteredData.filter(d => {
         const s = (d.status || '').toLowerCase();
-        return ['tl', 'on process', 'done', 'clo'].includes(s) ||
+        const matchesStatus = ['tl', 'on process', 'done', 'clo'].includes(s) ||
           d.complete_tl === 'On Process' ||
           d.pdf_tl_work;
+
+        const mq = !tlSearchQ || [d.place, d.customer, d.cid, d.pr].join(' ').toLowerCase().includes(tlSearchQ);
+        return matchesStatus && mq;
       });
 
       document.getElementById('tlTaskCount').textContent = tlData.length + ' รายการ';
@@ -5709,6 +5728,10 @@
           renderMyDashboard();
         } else if (activePageId === 'page-dashboard') {
           renderExecutiveDashboard();
+        } else if (activePageId === 'page-tl-tasks') {
+          renderTLTasksPage();
+        } else if (activePageId === 'page-active-demo') {
+          renderActiveDemoTable();
         } else if (activePageId === 'page-users') {
           loadUserTable();
         }
