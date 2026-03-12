@@ -2135,7 +2135,20 @@
             </div>
           </div>
           <span id="user-display" style="font-size:12px; color:var(--txt2); margin-right:15px; font-weight:600"></span>
-          <button class="btn btn-ghost btn-sm" id="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+          <div style="display:flex; gap:8px; align-items:center; margin-right:15px">
+            <select id="export-month" class="form-control" style="width:100px; height:32px; font-size:12px">
+              <option value="">ทุกเดือน</option>
+              <option value="0">ม.ค.</option><option value="1">ก.พ.</option><option value="2">มี.ค.</option>
+              <option value="3">เม.ย.</option><option value="4">พ.ค.</option><option value="5">มิ.ย.</option>
+              <option value="6">ก.ค.</option><option value="7">ส.ค.</option><option value="8">ก.ย.</option>
+              <option value="9">ต.ค.</option><option value="10">พ.ย.</option><option value="11">ธ.ค.</option>
+            </select>
+            <select id="export-year" class="form-control" style="width:80px; height:32px; font-size:12px">
+              <option value="">ทุกปี</option>
+              <option>2024</option><option>2025</option><option selected>2026</option><option>2027</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" id="export-btn" onclick="exportCSV()" style="height:32px">⬇ Export CSV</button>
+          </div>
           <button class="btn btn-primary" id="add-btn" onclick="openAddModal()">＋ เพิ่มรายการใหม่</button>
           <button class="btn btn-ghost btn-sm" onclick="logout()" style="padding:8px">🚪</button>
         </div>
@@ -2725,9 +2738,13 @@
                 <label>Email</label>
                 <input type="email" class="form-control" id="f-email" placeholder="example@email.com">
               </div>
-              <div class="form-group" style="grid-column: span 2">
+              <div class="form-group">
                 <label>Cost Sheet</label>
                 <input class="form-control" id="f-cost-sheet" placeholder="ระบุข้อมูล Cost Sheet">
+              </div>
+              <div class="form-group">
+                <label>CID</label>
+                <input class="form-control" id="f-cid" placeholder="ระบุ CID">
               </div>
             </div>
           </div>
@@ -2800,6 +2817,16 @@
                   <a id="f-pdf-layout-link" class="file-link" target="_blank" style="display:none">ดูไฟล์ปัจจุบัน</a>
                 </div>
               </div>
+              <div class="form-group">
+                <label>เอกสารเพิ่มเติม (PDF)</label>
+                <div class="file-upload-box">
+                  <div class="file-upload-icon">📁</div>
+                  <div class="file-upload-text">คลิกหรือลากไฟล์ PDF มาวางที่นี่</div>
+                  <input type="file" id="f-pdf-additional" accept=".pdf" onchange="handleFileSelect(this)">
+                  <div class="file-upload-name" id="f-pdf-additional-name"></div>
+                  <a id="f-pdf-additional-link" class="file-link" target="_blank" style="display:none">ดูไฟล์ปัจจุบัน</a>
+                </div>
+              </div>
             </div>
             <div class="form-group" style="margin-top:15px">
               <label>หมายเหตุ</label>
@@ -2865,6 +2892,12 @@
             <div id="step5-accept-note"
               style="margin-top:15px; padding:14px; background:#ecfdf5; border:1px solid #10b981; border-radius:var(--r-md); color:#065f46; font-size:13px; font-weight:600; display:none;">
               ✅ เมื่อกด "ยืนยัน" ระบบจะบันทึกและไป Step ถัดไปโดยอัตโนมัติ
+            </div>
+
+            <!-- Send Back Button -->
+            <div id="step5-sendback-ui" style="margin-top:20px; text-align:center;">
+              <button type="button" class="btn btn-ghost" style="color:var(--red); border-color:var(--red-l)" onclick="sendBackToTL(editingId)">🔙 ส่งกลับแก้ไข (Send Back to TL)</button>
+              <p style="font-size:11px; color:var(--txt3); margin-top:6px">ใช้กรณีหลักฐานการตรวจรับไม่ถูกต้อง</p>
             </div>
           </div>
 
@@ -3791,7 +3824,7 @@
         'f-payto', 'f-paytype', 'f-deposit', 'f-demolish', 'f-fee', 'f-other', 'f-other-desc', 'f-total',
         'f-dep-status', 'f-demo-status', 'f-complete',
         'f-dep-return', 'f-demo-return', 'f-contact', 'f-tel', 'f-office-tel', 'f-email', 'f-mobile', 'f-remark',
-        'f-cost-sheet', 'f-date-return', 'f-return-type', 'f-final-remark', 'f-date-accounting',
+        'f-cost-sheet', 'f-cid', 'f-date-return', 'f-return-type', 'f-final-remark', 'f-date-accounting',
         'f-tl-team', 'f-complete-tl', 'f-return-status',
       ].forEach(id => {
         const el = document.getElementById(id);
@@ -3805,7 +3838,7 @@
       if (fdm) fdm.value = 'No';
 
       // Clear Files
-      ['f-pdf-payment', 'f-pdf-layout', 'f-pdf-tl-work', 'f-pdf-user-final'].forEach(id => {
+      ['f-pdf-payment', 'f-pdf-layout', 'f-pdf-additional', 'f-pdf-tl-work', 'f-pdf-user-final'].forEach(id => {
         const input = document.getElementById(id);
         if (input) input.value = '';
         const nameEl = document.getElementById(id + '-name');
@@ -3877,6 +3910,7 @@
       setVal('f-mobile', d.mobile || '');
       setVal('f-remark', d.remark || '');
       setVal('f-cost-sheet', d.cost_sheet || '');
+      setVal('f-cid', d.cid || '');
 
       setVal('f-tl-team', d.tl_team || '');
       setVal('f-complete-tl', d.complete_tl || '');
@@ -3923,6 +3957,11 @@
         }
       }
 
+      const sendBackUI = document.getElementById('step5-sendback-ui');
+      if (sendBackUI) {
+        sendBackUI.style.display = (d.pdf_tl_work && d.complete !== 'Complete') ? 'block' : 'none';
+      }
+
       setVal('f-return-status', d.return_status || 'Pending');
 
       setVal('f-date-return', d.date_return || '');
@@ -3939,7 +3978,7 @@
       setVal('f-tl-team', tl !== '-' ? tl : '');
 
       // PDF Links
-      ['pdf_payment', 'pdf_layout', 'pdf_tl_work', 'pdf_user_final'].forEach(key => {
+      ['pdf_payment', 'pdf_layout', 'pdf_additional', 'pdf_tl_work', 'pdf_user_final'].forEach(key => {
         const url = d[key];
         const id = key.replace(/_/g, '-');
         const linkEl = document.getElementById('f-' + id + '-link');
@@ -3990,6 +4029,7 @@
         const fileFields = [
           { id: 'f-pdf-payment', key: 'pdf_payment', folder: 'payments' },
           { id: 'f-pdf-layout', key: 'pdf_layout', folder: 'layouts' },
+          { id: 'f-pdf-additional', key: 'pdf_additional', folder: 'additional' },
           { id: 'f-pdf-tl-work', key: 'pdf_tl_work', folder: 'tl_works' },
           { id: 'f-pdf-user-final', key: 'pdf_user_final', folder: 'final_docs' }
         ];
@@ -4141,6 +4181,7 @@
           status_final: finalStatus,
           return_status: autoReturnStatus,
           cost_sheet: getVal('f-cost-sheet'),
+          cid: getVal('f-cid'),
           date_return: getVal('f-date-return'),
           return_type: getVal('f-return-type'),
           final_remark: getVal('f-final-remark'),
@@ -4163,6 +4204,7 @@
           if (fileUrls.pdf_layout) addLogEntry(obj, 'อัปโหลดแบบ Drawing', '📐');
           if (fileUrls.pdf_tl_work) addLogEntry(obj, 'TL ส่งหลักฐานการทำงาน', '✅');
           if (fileUrls.pdf_user_final) addLogEntry(obj, 'อัปโหลดเอกสารปิดงาน', '📁');
+          if (fileUrls.pdf_additional) addLogEntry(obj, 'อัปโหลดเอกสารเพิ่มเติม', '📁');
         }
 
         if (editingId) {
@@ -4243,6 +4285,7 @@
         ['พื้นที่', d.area || '—'],
         ['Project Code', d.project || '—'],
         ['PR No.', d.pr || '—'],
+        ['CID', d.cid || '—'],
         ['ทีม TL กทม/ตจว', d.tl_team || '—'],
         ['ผู้ประสานงาน', d.contact || '—'],
         ['เบอร์โทร (มือถือ)', d.tel || '—'],
@@ -4302,6 +4345,7 @@
       const fileRows = [
         { label: 'หลักฐานการจ่าย', key: 'pdf_payment' },
         { label: 'แบบ / Drawing', key: 'pdf_layout' },
+        { label: 'เอกสารเพิ่มเติม', key: 'pdf_additional' },
         { label: 'หลักฐานงาน TL', key: 'pdf_tl_work' },
         { label: 'เอกสารปิดงาน', key: 'pdf_user_final' },
         { label: 'หลักฐาน Off Service', key: 'pdf_demo_off' }
@@ -4416,6 +4460,7 @@
         ['📍 ชื่อสถานที่/โครงการ', d.place],
         ['🏠 พื้นที่ (Area)', d.area || '—'],
         ['🏢 ชื่อลูกค้า/ผู้เช่า', d.customer || '—'],
+        ['CID', d.cid || '—'],
         ['👤 เจ้าของงาน', d.owner || '—'],
         ['📞 ผู้ประสานงาน', d.contact || '—'],
         ['📱 เบอร์ติดต่อ', d.mobile || d.tel || '—'],
@@ -4458,7 +4503,8 @@
       // Native Style Files list
       const fileRows = [
         { label: 'หลักฐานการจ่าย', key: 'pdf_payment' },
-        { label: 'แบบ / Drawing', key: 'pdf_layout' }
+        { label: 'แบบ / Drawing', key: 'pdf_layout' },
+        { label: 'เอกสารเพิ่มเติม', key: 'pdf_additional' }
       ].filter(f => d[f.key]).map(f => `
       <a href="${d[f.key]}" target="_blank" class="detail-row" style="text-decoration:none; display:flex; align-items:center; gap:8px; background:var(--bg-f); border:1px solid var(--border); padding:8px 12px; border-radius:var(--r-sm)">
         <span style="font-size:18px">📄</span>
@@ -4744,14 +4790,59 @@
 
     /* ════════ EXPORT CSV ════════ */
     function exportCSV() {
-      const headers = ['ID', 'สถานะ', 'อาคาร', 'ลูกค้า', 'เจ้าของงาน', 'พื้นที่', 'PR No.', 'วันตั้งเบิก', 'วันDue', 'ยอดรวม', 'ประกันติดตั้ง', 'ประกันรื้อถอน', 'ค่าธรรมเนียม', 'คืนประกันติดตั้ง', 'คืนประกันรื้อถอน'];
-      const rows = DB.map(d => [d.id, d.status, d.place, d.customer, d.owner, d.area, d.pr, d.dateReq, d.total, d.deposit, d.demolish, d.fee, d.depReturn, d.demoReturn]);
+      const month = document.getElementById('export-month').value;
+      const year = document.getElementById('export-year').value;
+
+      let filtered = DB;
+      if (month !== '') {
+        filtered = filtered.filter(d => d.dateReq && new Date(d.dateReq).getMonth() == month);
+      }
+      if (year !== '') {
+        filtered = filtered.filter(d => d.dateReq && new Date(d.dateReq).getFullYear() == year);
+      }
+
+      const headers = ['ID', 'สถานะ', 'อาคาร', 'ลูกค้า', 'เจ้าของงาน', 'พื้นที่', 'CID', 'PR No.', 'วันตั้งเบิก', 'ยอดรวม', 'ประกันติดตั้ง', 'ประกันรื้อถอน', 'ค่าธรรมเนียม', 'คืนประกันติดตั้ง', 'คืนประกันรื้อถอน'];
+      const rows = filtered.map(d => [d.id, d.status, d.place, d.customer, d.owner, d.area, d.cid, d.pr, d.dateReq, d.total, d.deposit, d.demolish, d.fee, d.depReturn, d.demoReturn]);
       const csv = [headers, ...rows].map(r => r.map(v => `"${v || ''}"`).join(',')).join('\n');
       const a = document.createElement('a');
       a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
-      a.download = 'deposit_report_' + new Date().toISOString().split('T')[0] + '.csv';
+      const filterLabel = (month !== '' ? `_M${parseInt(month)+1}` : '') + (year !== '' ? `_${year}` : '');
+      a.download = 'deposit_report' + filterLabel + '_' + new Date().toISOString().split('T')[0] + '.csv';
       a.click();
-      toast('Export CSV สำเร็จ ✓', 'success');
+      toast('Export CSV สำเร็จ ✓' + (filtered.length < DB.length ? ` (กรองข้อมูล ${filtered.length} รายการ)` : ''), 'success');
+    }
+
+    async function sendBackToTL(id) {
+      if (!id) return;
+      const reason = prompt('ระบุเหตุผลในการส่งกลับแก้ไข:');
+      if (reason === null) return;
+      if (!reason.trim()) { toast('กรุณาระบุเหตุผล', 'error'); return; }
+
+      try {
+        const d = DB.find(x => x.id === id);
+        if (!d) return;
+
+        addLogEntry(d, `ส่งกลับแก้ไขโดย User: ${reason}`, '🔙');
+        const updateObj = {
+          status: 'tl',
+          complete_tl: 'Pending',
+          log: d.log
+        };
+
+        let updated;
+        if (USE_MOCK) {
+          updated = { ...d, ...updateObj };
+          const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+        } else {
+          updated = await updateDeposit(id, updateObj);
+          const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+        }
+        closeModal('formOverlay');
+        renderTable(); renderKPI();
+        toast('ส่งกลับให้ TL แก้ไขเรียบร้อยแล้ว', 'success');
+      } catch (err) {
+        toast('ผิดพลาด: ' + err.message, 'error');
+      }
     }
 
     /* ════════ PAGE SWITCHING ════════ */
