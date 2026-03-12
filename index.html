@@ -1665,17 +1665,17 @@
     }
 
     .db-hero-stat-lbl {
-      font-size: 11px;
+      font-size: 13px;
       text-transform: uppercase;
-      letter-spacing: 1.2px;
-      font-weight: 700;
-      color: #64748b;
+      letter-spacing: 1px;
+      font-weight: 800;
+      color: #334155;
     }
 
     .db-hero-stat-val {
-      font-size: 26px;
-      font-weight: 800;
-      color: #1e293b;
+      font-size: 28px;
+      font-weight: 900;
+      color: #0f172a;
       font-family: 'Figtree';
       display: flex;
       align-items: baseline;
@@ -2390,8 +2390,9 @@
                 </div>
                 <div class="db-hero-stat-item">
                   <div class="db-hero-stat-lbl">ยอดคงค้าง</div>
-                  <div class="db-hero-stat-val" id="db-total-pending" style="color:#ea580c"><span
-                      class="currency-symbol">฿</span>0</div>
+                  <div class="db-hero-stat-val" id="db-total-pending" style="color:#ea580c; flex-direction:column; align-items:flex-start; gap:0;">
+                    <div><span class="currency-symbol">฿</span>0</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2415,8 +2416,9 @@
                 </div>
                 <div class="db-hero-stat-item">
                   <div class="db-hero-stat-lbl">คงค้าง</div>
-                  <div class="db-hero-stat-val" id="db-demo-pending" style="color:#ea580c"><span
-                      class="currency-symbol">฿</span>0</div>
+                  <div class="db-hero-stat-val" id="db-demo-pending" style="color:#ea580c; flex-direction:column; align-items:flex-start; gap:0;">
+                    <div><span class="currency-symbol">฿</span>0</div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -5194,17 +5196,32 @@
       const totalInsuranceVal = totalInstall + totalDemo;
 
       // 1. Installation Refund (status === 'Done' OR status === 'clo' OR depReturn === 'Yes')
-      const installRefunded = DB.filter(d => {
+      const installDoneItems = DB.filter(d => {
         const s = (d.status || '').trim().toLowerCase();
         const isDone = s === 'done' || s === 'clo';
         const isReturned = (d.depReturn || '').trim().toLowerCase() === 'yes';
         return isDone || isReturned;
-      }).reduce((s, d) => s + parseFixed(d.deposit), 0);
+      });
+      const installRefunded = installDoneItems.reduce((s, d) => s + parseFixed(d.deposit), 0);
       const installPending = totalInstall - installRefunded;
+      
+      const installPendingCount = DB.filter(d => {
+        if (parseFixed(d.deposit) <= 0) return false;
+        const s = (d.status || '').trim().toLowerCase();
+        const isDone = s === 'done' || s === 'clo';
+        const isReturned = (d.depReturn || '').trim().toLowerCase() === 'yes';
+        return !(isDone || isReturned);
+      }).length;
 
       // 2. Removal Refund (demoReturn === 'Yes')
-      const demoRefunded = DB.filter(d => (d.demoReturn || '').trim().toLowerCase() === 'yes').reduce((s, d) => s + parseFixed(d.demolish), 0);
+      const demoDoneItems = DB.filter(d => (d.demoReturn || '').trim().toLowerCase() === 'yes');
+      const demoRefunded = demoDoneItems.reduce((s, d) => s + parseFixed(d.demolish), 0);
       const demoPending = totalDemo - demoRefunded;
+      
+      const demoPendingCount = DB.filter(d => {
+        if (parseFixed(d.demolish) <= 0) return false;
+        return (d.demoReturn || '').trim().toLowerCase() !== 'yes';
+      }).length;
 
       // 3. Overall Summary (Hero)
       const overallRefunded = installRefunded + demoRefunded;
@@ -5220,12 +5237,18 @@
       // Installation Group
       document.getElementById('db-total-install').innerHTML = `<span class="currency-symbol">฿</span>${totalInstall.toLocaleString()}`;
       document.getElementById('db-total-refunded').innerHTML = `<span class="currency-symbol">฿</span>${installRefunded.toLocaleString()}`;
-      document.getElementById('db-total-pending').innerHTML = `<span class="currency-symbol">฿</span>${installPending.toLocaleString()}`;
+      document.getElementById('db-total-pending').innerHTML = `
+        <div><span class="currency-symbol">฿</span>${installPending.toLocaleString()}</div>
+        <div style="font-size:12px; color:#64748b; font-weight:700; margin-top:4px;">(${installPendingCount} งาน)</div>
+      `;
 
       // Removal Group
       document.getElementById('db-total-demo').innerHTML = `<span class="currency-symbol">฿</span>${totalDemo.toLocaleString()}`;
       document.getElementById('db-demo-refunded').innerHTML = `<span class="currency-symbol">฿</span>${demoRefunded.toLocaleString()}`;
-      document.getElementById('db-demo-pending').innerHTML = `<span class="currency-symbol">฿</span>${demoPending.toLocaleString()}`;
+      document.getElementById('db-demo-pending').innerHTML = `
+        <div><span class="currency-symbol">฿</span>${demoPending.toLocaleString()}</div>
+        <div style="font-size:12px; color:#64748b; font-weight:700; margin-top:4px;">(${demoPendingCount} งาน)</div>
+      `;
 
       const luxuryPalette = ['#1e293b', '#d4af37', '#94a3b8', '#334155', '#b8860b'];
 
