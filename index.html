@@ -4476,7 +4476,32 @@
       </div>
       ` : '';
 
-      body.innerHTML = insuranceHTML + infoHTML + financialHTML + filesHTML;
+      // Operation Info Fields (Relocated as requested)
+      const opInfoHTML = `
+        <div style="margin-bottom:24px; padding:20px; background:var(--bg-f); border:1px solid var(--border); border-radius:var(--r-lg);">
+          <div style="font-size:14px; font-weight:800; color:var(--txt); margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:10px; display:flex; align-items:center; gap:8px;">
+            <span style="font-size:18px">📝</span> ข้อมูลการดำเนินการ (Operation Info)
+          </div>
+          <div class="form-grid" style="gap:15px; grid-template-columns: 1fr 1fr;">
+            <div class="form-group">
+              <label style="font-size:12px; color:var(--txt2); font-weight:600">ตรวจรับโดย</label>
+              <select class="form-control" id="f-inspected-by-modal" style="background:var(--white)">
+                <option value="TL" ${d.inspected_by === 'TL' ? 'selected' : ''}>TL</option>
+                <option value="Building Dept" ${d.inspected_by === 'Building Dept' ? 'selected' : ''}>ฝ่ายอาคาร</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label style="font-size:12px; color:var(--txt2); font-weight:600">วันที่ดำเนินการเสร็จสิ้น</label>
+              <input type="date" id="f-tl-complete-date-modal-permanent" class="form-control" style="background:var(--white)" value="${d.tl_complete_date || ''}">
+            </div>
+          </div>
+          <div style="margin-top:15px; text-align:right">
+            <button class="btn btn-secondary" style="height:36px; padding:0 15px; font-size:13px; font-weight:600" onclick="saveTLWorkDetail(${d.id}, true, true)">💾 บันทึกข้อมูลเบื้องต้น</button>
+          </div>
+        </div>
+      `;
+
+      body.innerHTML = insuranceHTML + infoHTML + financialHTML + filesHTML + opInfoHTML;
 
       // ACTION BUTTONS IN FOOTER (Just like the 'Edit' button in detailModal)
       const actionsContainer = document.getElementById('tlModalActions');
@@ -4506,10 +4531,6 @@
         uploadUI.style.border = '1px solid var(--blue)';
         uploadUI.innerHTML = `
              <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">📤 แนบหลักฐาน PDF (บังคับ)</div>
-             <div class="form-group" style="margin-bottom:15px">
-               <label style="font-size:13px; color:var(--blue-d); font-weight:600">วันที่ดำเนินการเสร็จสิ้น <span class="required">*</span></label>
-               <input type="date" id="f-tl-complete-date-modal" class="form-control" style="background:var(--white)" value="${d.tl_complete_date || ''}">
-             </div>
              <input type="file" id="f-pdf-tl-work-modal" accept=".pdf" class="form-control" style="margin-bottom:15px; background:var(--white);">
              <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveTLWorkDetail(${d.id}, true)">✅ บันทึกและส่งต่องาน</button>
         `;
@@ -4568,28 +4589,62 @@
       if (ui) ui.style.display = 'block';
     }
 
-    async function saveTLWorkDetail(id, fromModal = false) {
-      const inputId = fromModal ? 'f-pdf-tl-work-modal' : 'f-pdf-tl-work-detail';
-      const input = document.getElementById(inputId);
-      if (!input || !input.files[0]) {
-        toast('กรุณาเลือกไฟล์ PDF หลักฐานงาน TL', 'error'); return;
-      }
-
+    async function saveTLWorkDetail(id, fromModal = false, saveOnlyInfo = false) {
       const d = DB.find(x => x.id === id);
       if ((d.status || '').toLowerCase() !== 'on process' && d.complete_tl !== 'On Process') {
         toast('สถานะงานไม่ถูกต้อง งานจำเป็นต้องถูกกดยืนยันรับงานก่อน', 'error');
         return;
       }
-      const file = input.files[0];
+
       const btn = event.target;
       const originText = btn.textContent;
 
       let tlCompleteDate = '';
+      let inspectedBy = '';
       if (fromModal) {
-        tlCompleteDate = document.getElementById('f-tl-complete-date-modal')?.value;
-        if (!tlCompleteDate) { toast('กรุณาระบุวันที่ดำเนินการเสร็จสิ้น', 'error'); return; }
+        tlCompleteDate = document.getElementById('f-tl-complete-date-modal-permanent')?.value;
+        inspectedBy = document.getElementById('f-inspected-by-modal')?.value;
+      } else {
+        tlCompleteDate = document.getElementById('f-tl-complete-date')?.value || d.tl_complete_date;
+        inspectedBy = document.getElementById('f-inspected-by')?.value || d.inspected_by;
       }
 
+      if (saveOnlyInfo) {
+        btn.disabled = true; btn.textContent = '⌛ กำลังบันทึก...';
+        try {
+          const updateObj = { 
+            tl_complete_date: tlCompleteDate,
+            inspected_by: inspectedBy,
+            log: d.log 
+          };
+          addLogEntry(updateObj, 'บันทึกข้อมูลเบื้องต้น (วันที่/ผู้ตรวจรับ)', '📝');
+          
+          let updated;
+          if (USE_MOCK) {
+            updated = { ...d, ...updateObj };
+            const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+          } else {
+            updated = await updateDeposit(id, updateObj);
+            const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+          }
+          toast('บันทึกข้อมูลสำเร็จ ✓', 'success');
+          if (fromModal) openTLModal(id);
+        } catch (err) {
+          toast('ผิดพลาด: ' + err.message, 'error');
+        } finally {
+          btn.disabled = false; btn.textContent = originText;
+        }
+        return;
+      }
+
+      const inputId = fromModal ? 'f-pdf-tl-work-modal' : 'f-pdf-tl-work-detail';
+      const input = document.getElementById(inputId);
+      if (!input || !input.files[0]) {
+        toast('กรุณาเลือกไฟล์ PDF หลักฐานงาน TL', 'error'); return;
+      }
+      if (!tlCompleteDate) { toast('กรุณาระบุวันที่ดำเนินการเสร็จสิ้น', 'error'); return; }
+
+      const file = input.files[0];
       btn.disabled = true; btn.textContent = '⌛ กำลังบันทึก...';
 
       try {
@@ -4606,7 +4661,8 @@
           const updateObj = { 
             status: 'ret', 
             pdf_tl_work: url, 
-            tl_complete_date: tlCompleteDate || d.tl_complete_date,
+            tl_complete_date: tlCompleteDate,
+            inspected_by: inspectedBy,
             log: d.log 
           };
 
