@@ -12,13 +12,23 @@ const storage = firebase.storage();
 
 async function getDeposits() {
     try {
-        const snapshot = await db.collection('deposits').orderBy('id', 'desc').get();
-        return snapshot.docs.map(doc => {
-            const data = doc.data();
-            // Map Firestore doc ID to id for internal use if needed, 
-            // but the app uses numeric 'id' field from Supabase.
-            // We'll keep the numeric 'id' field if it exists in data.
-            return { id_firestore: doc.id, ...data };
+        // Fetch all deposits. We'll handle sorting in memory if needed, 
+        // to avoid Firestore filtering out docs that lack the 'id' field.
+        const snapshot = await db.collection('deposits').get();
+        const data = snapshot.docs.map(doc => {
+            const docData = doc.data();
+            return { 
+                id_firestore: doc.id, 
+                id: docData.id || doc.id, // Fallback to doc ID if numeric id is missing
+                ...docData 
+            };
+        });
+        
+        // Manual sort by id (descending) as a fallback
+        return data.sort((a, b) => {
+            const idA = typeof a.id === 'number' ? a.id : 0;
+            const idB = typeof b.id === 'number' ? b.id : 0;
+            return idB - idA;
         });
     } catch (error) {
         console.error('Error fetching deposits:', error);
@@ -28,11 +38,18 @@ async function getDeposits() {
 
 async function insertDeposit(depositData) {
     try {
-        // Auto-increment logic for numeric 'id' is not native to Firestore.
-        // For simplicity, we'll try to get the max current id or use timestamp if it's missing.
-        // But the best way is to let the app handle it or add it to the data.
         const docRef = await db.collection('deposits').add(depositData);
-        return { id_firestore: docRef.id, ...depositData };
+        // Ensure the returned object has an 'id' field for app compatibility
+        const result = { 
+            id: depositData.id || docRef.id, 
+            id_firestore: docRef.id, 
+            ...depositData 
+        };
+        // Also update the document in Firestore to include the ID if it was auto-generated
+        if (!depositData.id) {
+            await docRef.update({ id: docRef.id });
+        }
+        return result;
     } catch (error) {
         console.error('Error inserting deposit:', error);
         throw error;
@@ -40,10 +57,9 @@ async function insertDeposit(depositData) {
 }
 
 async function updateDeposit(id, depositData) {
+    if (!id) throw new Error('ID is required for updateDeposit');
     try {
-        // In this implementation, 'id' could be the numeric id or Firestore Doc ID.
-        // To be safe, we first find the document if 'id' is numeric.
-        let docId = id;
+        let docId = String(id);
         if (typeof id === 'number' || !isNaN(id)) {
             const snapshot = await db.collection('deposits').where('id', '==', Number(id)).limit(1).get();
             if (!snapshot.empty) {
@@ -60,8 +76,9 @@ async function updateDeposit(id, depositData) {
 }
 
 async function deleteDeposit(id) {
+    if (!id) throw new Error('ID is required for deleteDeposit');
     try {
-        let docId = id;
+        let docId = String(id);
         if (typeof id === 'number' || !isNaN(id)) {
             const snapshot = await db.collection('deposits').where('id', '==', Number(id)).limit(1).get();
             if (!snapshot.empty) {
@@ -141,8 +158,10 @@ async function addUser(userData) {
 }
 
 async function removeUser(id) {
+    if (!id) throw new Error('ID is required for removeUser');
     try {
-        await db.collection('users').doc(id).delete();
+        // Force ID to string to prevent Firestore path errors
+        await db.collection('users').doc(String(id)).delete();
         return true;
     } catch (error) {
         console.error('Error removing user:', error);
@@ -151,8 +170,9 @@ async function removeUser(id) {
 }
 
 async function updateUser(id, userData) {
+    if (!id) throw new Error('ID is required for updateUser');
     try {
-        await db.collection('users').doc(id).update(userData);
+        await db.collection('users').doc(String(id)).update(userData);
         return { id: id, ...userData };
     } catch (error) {
         console.error('Error updating user:', error);
