@@ -3958,7 +3958,7 @@
 
       const sendBackUI = document.getElementById('step5-sendback-ui');
       if (sendBackUI) {
-        sendBackUI.style.display = (d.pdf_tl_work && d.complete !== 'Complete') ? 'block' : 'none';
+        sendBackUI.style.display = (d.pdf_tl_work) ? 'block' : 'none';
       }
 
       setVal('f-return-status', d.return_status || 'Pending');
@@ -4390,7 +4390,18 @@
         }
       }
 
-      detailBody.innerHTML = headerHTML + detailHTML + financialHTML + filesHTML + remarkHTML + tlActionHTML;
+      // User Action Section (Review)
+      let userActionHTML = '';
+      if (!isTL && d.pdf_tl_work && (d.status === 'ret' || d.status === 'tl')) {
+        userActionHTML = `
+          <div style="margin-top:25px; border-top:1px dashed var(--border); padding-top:20px; text-align:center;">
+             <p style="font-size:13px; color:var(--txt3); margin-bottom:12px;">หากหลักฐานงานของ TL ไม่ถูกต้อง คุณสามารถส่งกลับให้แก้ไขได้</p>
+             <button class="btn btn-outline" style="width:100%; border-color:var(--red); color:var(--red); font-weight:700;" onclick="sendBackToTL(${d.id})">🔄 ส่งกลับแก้ไข (Send Back to TL)</button>
+          </div>
+        `;
+      }
+
+      detailBody.innerHTML = headerHTML + detailHTML + financialHTML + filesHTML + remarkHTML + tlActionHTML + userActionHTML;
 
       // Special 'Off Service' button for On Service items
       if ((d.status || '').toLowerCase() === 'done' && (d.demolish > 0 && d.demoReturn !== 'Yes')) {
@@ -4837,6 +4848,7 @@
           const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
         }
         closeModal('formOverlay');
+        closeModal('detailOverlay');
         renderTable(); renderKPI();
         toast('ส่งกลับให้ TL แก้ไขเรียบร้อยแล้ว', 'success');
       } catch (err) {
