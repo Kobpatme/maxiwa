@@ -2075,25 +2075,31 @@
   </div>
 
   <!-- Forgot Password Overlay -->
-  <div id="forgotOverlay" class="modal-overlay" style="display:none">
+  <div id="forgotOverlay" class="overlay" style="display:none">
     <div class="modal">
       <div class="modal-header">
-        <h3>ลืมรหัสผ่าน</h3>
+        <h3>รีเซ็ตรหัสผ่านอัตโนมัติ</h3>
         <button class="modal-close" onclick="closeForgotPassword()">✕</button>
       </div>
       <div class="modal-body">
         <p style="font-size:13px; color:var(--txt3); margin-bottom:16px">
-          กรอกรหัสพนักงานและช่องทางติดต่อ ทีมผู้ดูแลระบบจะติดต่อกลับเพื่อดำเนินการรีเซ็ตรหัสผ่าน
+          กรุณากรอกข้อมูลให้ตรงตามที่ลงทะเบียนไว้ ระบบจะดำเนินการเปลี่ยนรหัสผ่านให้ทันที
         </p>
         <form onsubmit="submitForgotPassword(event)">
-          <label>รหัสพนักงาน</label>
-          <input type="text" class="login-input" id="fp-employee-id" placeholder="EMPLOYEE ID" required>
-          <label>ช่องทางติดต่อ (อีเมล / เบอร์โทร)</label>
-          <input type="text" class="login-input" id="fp-contact" placeholder="example@company.com หรือ 08x-xxx-xxxx" required>
-          <label>รายละเอียดเพิ่มเติม (ถ้ามี)</label>
-          <textarea id="fp-reason" style="width:100%; min-height:80px; padding:10px; border:1px solid var(--border); border-radius:var(--r-sm); font-size:13px; resize:vertical"></textarea>
-          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:10px; margin-top:10px">
-            ส่งคำขอรีเซ็ตรหัสผ่าน
+          <div class="form-group">
+            <label style="font-size:12px; font-weight:600">รหัสพนักงาน</label>
+            <input type="text" class="login-input" id="fp-employee-id" placeholder="EMPLOYEE ID" required style="margin-bottom:12px">
+          </div>
+          <div class="form-group">
+            <label style="font-size:12px; font-weight:600">อีเมลที่ลงทะเบียนไว้</label>
+            <input type="email" class="login-input" id="fp-email" placeholder="example@company.com" required style="margin-bottom:12px">
+          </div>
+          <div class="form-group">
+            <label style="font-size:12px; font-weight:600">กำหนดรหัสผ่านใหม่</label>
+            <input type="password" class="login-input" id="fp-new-password" placeholder="New Password" required style="margin-bottom:12px">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px; margin-top:10px">
+            💾 ยืนยันและเปลี่ยนรหัสผ่าน
           </button>
         </form>
       </div>
@@ -2621,6 +2627,7 @@
                   <tr>
                     <th>รหัสพนักงาน</th>
                     <th>ชื่อ-นามสกุล</th>
+                    <th>อีเมล</th>
                     <th>สิทธิ์การใช้งาน</th>
                     <th>พื้นที่ที่ดูได้ (Area)</th>
                     <th>เข้าถึง TL</th>
@@ -2656,6 +2663,10 @@
           <div class="form-group" style="margin-top:10px">
             <label>ชื่อ-นามสกุล <span class="required">*</span></label>
             <input class="form-control" id="u-name" placeholder="ชื่อภาษาไทย" required>
+          </div>
+          <div class="form-group" style="margin-top:10px">
+            <label>อีเมล (สำหรับรีเซ็ตรหัสผ่าน)</label>
+            <input class="form-control" id="u-email" placeholder="example@email.com">
           </div>
           <div class="form-group" style="margin-top:10px">
             <label>รหัสผ่านสำหรับเข้าใช้งาน <span class="required">*</span></label>
@@ -5599,31 +5610,26 @@
       location.reload();
     }
 
-    function openForgotPassword() {
-      const overlay = document.getElementById('forgotOverlay');
-      if (overlay) overlay.style.display = 'flex';
-    }
-
-    function closeForgotPassword() {
-      const overlay = document.getElementById('forgotOverlay');
-      if (overlay) overlay.style.display = 'none';
-    }
+    function openForgotPassword() { openModal('forgotOverlay'); }
+    function closeForgotPassword() { closeModal('forgotOverlay'); }
 
     async function submitForgotPassword(e) {
       if (e) e.preventDefault();
       const empId = document.getElementById('fp-employee-id').value.trim();
-      const contact = document.getElementById('fp-contact').value.trim();
-      const reason = document.getElementById('fp-reason').value.trim();
-      if (!empId || !contact) {
-        toast('กรุณากรอกรหัสพนักงานและช่องทางติดต่อ', 'error');
+      const email = document.getElementById('fp-email').value.trim();
+      const newPwd = document.getElementById('fp-new-password').value.trim();
+
+      if (!empId || !email || !newPwd) {
+        toast('กรุณากรอกข้อมูลให้ครบถ้วน', 'error');
         return;
       }
+      
       try {
-        await requestPasswordReset({ employee_id: empId, contact, reason });
-        toast('ส่งคำขอรีเซ็ตรหัสผ่านเรียบร้อย', 'success');
+        await verifyAndResetPassword(empId, email, newPwd);
+        toast('รีเซ็ตรหัสผ่านสำเร็จ! คุณสามารถเข้าสู่ระบบด้วยรหัสผ่านใหม่ได้ทันที', 'success');
         closeForgotPassword();
       } catch (err) {
-        toast('ไม่สามารถส่งคำขอรีเซ็ตรหัสผ่านได้', 'error');
+        toast(err.message || 'ไม่สามารถรีเซ็ตรหัสผ่านได้ กรุณาตรวจสอบข้อมูล', 'error');
       }
     }
 
@@ -5680,6 +5686,7 @@
         <tr>
           <td class="nowrap" style="font-weight:600">${u.employee_id}</td>
           <td>${u.name}</td>
+          <td>${u.email || '<span style="color:var(--txt3);font-size:12px">—</span>'}</td>
           <td><span class="badge ${u.role === 'admin' ? 'b-violet' : u.role === 'tl' ? 'b-orange' : 'b-blue'}">${u.role}</span></td>
           <td>${u.area ? u.area : '<span style="color:var(--txt3);font-size:12px">ทุกพื้นที่/ไม่ได้ระบุ</span>'}</td>
           <td class="nowrap">${u.can_see_tl ? '<span class="badge b-orange" style="font-size:11px">🛠️ TL</span>' : '<span style="color:var(--txt3);font-size:12px">—</span>'}</td>
@@ -5700,6 +5707,7 @@
       document.getElementById('userModalTitle').textContent = 'เพิ่มผู้ใช้งานใหม่';
       document.getElementById('u-id').value = '';
       document.getElementById('u-name').value = '';
+      document.getElementById('u-email').value = '';
       const pwdEl = document.getElementById('u-password');
       if (pwdEl) pwdEl.value = '';
       document.getElementById('u-role').value = 'user';
@@ -5719,6 +5727,7 @@
       document.getElementById('userModalTitle').textContent = 'แก้ไขผู้ใช้งาน';
       document.getElementById('u-id').value = u.employee_id || '';
       document.getElementById('u-name').value = u.name || '';
+      document.getElementById('u-email').value = u.email || '';
       const pwdEl = document.getElementById('u-password');
       if (pwdEl) pwdEl.value = '';
       document.getElementById('u-role').value = u.role || 'user';
@@ -5735,6 +5744,7 @@
       const obj = {
         employee_id: document.getElementById('u-id').value.trim(),
         name: document.getElementById('u-name').value.trim(),
+        email: document.getElementById('u-email').value.trim(),
         role: document.getElementById('u-role').value,
         area: document.getElementById('u-area').value.trim(),
         can_see_tl: document.getElementById('u-can-see-tl').checked,
