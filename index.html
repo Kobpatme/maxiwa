@@ -2098,7 +2098,8 @@
             <label style="font-size:12px; font-weight:600">กำหนดรหัสผ่านใหม่</label>
             <input type="password" class="login-input" id="fp-new-password" placeholder="New Password" required style="margin-bottom:12px">
           </div>
-          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px; margin-top:10px">
+          <div id="fp-status" style="display:none; padding:12px; border-radius:8px; font-size:13px; margin-bottom:12px; text-align:center"></div>
+          <button type="submit" id="fp-submit-btn" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px; margin-top:10px">
             💾 ยืนยันและเปลี่ยนรหัสผ่าน
           </button>
         </form>
@@ -5618,18 +5619,45 @@
       const empId = document.getElementById('fp-employee-id').value.trim();
       const email = document.getElementById('fp-email').value.trim();
       const newPwd = document.getElementById('fp-new-password').value.trim();
+      const statusEl = document.getElementById('fp-status');
+      const submitBtn = document.getElementById('fp-submit-btn');
+
+      // ซ่อนข้อความเก่า
+      statusEl.style.display = 'none';
 
       if (!empId || !email || !newPwd) {
-        toast('กรุณากรอกข้อมูลให้ครบถ้วน', 'error');
+        statusEl.style.display = 'block';
+        statusEl.style.background = '#fef2f2';
+        statusEl.style.color = '#dc2626';
+        statusEl.style.border = '1px solid #fecaca';
+        statusEl.innerHTML = '⚠️ กรุณากรอกข้อมูลให้ครบทุกช่อง';
         return;
       }
-      
+
+      // แสดงสถานะกำลังดำเนินการ
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ กำลังตรวจสอบ...';
+
       try {
         await verifyAndResetPassword(empId, email, newPwd);
-        toast('รีเซ็ตรหัสผ่านสำเร็จ! คุณสามารถเข้าสู่ระบบด้วยรหัสผ่านใหม่ได้ทันที', 'success');
-        closeForgotPassword();
+        statusEl.style.display = 'block';
+        statusEl.style.background = '#f0fdf4';
+        statusEl.style.color = '#16a34a';
+        statusEl.style.border = '1px solid #bbf7d0';
+        statusEl.innerHTML = '✅ เปลี่ยนรหัสผ่านสำเร็จ! กรุณาปิดหน้าต่างนี้แล้วเข้าสู่ระบบด้วยรหัสผ่านใหม่';
       } catch (err) {
-        toast(err.message || 'ไม่สามารถรีเซ็ตรหัสผ่านได้ กรุณาตรวจสอบข้อมูล', 'error');
+        statusEl.style.display = 'block';
+        statusEl.style.background = '#fef2f2';
+        statusEl.style.color = '#dc2626';
+        statusEl.style.border = '1px solid #fecaca';
+        if (err.message && err.message.includes('ไม่พบ')) {
+          statusEl.innerHTML = '❌ ไม่พบข้อมูล: รหัสพนักงานหรืออีเมลไม่ตรงกับในระบบ';
+        } else {
+          statusEl.innerHTML = '❌ เกิดข้อผิดพลาด: ' + (err.message || 'กรุณาลองใหม่อีกครั้ง');
+        }
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '💾 ยืนยันและเปลี่ยนรหัสผ่าน';
       }
     }
 
