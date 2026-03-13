@@ -125,6 +125,23 @@ async function deleteFileFromUrl(url) {
 
 /* ─── USER MANAGEMENT (Auth/Admin) ─── */
 
+async function validateUserWithPassword(employeeId, password) {
+    try {
+        const snapshot = await db.collection('users')
+            .where('employee_id', '==', employeeId)
+            .where('password', '==', password)
+            .limit(1)
+            .get();
+        if (snapshot.empty) return null;
+        const user = snapshot.docs[0].data();
+        return { id: snapshot.docs[0].id, ...user };
+    } catch (error) {
+        console.error('Login validation error:', error);
+        return null;
+    }
+}
+
+// ใช้สำหรับตรวจ session ที่มีอยู่แล้ว (ไม่เช็กรหัสผ่านซ้ำ)
 async function validateUser(employeeId) {
     try {
         const snapshot = await db.collection('users').where('employee_id', '==', employeeId).limit(1).get();
@@ -176,6 +193,22 @@ async function updateUser(id, userData) {
         return { id: id, ...userData };
     } catch (error) {
         console.error('Error updating user:', error);
+        throw error;
+    }
+}
+
+// บันทึกคำขอรีเซ็ตรหัสผ่านให้แอดมินจัดการ
+async function requestPasswordReset(payload) {
+    try {
+        await db.collection('password_reset_requests').add({
+            employee_id: payload.employee_id,
+            contact: payload.contact || '',
+            reason: payload.reason || '',
+            created_at: Date.now()
+        });
+        return true;
+    } catch (error) {
+        console.error('Error creating password reset request:', error);
         throw error;
     }
 }

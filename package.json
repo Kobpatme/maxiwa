@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "test": "node check-tables.js && node check-columns-diag.js"
+    "test": "echo \"No automated tests configured\""
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.98.0",

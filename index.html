@@ -2021,13 +2021,28 @@
       border: 1px solid var(--border);
       border-radius: var(--r-sm);
       font-size: 16px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       transition: all 0.2s;
     }
 
     .login-input:focus {
       border-color: var(--gold);
       box-shadow: 0 0 0 3px var(--gold-l);
+    }
+
+    .login-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      font-size: 12px;
+      color: var(--txt3);
+    }
+
+    .login-forgot {
+      color: var(--blue);
+      cursor: pointer;
+      text-decoration: underline;
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -2039,16 +2054,48 @@
     <div class="login-box">
       <div class="login-logo">🏢</div>
       <h2>เข้าสู่ระบบ</h2>
-      <p>กรุณากรอกรหัสพนักงานเพื่อใช้งานระบบ</p>
+      <p>กรุณากรอกรหัสพนักงานและรหัสผ่านเพื่อใช้งานระบบ</p>
       <form class="login-form" onsubmit="handleLogin(event)">
         <label>รหัสพนักงาน</label>
-        <input type="password" class="login-input" id="login-id" placeholder="EMPLOYEE ID" required autofocus>
+        <input type="text" class="login-input" id="login-id" placeholder="EMPLOYEE ID" required autofocus>
+        <label>รหัสผ่าน</label>
+        <input type="password" class="login-input" id="login-password" placeholder="Password" required>
+        <div class="login-meta">
+          <span></span>
+          <span class="login-forgot" onclick="openForgotPassword()">ลืมรหัสผ่าน?</span>
+        </div>
         <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:14px">
           เข้าสู่ระบบ ➔
         </button>
       </form>
       <div id="login-error" style="color:var(--red); font-size:12px; margin-top:15px; display:none">
-        รหัสพนักงานไม่ถูกต้อง หรือไม่มีสิทธิ์เข้าใช้งาน
+        รหัสพนักงานหรือรหัสผ่านไม่ถูกต้อง หรือไม่มีสิทธิ์เข้าใช้งาน
+      </div>
+    </div>
+  </div>
+
+  <!-- Forgot Password Overlay -->
+  <div id="forgotOverlay" class="modal-overlay" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>ลืมรหัสผ่าน</h3>
+        <button class="modal-close" onclick="closeForgotPassword()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px; color:var(--txt3); margin-bottom:16px">
+          กรอกรหัสพนักงานและช่องทางติดต่อ ทีมผู้ดูแลระบบจะติดต่อกลับเพื่อดำเนินการรีเซ็ตรหัสผ่าน
+        </p>
+        <form onsubmit="submitForgotPassword(event)">
+          <label>รหัสพนักงาน</label>
+          <input type="text" class="login-input" id="fp-employee-id" placeholder="EMPLOYEE ID" required>
+          <label>ช่องทางติดต่อ (อีเมล / เบอร์โทร)</label>
+          <input type="text" class="login-input" id="fp-contact" placeholder="example@company.com หรือ 08x-xxx-xxxx" required>
+          <label>รายละเอียดเพิ่มเติม (ถ้ามี)</label>
+          <textarea id="fp-reason" style="width:100%; min-height:80px; padding:10px; border:1px solid var(--border); border-radius:var(--r-sm); font-size:13px; resize:vertical"></textarea>
+          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:10px; margin-top:10px">
+            ส่งคำขอรีเซ็ตรหัสผ่าน
+          </button>
+        </form>
       </div>
     </div>
   </div>
@@ -2611,6 +2658,10 @@
             <input class="form-control" id="u-name" placeholder="ชื่อภาษาไทย" required>
           </div>
           <div class="form-group" style="margin-top:10px">
+            <label>รหัสผ่านสำหรับเข้าใช้งาน <span class="required">*</span></label>
+            <input type="password" class="form-control" id="u-password" placeholder="กำหนดรหัสผ่านเริ่มต้น" required>
+          </div>
+          <div class="form-group" style="margin-top:10px">
             <label>สิทธิ์การใช้งาน <span class="required">*</span></label>
             <select class="form-control" id="u-role" onchange="toggleAreaSelect(this.value)" required>
               <option value="user">User</option>
@@ -3117,22 +3168,16 @@
 
   <script>
     /* ════════════════════════════════════════════════════════
+       CONFIG / FLAGS
+       หมายเหตุ: ตั้งค่า USE_MOCK = false สำหรับ production
+    ════════════════════════════════════════════════════════ */
+    const USE_MOCK = false;
+    const MOCK_USERS = {};
+    const MOCK_CASES = [];
+
+    /* ════════════════════════════════════════════════════════
        DATA STORE
     ════════════════════════════════════════════════════════ */
-    const USE_MOCK = false; // Set to false to use Firebase
-
-    const MOCK_CASES = [
-      { "id": 1, "status": "Done", "depStatus": "Wait Insp. SC", "demoStatus": "On Service", "owner": "เจษฎาภรณ์", "place": "เซ็นทรัลเวิลด์ พลาซา", "area": "BKK 4", "customer": "MUJI (จากชั้น B1 - ชั้น 4)", "deal": "62741", "project": "HRA025", "pr": "001", "dateReq": "2026-01-13", "dateDue": "2026-01-16", "dateAcc": "2026-01-19", "payType": "เช็ค", "complete": "Complete", "payTo": "บมจ.เซ็นทรัลพัฒนา", "expense": "ค่าธรรมเนียม,ค่าประกันรื้อถอน,ค่าประกันติดตั้ง", "deposit": 50000, "demolish": 10700, "fee": 29960, "other": 0, "total": 90660, "depReturn": "Yes", "demoReturn": "Yes", "contact": "Thitnapha Khengkhan (Bee)", "tel": "02-640-7000 Ext.1005", "mobile": "06 1941 6966", "remark": "", "tl_team": "BKK", "complete_tl": "On Process" },
-      { "id": 2, "status": "Done", "depStatus": "No", "demoStatus": "No", "owner": "ณัฐพงศ์", "place": "นิคมกบินทร์บุรี", "area": "CBI", "customer": "บริษัท โมโนสวิส (ประเทศไทย) จำกัด", "deal": "", "project": "HRA025", "pr": "", "dateReq": "2026-01-27", "dateDue": "2026-03-04", "payType": "", "complete": "Complete", "payTo": "บจ.เขตอุตสาหกรรมกบินทร์บุรี (สำนักงานใหญ่)", "deposit": 0, "demolish": 0, "fee": 1200, "other": 0, "total": 1200, "depReturn": "No", "demoReturn": "No", "contact": "WIPAWAN (AE) CHIMNGOEN", "tel": "037 204-337-42", "mobile": "08 6743 0643", "email": "cr@kabinburi.com", "tl_team": "UPC", "complete_tl": "Pending" },
-      { "id": 3, "status": "Done", "depStatus": "No", "demoStatus": "No", "owner": "ญาดา", "place": "เอส.พี. อาคาร (IBM)", "area": "BKK 2", "customer": "บริษัทหลักทรัพย์ หยวนต้า (ประเทศไทย) จำกัด ชั้น 8B", "deal": "59997", "project": "H59997", "pr": "004", "dateReq": "2026-01-30", "dateDue": "2026-02-04", "payType": "โอนเงิน", "complete": "Complete", "payTo": "บจ.เอส.พี.อาคาร", "deposit": 0, "demolish": 0, "fee": 11600, "other": 1500, "total": 13100, "depReturn": "No", "demoReturn": "No", "contact": "คุณปุ๊", "tel": "02-2730777", "mobile": "", "email": "spbuilding388@gmail.com", "tl_team": "BKK", "complete_tl": "On Process" }
-    ];
-
-    const MOCK_USERS = {
-      'A-เจษ': { id: 1, employee_id: 'A-เจษ', name: 'เจษฎาภรณ์', role: 'user', area: '' },
-      'A-ญาดา': { id: 2, employee_id: 'A-ญาดา', name: 'ญาดา', role: 'user', area: '' },
-      'TL-กลาง': { id: 3, employee_id: 'TL-กลาง', name: 'ทีมกลาง', role: 'tl', area: 'BKK 1, BKK 2, BKK 3, BKK 4' },
-      'MGR': { id: 4, employee_id: 'MGR', name: 'ผู้จัดการ', role: 'admin', area: '' }
-    };
 
     let DB = [];
     let USER_LIST = []; // Cached user list for role-based filtering
@@ -3611,8 +3656,6 @@
 
     // Real-time Listener
     function setupRealtime() {
-      if (USE_MOCK) return; // Skip in Mock Mode
-
       // Deposits real-time listener
       db.collection('deposits').onSnapshot(snapshot => {
         snapshot.docChanges().forEach(change => {
@@ -4077,29 +4120,21 @@
               continue;
             }
 
-            if (USE_MOCK) {
-              const mockUrl = `mock://uploads/${ff.folder}/${file.name}`;
-              fileUrls[ff.key] = mockUrl;
-              input.dataset.uploadedUrl = mockUrl;
+            toast(`กำลังอัปโหลด ${ff.key}...`, 'info');
+            const url = await uploadFile(file, ff.folder);
+            if (url) {
+              fileUrls[ff.key] = url;
+              input.dataset.uploadedUrl = url;
               input.dataset.uploadedKey = fileKey;
-              toast(`จำลองการอัปโหลด ${ff.key} สำเร็จ`, 'info');
-            } else {
-              toast(`กำลังอัปโหลด ${ff.key}...`, 'info');
-              const url = await uploadFile(file, ff.folder);
-              if (url) {
-                fileUrls[ff.key] = url;
-                input.dataset.uploadedUrl = url;
-                input.dataset.uploadedKey = fileKey;
 
-                // Queue old file for deletion if this is an update
-                if (oldData && oldData[ff.key]) {
-                  pendingCleanups.push(oldData[ff.key]);
-                }
-              } else {
-                btn.disabled = false;
-                btn.textContent = originalText;
-                return;
+              // Queue old file for deletion if this is an update
+              if (oldData && oldData[ff.key]) {
+                pendingCleanups.push(oldData[ff.key]);
               }
+            } else {
+              btn.disabled = false;
+              btn.textContent = originalText;
+              return;
             }
           }
         }
@@ -4234,25 +4269,12 @@
         }
 
         if (editingId) {
-          let updated;
-          if (USE_MOCK) {
-            const idx = DB.findIndex(x => x.id == editingId);
-            updated = { ...DB[idx], ...obj };
-            DB[idx] = updated;
-          } else {
-            updated = await updateDeposit(editingId, obj);
-            const idx = DB.findIndex(x => x.id == editingId);
-            DB[idx] = updated;
-          }
+          const updated = await updateDeposit(editingId, obj);
+          const idx = DB.findIndex(x => x.id == editingId);
+          DB[idx] = updated;
         } else {
-          let inserted;
-          if (USE_MOCK) {
-            inserted = { id: Date.now(), ...obj };
-            DB.unshift(inserted);
-          } else {
-            inserted = await insertDeposit(obj);
-            DB.unshift(inserted);
-          }
+          const inserted = await insertDeposit(obj);
+          DB.unshift(inserted);
           toast('เพิ่มรายการใหม่สำเร็จ ✓' + (depositVal === 0 ? ' (ระบบปิดงานอัตโนมัติเนื่องจากไม่มีเงินประกันติดตั้ง)' : ''), 'success');
           if (inserted && inserted.id) editingId = inserted.id; // Fix: Track the new ID for workflow continuity
         }
@@ -4260,10 +4282,8 @@
         // --- POST-SAVE SUCCESS CLEANUP ---
 
         // 1. Delete old files from storage (now that DB is pointing to new ones)
-        if (!USE_MOCK) {
-          for (const oldUrl of pendingCleanups) {
-            deleteFileFromUrl(oldUrl);
-          }
+        for (const oldUrl of pendingCleanups) {
+          deleteFileFromUrl(oldUrl);
         }
 
         // 2. Clear file inputs and session cache
@@ -4665,14 +4685,8 @@
 
       try {
         const updateObj = { status: 'On Process', complete_tl: 'On Process', log: d.log };
-        let updated;
-        if (USE_MOCK) {
-          updated = { ...d, ...updateObj };
-          const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
-        } else {
-          updated = await updateDeposit(id, updateObj);
-          const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
-        }
+        const updated = await updateDeposit(id, updateObj);
+        const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
         if (fromModal) openTLModal(id);
         else openDetail(id); // Reload view
         renderTable(); renderKPI();
@@ -5449,14 +5463,25 @@
     async function handleLogin(e) {
       if (e) e.preventDefault();
       const id = document.getElementById('login-id').value.trim();
+      const password = document.getElementById('login-password').value;
       const err = document.getElementById('login-error');
+      err.style.display = 'none';
 
       try {
+        if (!id || !password) {
+          err.textContent = 'กรุณากรอกรหัสพนักงานและรหัสผ่าน';
+          err.style.display = 'block';
+          return;
+        }
+
         let user;
         if (USE_MOCK) {
           user = MOCK_USERS[id];
+          if (user && user.password && user.password !== password) {
+            user = null;
+          }
         } else {
-          user = await validateUser(id);
+          user = await validateUserWithPassword(id, password);
         }
 
         if (user) {
@@ -5480,7 +5505,7 @@
 
           CURRENT_USER = user;
           setupUserSession();
-          toast(`ยินดีต้อนรับคุณ ${user.name} (Local Mode)`, 'success');
+          toast(`ยินดีต้อนรับคุณ ${user.name}`, 'success');
         } else {
           err.style.display = 'block';
         }
@@ -5574,6 +5599,34 @@
       location.reload();
     }
 
+    function openForgotPassword() {
+      const overlay = document.getElementById('forgotOverlay');
+      if (overlay) overlay.style.display = 'flex';
+    }
+
+    function closeForgotPassword() {
+      const overlay = document.getElementById('forgotOverlay');
+      if (overlay) overlay.style.display = 'none';
+    }
+
+    async function submitForgotPassword(e) {
+      if (e) e.preventDefault();
+      const empId = document.getElementById('fp-employee-id').value.trim();
+      const contact = document.getElementById('fp-contact').value.trim();
+      const reason = document.getElementById('fp-reason').value.trim();
+      if (!empId || !contact) {
+        toast('กรุณากรอกรหัสพนักงานและช่องทางติดต่อ', 'error');
+        return;
+      }
+      try {
+        await requestPasswordReset({ employee_id: empId, contact, reason });
+        toast('ส่งคำขอรีเซ็ตรหัสผ่านเรียบร้อย', 'success');
+        closeForgotPassword();
+      } catch (err) {
+        toast('ไม่สามารถส่งคำขอรีเซ็ตรหัสผ่านได้', 'error');
+      }
+    }
+
     async function checkSession() {
       if (USE_MOCK) {
         const session = sessionStorage.getItem('deposit_mock_session');
@@ -5647,6 +5700,8 @@
       document.getElementById('userModalTitle').textContent = 'เพิ่มผู้ใช้งานใหม่';
       document.getElementById('u-id').value = '';
       document.getElementById('u-name').value = '';
+      const pwdEl = document.getElementById('u-password');
+      if (pwdEl) pwdEl.value = '';
       document.getElementById('u-role').value = 'user';
       document.getElementById('u-area').value = '';
       document.getElementById('u-can-see-tl').checked = false;
@@ -5664,6 +5719,8 @@
       document.getElementById('userModalTitle').textContent = 'แก้ไขผู้ใช้งาน';
       document.getElementById('u-id').value = u.employee_id || '';
       document.getElementById('u-name').value = u.name || '';
+      const pwdEl = document.getElementById('u-password');
+      if (pwdEl) pwdEl.value = '';
       document.getElementById('u-role').value = u.role || 'user';
       document.getElementById('u-area').value = u.area || '';
       document.getElementById('u-can-see-tl').checked = !!u.can_see_tl;
@@ -5674,13 +5731,15 @@
 
     async function handleUserSubmit(e) {
       if (e) e.preventDefault();
+      const pwdEl = document.getElementById('u-password');
       const obj = {
         employee_id: document.getElementById('u-id').value.trim(),
         name: document.getElementById('u-name').value.trim(),
         role: document.getElementById('u-role').value,
         area: document.getElementById('u-area').value.trim(),
         can_see_tl: document.getElementById('u-can-see-tl').checked,
-        can_see_dashboard: document.getElementById('u-can-see-db').checked
+        can_see_dashboard: document.getElementById('u-can-see-db').checked,
+        password: pwdEl ? pwdEl.value : ''
       };
 
       try {
