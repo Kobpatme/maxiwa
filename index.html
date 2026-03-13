@@ -2075,7 +2075,7 @@
   </div>
 
   <!-- Forgot Password Overlay -->
-  <div id="forgotOverlay" class="overlay" style="display:none">
+  <div id="forgotOverlay" class="overlay">
     <div class="modal">
       <div class="modal-header">
         <h3>รีเซ็ตรหัสผ่านอัตโนมัติ</h3>
@@ -5705,11 +5705,15 @@
     function openAddUserModal() {
       editingUserId = null;
       document.getElementById('userModalTitle').textContent = 'เพิ่มผู้ใช้งานใหม่';
+      document.getElementById('u-password-label').innerHTML = 'รหัสผ่านสำหรับเข้าใช้งาน <span class="required">*</span>';
       document.getElementById('u-id').value = '';
       document.getElementById('u-name').value = '';
       document.getElementById('u-email').value = '';
       const pwdEl = document.getElementById('u-password');
-      if (pwdEl) pwdEl.value = '';
+      if (pwdEl) {
+        pwdEl.value = '';
+        pwdEl.setAttribute('required', 'required');
+      }
       document.getElementById('u-role').value = 'user';
       document.getElementById('u-area').value = '';
       document.getElementById('u-can-see-tl').checked = false;
@@ -5725,11 +5729,15 @@
 
       editingUserId = id;
       document.getElementById('userModalTitle').textContent = 'แก้ไขผู้ใช้งาน';
+      document.getElementById('u-password-label').innerHTML = 'รหัสผ่านใหม่ (ว่างไว้หากไม่ต้องการเปลี่ยน)';
       document.getElementById('u-id').value = u.employee_id || '';
       document.getElementById('u-name').value = u.name || '';
       document.getElementById('u-email').value = u.email || '';
       const pwdEl = document.getElementById('u-password');
-      if (pwdEl) pwdEl.value = '';
+      if (pwdEl) {
+        pwdEl.value = '';
+        pwdEl.removeAttribute('required');
+      }
       document.getElementById('u-role').value = u.role || 'user';
       document.getElementById('u-area').value = u.area || '';
       document.getElementById('u-can-see-tl').checked = !!u.can_see_tl;
@@ -5751,6 +5759,11 @@
         can_see_dashboard: document.getElementById('u-can-see-db').checked,
         password: pwdEl ? pwdEl.value : ''
       };
+
+      // หากเป็นการแก้ไขและรหัสผ่านว่าง ให้ลบฟิลด์ password ออกเพื่อไม่ให้ไปทับค่าเดิมใน Firestore
+      if (editingUserId && !obj.password) {
+        delete obj.password;
+      }
 
       try {
         if (editingUserId) {
