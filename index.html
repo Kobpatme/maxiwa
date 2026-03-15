@@ -4146,8 +4146,28 @@
             } else {
               btn.disabled = false;
               btn.textContent = originalText;
+              toast('อัปโหลดไฟล์ไม่สำเร็จ กรุณาลองใหม่หรือตรวจสอบการเชื่อมต่อ', 'error');
               return;
             }
+          }
+        }
+
+        // Step 3: ต้องมีหลักฐานการจ่ายและแบบ Drawing เมื่อมีเงินประกัน (ก่อนกดยืนยันขั้นตอนแนบหลักฐาน)
+        const depositValForCheck = +document.getElementById('f-deposit').value || 0;
+        const hasPayment = !!(fileUrls.pdf_payment || (oldData && oldData.pdf_payment));
+        const hasLayout = !!(fileUrls.pdf_layout || (oldData && oldData.pdf_layout));
+        if (currentStep === 3 && depositValForCheck > 0) {
+          if (!hasPayment) {
+            btn.disabled = false;
+            btn.textContent = originalText;
+            toast('กรุณาแนบหลักฐานการจ่ายเงิน (PDF) ก่อนยืนยัน', 'error');
+            return;
+          }
+          if (!hasLayout) {
+            btn.disabled = false;
+            btn.textContent = originalText;
+            toast('กรุณาแนบแบบ Drawing (PDF) ก่อนยืนยัน', 'error');
+            return;
           }
         }
 
@@ -5846,7 +5866,12 @@
           loadUserTable();
         }
       } catch (err) {
-        toast('เกิดข้อผิดพลาดในการโหลดข้อมูล', 'error');
+        console.error('initApp error:', err);
+        DB = [];
+        if (USER_LIST === undefined) USER_LIST = [];
+        toast('โหลดข้อมูลไม่สำเร็จ: ' + (err && err.message ? err.message : 'เกิดข้อผิดพลาด'), 'error');
+        renderKPI();
+        renderTable();
       }
     }
 

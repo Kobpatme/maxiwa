@@ -24,15 +24,20 @@ async function getDeposits() {
             };
         });
         
-        // Manual sort by id (descending) as a fallback
+        // Sort: numeric id descending; string id (doc id) by id_firestore for consistency
         return data.sort((a, b) => {
-            const idA = typeof a.id === 'number' ? a.id : 0;
-            const idB = typeof b.id === 'number' ? b.id : 0;
-            return idB - idA;
+            const aNum = typeof a.id === 'number' ? a.id : null;
+            const bNum = typeof b.id === 'number' ? b.id : null;
+            if (aNum != null && bNum != null) return bNum - aNum;
+            if (aNum != null) return -1;
+            if (bNum != null) return 1;
+            const aKey = a.id_firestore || String(a.id || '');
+            const bKey = b.id_firestore || String(b.id || '');
+            return bKey.localeCompare(aKey);
         });
     } catch (error) {
         console.error('Error fetching deposits:', error);
-        return [];
+        throw error;
     }
 }
 
@@ -60,10 +65,13 @@ async function updateDeposit(id, depositData) {
     if (!id) throw new Error('ID is required for updateDeposit');
     try {
         let docId = String(id);
-        if (typeof id === 'number' || !isNaN(id)) {
-            const snapshot = await db.collection('deposits').where('id', '==', Number(id)).limit(1).get();
+        if (typeof id === 'number' || (typeof id === 'string' && id !== '' && !isNaN(Number(id)))) {
+            const numId = typeof id === 'number' ? id : Number(id);
+            const snapshot = await db.collection('deposits').where('id', '==', numId).limit(1).get();
             if (!snapshot.empty) {
                 docId = snapshot.docs[0].id;
+            } else {
+                throw new Error('ไม่พบรายการที่ต้องการแก้ไข (ID ไม่ถูกต้องหรือถูกลบแล้ว)');
             }
         }
         
@@ -79,10 +87,13 @@ async function deleteDeposit(id) {
     if (!id) throw new Error('ID is required for deleteDeposit');
     try {
         let docId = String(id);
-        if (typeof id === 'number' || !isNaN(id)) {
-            const snapshot = await db.collection('deposits').where('id', '==', Number(id)).limit(1).get();
+        if (typeof id === 'number' || (typeof id === 'string' && id !== '' && !isNaN(Number(id)))) {
+            const numId = typeof id === 'number' ? id : Number(id);
+            const snapshot = await db.collection('deposits').where('id', '==', numId).limit(1).get();
             if (!snapshot.empty) {
                 docId = snapshot.docs[0].id;
+            } else {
+                throw new Error('ไม่พบรายการที่ต้องการลบ (ID ไม่ถูกต้องหรือถูกลบแล้ว)');
             }
         }
         await db.collection('deposits').doc(docId).delete();
