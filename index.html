@@ -4226,6 +4226,18 @@
           }
         }
 
+        // Step 6: ต้องมีหลักฐานการคืนเงินเมื่อตรวจรับโดย TL
+        const inspectedByCheck = getVal('f-inspected-by');
+        const hasFinalDoc = !!(fileUrls.pdf_user_final || (oldData && oldData.pdf_user_final));
+        if (currentStep === 6 && inspectedByCheck === 'TL') {
+          if (!hasFinalDoc) {
+            btn.disabled = false;
+            btn.textContent = originalText;
+            toast('กรุณาแนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF) ก่อนยืนยัน', 'error');
+            return;
+          }
+        }
+
         // Explicit Status Determination Logic
         const depositVal = +document.getElementById('f-deposit').value || 0;
         let finalStatus = oldData ? oldData.status : 'new';
@@ -4856,12 +4868,14 @@
 
       const inputId = fromModal ? 'f-pdf-tl-work-modal' : 'f-pdf-tl-work-detail';
       const input = document.getElementById(inputId);
-      if (!input || !input.files || input.files.length === 0) {
+      const hasFiles = input && input.files && input.files.length > 0;
+
+      if (inspectedBy === 'TL' && !hasFiles) {
         toast('กรุณาเลือกไฟล์ PDF หลักฐานงาน TL', 'error'); return;
       }
       if (!tlCompleteDate) { toast('กรุณาระบุวันที่ดำเนินการเสร็จสิ้น', 'error'); return; }
 
-      const files = Array.from(input.files);
+      const files = hasFiles ? Array.from(input.files) : [];
       btn.disabled = true; btn.textContent = '⌛ กำลังบันทึก...';
 
       try {
@@ -4878,8 +4892,14 @@
           if (fUrl) uploadedUrls.push(fUrl);
         }
 
-        if (uploadedUrls.length === 0) throw new Error('Upload failed');
-        const urlValue = uploadedUrls.length === 1 ? uploadedUrls[0] : uploadedUrls;
+        // Only throw error if we WERE supposed to have files but none uploaded successfully
+        if (hasFiles && uploadedUrls.length === 0) throw new Error('Upload failed');
+        
+        // If no NEW files uploaded, keep existing or set to empty
+        let urlValue = d.pdf_tl_work || '';
+        if (uploadedUrls.length > 0) {
+          urlValue = uploadedUrls.length === 1 ? uploadedUrls[0] : uploadedUrls;
+        }
 
         addLogEntry(d, 'TL ดำเนินการเสร็จสิ้นและแนบหลักฐาน', '🏁');
         const updateObj = {
