@@ -4226,14 +4226,13 @@
           }
         }
 
-        // Step 6: ต้องมีหลักฐานการคืนเงินเมื่อตรวจรับโดย TL
-        const inspectedByCheck = getVal('f-inspected-by');
+        // Step 6: ต้องมีหลักฐานการคืนเงินก่อนปิดงานเสมอ
         const hasFinalDoc = !!(fileUrls.pdf_user_final || (oldData && oldData.pdf_user_final));
-        if (currentStep === 6 && inspectedByCheck === 'TL') {
+        if (currentStep === 6) {
           if (!hasFinalDoc) {
             btn.disabled = false;
             btn.textContent = originalText;
-            toast('กรุณาแนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF) ก่อนยืนยัน', 'error');
+            toast('กรุณาแนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF) ก่อนยืนยันปิดงาน', 'error');
             return;
           }
         }
@@ -4291,7 +4290,7 @@
           finalStatus = 'clo';
         }
         const inspectedBy = getVal('f-inspected-by');
-        if (finalStatus === 'clo' && (fileUrls.pdf_user_final || oldData?.pdf_user_final || inspectedBy === 'Building Dept')) {
+        if (finalStatus === 'clo' && (fileUrls.pdf_user_final || oldData?.pdf_user_final)) {
           finalStatus = 'done';
         }
 
@@ -5982,14 +5981,9 @@
       initApp();
     }
     function toggleFinalFileUploadRequirement() {
-      const val = document.getElementById('f-inspected-by')?.value;
       const label = document.getElementById('final-upload-label');
       if (label) {
-        if (val === 'Building Dept') {
-          label.innerHTML = 'แนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF) <span style="color:var(--txt3); font-weight:400;">(ไม่บังคับ - กรณีฝ่ายอาคาร)</span>';
-        } else {
-          label.innerHTML = 'แนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF) <span class="required">*</span>';
-        }
+        label.innerHTML = 'แนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF) <span class="required">*</span>';
       }
     }
   </script>
