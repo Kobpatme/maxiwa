@@ -3444,7 +3444,7 @@
       const total = filteredData.length;
       const done = filteredData.filter(d => {
         const s = (d.status || '').trim().toLowerCase();
-        return s === 'done' || s === 'clo';
+        return s === 'done';
       }).length;
       const proc = filteredData.filter(d => d.status === 'On Process').length;
 
@@ -5253,17 +5253,17 @@
       const totalFee = myData.reduce((s, d) => s + parseFixed(d.fee), 0);
       const totalOther = myData.reduce((s, d) => s + parseFixed(d.other), 0);
 
-      // Installation Refund (strictly Done or Clo)
+      // Installation Refund (strictly Done)
       const installRefunded = myData.filter(d => {
         const s = (d.status || '').trim().toLowerCase();
-        return s === 'done' || s === 'clo';
+        return s === 'done';
       }).reduce((s, d) => s + parseFixed(d.deposit), 0);
       const installPending = totalInstall - installRefunded;
 
-      // Removal Refund (strictly Done or Clo)
+      // Removal Refund (strictly Done)
       const demoRefunded = myData.filter(d => {
         const s = (d.status || '').trim().toLowerCase();
-        return s === 'done' || s === 'clo';
+        return s === 'done';
       }).reduce((s, d) => s + parseFixed(d.demolish), 0);
       const demoPending = totalDemo - demoRefunded;
 
@@ -5324,7 +5324,7 @@
         if (date) {
           const m = new Date(date).getMonth();
           const s = (d.status || '').trim().toLowerCase();
-          const isDone = s === 'done' || s === 'clo';
+          const isDone = s === 'done';
           // Removed depReturn/demoReturn standalone checks for trend chart as well
 
           if (isDone) {
@@ -5372,10 +5372,10 @@
       const totalDemo = filteredDB.reduce((s, d) => s + parseFixed(d.demolish), 0);
       const totalInsuranceVal = totalInstall + totalDemo;
 
-      // 1. Installation Refund (strictly status === 'Done' OR status === 'clo')
+      // 1. Installation Refund (strictly status === 'Done')
       const installDoneItems = filteredDB.filter(d => {
         const s = (d.status || '').trim().toLowerCase();
-        return s === 'done' || s === 'clo';
+        return s === 'done';
       });
       const installRefunded = installDoneItems.reduce((s, d) => s + parseFixed(d.deposit), 0);
       const installPending = totalInstall - installRefunded;
@@ -5383,15 +5383,14 @@
       const installPendingCount = filteredDB.filter(d => {
         if (parseFixed(d.deposit) <= 0) return false;
         const s = (d.status || '').trim().toLowerCase();
-        const isDone = s === 'done' || s === 'clo';
+        const isDone = s === 'done';
         const isReturned = (d.depReturn || '').trim().toLowerCase() === 'yes';
         return !(isDone || isReturned);
       }).length;
 
-      // 2. Removal Refund (strictly Done or Clo)
       const demoDoneItems = filteredDB.filter(d => {
         const s = (d.status || '').trim().toLowerCase();
-        return s === 'done' || s === 'clo';
+        return s === 'done';
       });
       const demoRefunded = demoDoneItems.reduce((s, d) => s + parseFixed(d.demolish), 0);
       const demoPending = totalDemo - demoRefunded;
