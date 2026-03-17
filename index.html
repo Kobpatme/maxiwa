@@ -3199,6 +3199,17 @@
     let filterArea = '';
     let searchQ = '';
     let tlSearchQ = '';
+    let isDirty = false;
+
+    function setDirty(val) {
+      isDirty = val;
+      // Optional: Visual indicator (e.g. asterisks in title or tab)
+      if (val) {
+        if (!document.title.startsWith('* ')) document.title = '* ' + document.title;
+      } else {
+        if (document.title.startsWith('* ')) document.title = document.title.substring(2);
+      }
+    }
 
     const AREA_TL_MAP = {
       'BKK 1': 'BKK', 'BKK 2': 'BKK', 'BKK 3': 'BKK', 'BKK 4': 'BKK',
@@ -3866,7 +3877,15 @@
 
     /* ════════ MODAL HELPERS ════════ */
     function openModal(id) { document.getElementById(id).classList.add('open') }
-    function closeModal(id) { document.getElementById(id).classList.remove('open') }
+    function closeModal(id) {
+      if (id === 'formOverlay' && isDirty) {
+        if (!confirm('คุณมีการแก้ไขที่ยังไม่ได้บันทึก ต้องการปิดและละทิ้งการแก้ไขใช่หรือไม่?')) {
+          return;
+        }
+      }
+      document.getElementById(id).classList.remove('open');
+      if (id === 'formOverlay') setDirty(false);
+    }
 
     document.querySelectorAll('.overlay').forEach(o => {
       o.addEventListener('click', e => { if (e.target === o) closeModal(o.id) });
@@ -3886,6 +3905,7 @@
         if (ownerDisp) ownerDisp.textContent = CURRENT_USER.name;
       }
       openModal('formOverlay');
+      setDirty(false);
     }
 
     function openEdit(id, targetStep = 1) {
@@ -3900,6 +3920,7 @@
       document.getElementById('formSubmitBtn').textContent = '✅ ยืนยัน';
       fillForm(d, targetStep);
       openModal('formOverlay');
+      setDirty(false);
     }
 
     function clearForm() {
@@ -3938,6 +3959,7 @@
       if (log) log.style.display = 'none';
 
       goToStep(1);
+      setDirty(false);
     }
 
     function fillForm(d, targetStep = 1) {
@@ -4399,12 +4421,14 @@
         });
 
         if (currentStep < 6) {
+          setDirty(false);
           goToStep(currentStep + 1);
           renderTable(); renderKPI();
           renderExecutiveDashboard();
           renderMyDashboard();
         } else {
           closeModal('formOverlay');
+          setDirty(false);
           renderTable(); renderKPI();
           renderExecutiveDashboard();
           renderMyDashboard();
@@ -5985,6 +6009,20 @@
         label.innerHTML = 'แนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF) <span class="required">*</span>';
       }
     }
+    // Track unsaved changes in form
+    document.getElementById('formOverlay').addEventListener('input', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+        setDirty(true);
+      }
+    });
+
+    // Browser warning for unsaved changes
+    window.onbeforeunload = function (e) {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = ''; // Trigger browser prompt
+      }
+    };
   </script>
 </body>
 
