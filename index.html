@@ -2892,9 +2892,9 @@
                 <div class="file-upload-box">
                   <div class="file-upload-icon">📄</div>
                   <div class="file-upload-text">คลิกหรือลากไฟล์ PDF มาวางที่นี่</div>
-                  <input type="file" id="f-pdf-payment" accept=".pdf" onchange="handleFileSelect(this)">
+                  <input type="file" id="f-pdf-payment" accept=".pdf" onchange="handleFileSelect(this)" multiple>
                   <div class="file-upload-name" id="f-pdf-payment-name"></div>
-                  <a id="f-pdf-payment-link" class="file-link" target="_blank" style="display:none">ดูไฟล์ปัจจุบัน</a>
+                  <div id="f-pdf-payment-links" class="file-links-container" style="display:none"></div>
                 </div>
               </div>
               <div class="form-group">
@@ -2902,9 +2902,9 @@
                 <div class="file-upload-box">
                   <div class="file-upload-icon">📐</div>
                   <div class="file-upload-text">คลิกหรือลากไฟล์ PDF มาวางที่นี่</div>
-                  <input type="file" id="f-pdf-layout" accept=".pdf" onchange="handleFileSelect(this)">
+                  <input type="file" id="f-pdf-layout" accept=".pdf" onchange="handleFileSelect(this)" multiple>
                   <div class="file-upload-name" id="f-pdf-layout-name"></div>
-                  <a id="f-pdf-layout-link" class="file-link" target="_blank" style="display:none">ดูไฟล์ปัจจุบัน</a>
+                  <div id="f-pdf-layout-links" class="file-links-container" style="display:none"></div>
                 </div>
               </div>
               <div class="form-group">
@@ -2912,10 +2912,9 @@
                 <div class="file-upload-box">
                   <div class="file-upload-icon">📁</div>
                   <div class="file-upload-text">คลิกหรือลากไฟล์ PDF มาวางที่นี่</div>
-                  <input type="file" id="f-pdf-additional" accept=".pdf" onchange="handleFileSelect(this)">
+                  <input type="file" id="f-pdf-additional" accept=".pdf" onchange="handleFileSelect(this)" multiple>
                   <div class="file-upload-name" id="f-pdf-additional-name"></div>
-                  <a id="f-pdf-additional-link" class="file-link" target="_blank"
-                    style="display:none">ดูไฟล์ปัจจุบัน</a>
+                  <div id="f-pdf-additional-links" class="file-links-container" style="display:none"></div>
                 </div>
               </div>
             </div>
@@ -3033,9 +3032,9 @@
                 <div class="file-upload-icon">🏁</div>
                 <div class="file-upload-text" id="final-upload-label">แนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF) <span
                     class="required">*</span></div>
-                <input type="file" id="f-pdf-user-final" accept=".pdf" onchange="handleFileSelect(this)">
-                <div class="file-upload-name" id="f-pdf-user-final-name"></div>
-                <a id="f-pdf-user-final-link" class="file-link" target="_blank" style="display:none">ดูไฟล์ปัจจุบัน</a>
+                  <input type="file" id="f-pdf-user-final" accept=".pdf" onchange="handleFileSelect(this)" multiple>
+                  <div class="file-upload-name" id="f-pdf-user-final-name"></div>
+                  <div id="f-pdf-user-final-links" class="file-links-container" style="display:none"></div>
               </div>
             </div>
           </div>
@@ -3419,10 +3418,14 @@
     function prevStep() { if (currentStep > 1) goToStep(currentStep - 1); }
 
     function handleFileSelect(input) {
-      const file = input.files[0];
+      const files = input.files;
       const nameEl = document.getElementById(input.id + '-name');
-      if (file && nameEl) {
-        nameEl.textContent = '📄 ' + file.name + ' (รออัปโหลด)';
+      if (files.length > 0 && nameEl) {
+        if (files.length === 1) {
+          nameEl.textContent = '📄 ' + files[0].name + ' (รออัปโหลด)';
+        } else {
+          nameEl.textContent = '📄 เลือกแล้ว ' + files.length + ' ไฟล์ (รออัปโหลด)';
+        }
         nameEl.style.color = 'var(--blue)';
       }
     }
@@ -3968,9 +3971,20 @@
       if (tlDisp) tlDisp.textContent = d.tl_team === 'BKK' ? 'BKK Team' : d.tl_team === 'UPC' ? 'UPC Team' : '—';
 
       // Clear all file inputs to prevent re-uploading on next save
-      ['f-pdf-payment', 'f-pdf-layout', 'f-pdf-tl-work', 'f-pdf-user-final'].forEach(id => {
+      ['f-pdf-payment', 'f-pdf-layout', 'f-pdf-additional', 'f-pdf-user-final'].forEach(id => {
         const input = document.getElementById(id);
-        if (input) input.value = '';
+        if (input) {
+          input.value = '';
+          const nameEl = document.getElementById(id + '-name');
+          if (nameEl) nameEl.textContent = '';
+          
+          const linksId = id.replace(/-link$/, '') + '-links';
+          const container = document.getElementById(linksId);
+          if (container) {
+            container.innerHTML = '';
+            container.style.display = 'none';
+          }
+        }
       });
 
       // Update Step 5 Message
@@ -4060,16 +4074,46 @@
 
       // PDF Links
       ['pdf_payment', 'pdf_layout', 'pdf_additional', 'pdf_tl_work', 'pdf_user_final'].forEach(key => {
-        const url = d[key];
+        const val = d[key];
         const id = key.replace(/_/g, '-');
-        const linkEl = document.getElementById('f-' + id + '-link');
+        const container = document.getElementById('f-' + id + '-links');
         const nameEl = document.getElementById('f-' + id + '-name');
-        if (url && linkEl) {
-          linkEl.href = url;
-          linkEl.style.display = 'block';
-          if (nameEl) { nameEl.textContent = '📄 มีไฟล์แนบแล้ว'; nameEl.style.color = 'var(--green)'; }
-        } else if (linkEl) {
-          linkEl.style.display = 'none';
+        
+        if (container) {
+          container.innerHTML = ''; // Clear previous links
+          if (val) {
+            const urls = Array.isArray(val) ? val : [val];
+            urls.forEach((url, idx) => {
+              const a = document.createElement('a');
+              a.href = url;
+              a.target = '_blank';
+              a.className = 'file-link';
+              a.style.display = 'block';
+              a.style.marginBottom = '4px';
+              a.textContent = urls.length === 1 ? 'ดูไฟล์ปัจจุบัน' : `ดูไฟล์ที่ ${idx + 1}`;
+              container.appendChild(a);
+            });
+            container.style.display = 'block';
+            if (nameEl) { 
+              nameEl.textContent = '📄 มีไฟล์แนบแล้ว (' + urls.length + ' ไฟล์)'; 
+              nameEl.style.color = 'var(--green)'; 
+            }
+          } else {
+            container.style.display = 'none';
+            if (nameEl) {
+              nameEl.textContent = '';
+            }
+          }
+        } else {
+          // Fallback for fields that still use single link element
+          const linkEl = document.getElementById('f-' + id + '-link');
+          if (val && linkEl) {
+            linkEl.href = val;
+            linkEl.style.display = 'block';
+            if (nameEl) { nameEl.textContent = '📄 มีไฟล์แนบแล้ว'; nameEl.style.color = 'var(--green)'; }
+          } else if (linkEl) {
+            linkEl.style.display = 'none';
+          }
         }
       });
 
@@ -4121,33 +4165,44 @@
 
         for (const ff of fileFields) {
           const input = document.getElementById(ff.id);
-          // Only upload if a NEW file is selected
-          if (input && input.files && input.files[0] && input.value !== '') {
-            const file = input.files[0];
-            const fileKey = file.name + file.size;
+          // Only upload if NEW file(s) selected
+          if (input && input.files && input.files.length > 0 && input.value !== '') {
+            const files = Array.from(input.files);
+            const fileKeys = files.map(f => f.name + f.size).join('|');
 
-            // Session Cache: Avoid re-uploading if same file was uploaded in this session (e.g. after error)
-            if (input.dataset.uploadedUrl && input.dataset.uploadedKey === fileKey) {
-              fileUrls[ff.key] = input.dataset.uploadedUrl;
+            // Session Cache: Avoid re-uploading if same set of files was uploaded in this session
+            if (input.dataset.uploadedUrl && input.dataset.uploadedKey === fileKeys) {
+              const cachedUrls = JSON.parse(input.dataset.uploadedUrl);
+              fileUrls[ff.key] = cachedUrls.length === 1 ? cachedUrls[0] : cachedUrls;
               continue;
             }
 
-            toast(`กำลังอัปโหลด ${ff.key}...`, 'info');
-            const url = await uploadFile(file, ff.folder);
-            if (url) {
-              fileUrls[ff.key] = url;
-              input.dataset.uploadedUrl = url;
-              input.dataset.uploadedKey = fileKey;
-
-              // Queue old file for deletion if this is an update
-              if (oldData && oldData[ff.key]) {
-                pendingCleanups.push(oldData[ff.key]);
+            const uploadedUrls = [];
+            for (let i = 0; i < files.length; i++) {
+              const file = files[i];
+              toast(`กำลังอัปโหลด ${ff.key} (${i + 1}/${files.length})...`, 'info');
+              const url = await uploadFile(file, ff.folder);
+              if (url) {
+                uploadedUrls.push(url);
+              } else {
+                btn.disabled = false;
+                btn.textContent = originalText;
+                toast(`อัปโหลดไฟล์ ${file.name} ไม่สำเร็จ`, 'error');
+                return;
               }
-            } else {
-              btn.disabled = false;
-              btn.textContent = originalText;
-              toast('อัปโหลดไฟล์ไม่สำเร็จ กรุณาลองใหม่หรือตรวจสอบการเชื่อมต่อ', 'error');
-              return;
+            }
+
+            if (uploadedUrls.length > 0) {
+              // Store as single string if only one file, else array
+              fileUrls[ff.key] = uploadedUrls.length === 1 ? uploadedUrls[0] : uploadedUrls;
+              input.dataset.uploadedUrl = JSON.stringify(uploadedUrls);
+              input.dataset.uploadedKey = fileKeys;
+
+              // Queue old file(s) for deletion if this is an update
+              if (oldData && oldData[ff.key]) {
+                const oldUrls = Array.isArray(oldData[ff.key]) ? oldData[ff.key] : [oldData[ff.key]];
+                pendingCleanups.push(...oldUrls);
+              }
             }
           }
         }
@@ -4427,15 +4482,19 @@
         { label: 'หลักฐานงาน TL', key: 'pdf_tl_work' },
         { label: 'เอกสารปิดงาน', key: 'pdf_user_final' },
         { label: 'หลักฐาน Off Service', key: 'pdf_demo_off' }
-      ].filter(f => d[f.key]).map(f => `
-      <a href="${d[f.key]}" target="_blank" class="detail-row" style="text-decoration:none; display:flex; align-items:center; gap:8px; background:var(--blue-l); border:1px solid var(--blue-m); padding:8px 12px; border-radius:var(--r-sm)">
-        <span style="font-size:18px">📄</span>
-        <div style="flex:1">
-          <div style="font-size:11px; color:var(--blue); font-weight:700; text-transform:uppercase">${f.label}</div>
-          <div style="font-size:12px; color:var(--txt)">คลิกเพื่อดู PDF</div>
-        </div>
-      </a>
-    `).join('');
+      ].filter(f => d[f.key]).map(f => {
+        const val = d[f.key];
+        const urls = Array.isArray(val) ? val : [val];
+        return urls.map((url, idx) => `
+          <a href="${url}" target="_blank" class="detail-row" style="text-decoration:none; display:flex; align-items:center; gap:8px; background:var(--blue-l); border:1px solid var(--blue-m); padding:8px 12px; border-radius:var(--r-sm)">
+            <span style="font-size:18px">📄</span>
+            <div style="flex:1">
+              <div style="font-size:11px; color:var(--blue); font-weight:700; text-transform:uppercase">${f.label} ${urls.length > 1 ? '#' + (idx + 1) : ''}</div>
+              <div style="font-size:12px; color:var(--txt)">คลิกเพื่อดู PDF</div>
+            </div>
+          </a>
+        `).join('');
+      }).join('');
 
       const filesHTML = fileRows ? `
       <div style="margin-top:20px">
@@ -4461,7 +4520,7 @@
               <button id="finish-btn-tl" class="btn btn-violet" style="width:100%; height:54px; font-size:18px; font-weight:700;" onclick="showUploadTL()">🏁 งานหน้างานเสร็จสิ้น</button>
               <div id="tl-upload-ui" style="display:none; margin-top:20px; padding:20px; background:var(--blue-l); border-radius:var(--r-md); border:1px solid var(--blue);">
                  <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">📤 แนบหลักฐาน PDF (บังคับ)</div>
-                 <input type="file" id="f-pdf-tl-work-detail" accept=".pdf" class="form-control" style="margin-bottom:15px; background:var(--white);">
+                 <input type="file" id="f-pdf-tl-work-detail" accept=".pdf" class="form-control" multiple style="margin-bottom:15px; background:var(--white);">
                  <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveTLWorkDetail('${d.id}')">✅ บันทึกและส่งต่องาน</button>
               </div>
             </div>
@@ -4691,7 +4750,7 @@
         uploadUI.style.border = '1px solid var(--blue)';
         uploadUI.innerHTML = `
              <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">📤 แนบหลักฐาน PDF (บังคับ)</div>
-             <input type="file" id="f-pdf-tl-work-modal" accept=".pdf" class="form-control" style="margin-bottom:15px; background:var(--white);">
+             <input type="file" id="f-pdf-tl-work-modal" accept=".pdf" class="form-control" multiple style="margin-bottom:15px; background:var(--white);">
              <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveTLWorkDetail('${d.id}', true)">✅ บันทึกและส่งต่องาน</button>
         `;
         body.appendChild(uploadUI);
@@ -4793,48 +4852,54 @@
 
       const inputId = fromModal ? 'f-pdf-tl-work-modal' : 'f-pdf-tl-work-detail';
       const input = document.getElementById(inputId);
-      if (!input || !input.files[0]) {
+      if (!input || !input.files || input.files.length === 0) {
         toast('กรุณาเลือกไฟล์ PDF หลักฐานงาน TL', 'error'); return;
       }
       if (!tlCompleteDate) { toast('กรุณาระบุวันที่ดำเนินการเสร็จสิ้น', 'error'); return; }
 
-      const file = input.files[0];
+      const files = Array.from(input.files);
       btn.disabled = true; btn.textContent = '⌛ กำลังบันทึก...';
 
       try {
-        let url = '';
-        if (USE_MOCK) {
-          url = `mock://uploads/tl_works/${file.name}`;
-          toast('จำลองการอัปโหลดไฟล์สำเร็จ', 'info');
-        } else {
-          url = await uploadFile(file, 'tl_works');
-        }
-
-        if (url) {
-          addLogEntry(d, 'TL ดำเนินการเสร็จสิ้นและแนบหลักฐาน', '🏁');
-          const updateObj = {
-            status: 'ret',
-            pdf_tl_work: url,
-            tl_complete_date: tlCompleteDate,
-            inspected_by: inspectedBy,
-            log: d.log
-          };
-
-          let updated;
+        const uploadedUrls = [];
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          toast(`กำลังอัปโหลดหลักฐาน (${i + 1}/${files.length})...`, 'info');
+          let fUrl = '';
           if (USE_MOCK) {
-            updated = { ...d, ...updateObj };
-            const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+            fUrl = `mock://uploads/tl_works/${file.name}`;
           } else {
-            updated = await updateDeposit(id, updateObj);
-            const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+            fUrl = await uploadFile(file, 'tl_works');
           }
-
-          if (fromModal) openTLModal(id);
-          else openDetail(id);
-          renderTable(); renderKPI();
-          renderTLTasksPage(); // Fix: Re-render TL View immediately
-          toast('บันทึกสำเร็จและส่งต่องานแล้ว ✓', 'success');
+          if (fUrl) uploadedUrls.push(fUrl);
         }
+
+        if (uploadedUrls.length === 0) throw new Error('Upload failed');
+        const urlValue = uploadedUrls.length === 1 ? uploadedUrls[0] : uploadedUrls;
+
+        addLogEntry(d, 'TL ดำเนินการเสร็จสิ้นและแนบหลักฐาน', '🏁');
+        const updateObj = {
+          status: 'ret',
+          pdf_tl_work: urlValue,
+          tl_complete_date: tlCompleteDate,
+          inspected_by: inspectedBy,
+          log: d.log
+        };
+
+        let updated;
+        if (USE_MOCK) {
+          updated = { ...d, ...updateObj };
+          const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+        } else {
+          updated = await updateDeposit(id, updateObj);
+          const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+        }
+
+        if (fromModal) openTLModal(id);
+        else openDetail(id);
+        renderTable(); renderKPI();
+        renderTLTasksPage(); // Fix: Re-render TL View immediately
+        toast('บันทึกสำเร็จและส่งต่องานแล้ว ✓', 'success');
       } catch (err) {
         console.error(err);
         toast('บันทึกผิดพลาด: ' + err.message, 'error');
