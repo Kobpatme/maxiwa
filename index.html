@@ -2556,9 +2556,43 @@
               <span id="tlTaskCount" style="font-size:13px; color:var(--txt3)"></span>
             </div>
             <div style="padding:0 20px 15px">
-              <div class="search-wrap">
-                <span class="search-icon">🔍</span>
-                <input type="text" placeholder="ค้นหา CID, อาคาร, ลูกค้า..." id="tlSearchInput" oninput="applyTLSearch()">
+              <!-- TL Filter Bar -->
+              <div class="filter-bar" style="margin-bottom:15px">
+                <div class="search-wrap">
+                  <span class="search-icon">🔍</span>
+                  <input type="text" placeholder="ค้นหา CID, อาคาร, ลูกค้า..." id="tlSearchInput" oninput="applyTLSearch()">
+                </div>
+                <div class="pill-group" id="tlStatusPills">
+                  <span class="pill active" data-val="" onclick="setTLStatusFilter('')">ทั้งหมด</span>
+                  <span class="pill o" data-val="tl" onclick="setTLStatusFilter('tl')">⏳ รอ TL รับงาน</span>
+                  <span class="pill b" data-val="On Process" onclick="setTLStatusFilter('On Process')">🚧 กำลังดำเนินการ</span>
+                  <span class="pill g" data-val="Done" onclick="setTLStatusFilter('Done')">✓ เสร็จแล้ว</span>
+                </div>
+                <div style="display:flex; gap:8px; align-items:center">
+                  <select id="tl-export-month" class="form-control" style="width:100px; height:32px; font-size:12px">
+                    <option value="">ทุกเดือน</option>
+                    <option value="0">ม.ค.</option>
+                    <option value="1">ก.พ.</option>
+                    <option value="2">มี.ค.</option>
+                    <option value="3">เม.ย.</option>
+                    <option value="4">พ.ค.</option>
+                    <option value="5">มิ.ย.</option>
+                    <option value="6">ก.ค.</option>
+                    <option value="7">ส.ค.</option>
+                    <option value="8">ก.ย.</option>
+                    <option value="9">ต.ค.</option>
+                    <option value="10">พ.ย.</option>
+                    <option value="11">ธ.ค.</option>
+                  </select>
+                  <select id="tl-export-year" class="form-control" style="width:80px; height:32px; font-size:12px">
+                    <option value="">ทุกปี</option>
+                    <option>2024</option>
+                    <option>2025</option>
+                    <option selected>2026</option>
+                    <option>2027</option>
+                  </select>
+                  <button class="btn btn-ghost btn-sm" id="tl-export-btn" onclick="exportTLCSV()" style="height:32px">⬇ Export CSV</button>
+                </div>
               </div>
             </div>
             <div class="table-wrap">
@@ -2572,6 +2606,7 @@
                     <th>TL รับงาน</th>
                     <th>หลักฐาน TL</th>
                     <th>ขั้นตอน</th>
+                    <th>การดำเนินการ</th>
                   </tr>
                 </thead>
                 <tbody id="tl-task-tbody"></tbody>
@@ -3199,6 +3234,7 @@
     let filterArea = '';
     let searchQ = '';
     let tlSearchQ = '';
+    let tlStatusFilter = '';
     let isDirty = false;
 
     function setDirty(val) {
@@ -3854,6 +3890,13 @@
       document.getElementById('ownerFilter').value = '';
       filterOwner = '';
       applyFilters();
+    }
+    function setTLStatusFilter(v) {
+      tlStatusFilter = v;
+      document.querySelectorAll('#tlStatusPills .pill').forEach(p => {
+        p.classList.toggle('active', p.dataset.val === v);
+      });
+      applyTLSearch();
     }
     function setOwnerFilter(v) {
       filterOwner = v;
@@ -5032,6 +5075,63 @@
       toast('Export CSV สำเร็จ ✓' + (filtered.length < DB.length ? ` (กรองข้อมูล ${filtered.length} รายการ)` : ''), 'success');
     }
 
+    function exportTLCSV() {
+      const month = document.getElementById('tl-export-month').value;
+      const year = document.getElementById('tl-export-year').value;
+
+      // Start with TL-filtered data (same as renderTLTasksPage)
+      let filtered = DB;
+      if (CURRENT_USER && CURRENT_USER.role === 'admin') {
+        filtered = DB;
+      } else if (CURRENT_USER && CURRENT_USER.role === 'tl' && CURRENT_USER.area) {
+        const allowedAreas = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
+        filtered = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
+      }
+
+      // Filter for TL tasks
+      filtered = filtered.filter(d => {
+        const s = (d.status || '').toLowerCase();
+        const matchesStatus = ['tl', 'on process', 'done', 'clo'].includes(s) ||
+          d.complete_tl === 'On Process' ||
+          d.pdf_tl_work;
+        return matchesStatus;
+      });
+
+      // Apply status filter
+      if (tlStatusFilter) {
+        filtered = filtered.filter(d => {
+          if (tlStatusFilter === 'tl') return d.status === 'tl' && d.complete_tl !== 'On Process';
+          if (tlStatusFilter === 'On Process') return d.complete_tl === 'On Process';
+          if (tlStatusFilter === 'Done') return d.status === 'Done' || d.status === 'done';
+          return true;
+        });
+      }
+
+      // Apply month/year filter
+      if (month !== '') {
+        filtered = filtered.filter(d => d.dateReq && new Date(d.dateReq).getMonth() == month);
+      }
+      if (year !== '') {
+        filtered = filtered.filter(d => d.dateReq && new Date(d.dateReq).getFullYear() == year);
+      }
+
+      const headers = ['ID', 'สถานะ', 'อาคาร', 'ลูกค้า', 'พื้นที่', 'CID', 'TL รับงาน', 'หลักฐาน TL', 'วันตั้งเบิก', 'ยอดรวม', 'ประกันติดตั้ง', 'ประกันรื้อถอน'];
+      const rows = filtered.map(d => [
+        d.id, d.status, d.place, d.customer, d.area, d.cid,
+        d.complete_tl === 'On Process' ? 'รับแล้ว' : 'ยังไม่รับ',
+        d.pdf_tl_work ? 'มี' : 'ไม่มี',
+        d.dateReq, d.total, d.deposit, d.demolish
+      ]);
+      const csv = [headers, ...rows].map(r => r.map(v => `"${v || ''}"`).join(',')).join('\n');
+      const a = document.createElement('a');
+      a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
+      const statusLabel = tlStatusFilter ? `_${tlStatusFilter}` : '';
+      const filterLabel = (month !== '' ? `_M${parseInt(month) + 1}` : '') + (year !== '' ? `_${year}` : '') + statusLabel;
+      a.download = 'tl_tasks_report' + filterLabel + '_' + new Date().toISOString().split('T')[0] + '.csv';
+      a.click();
+      toast('Export CSV สำเร็จ ✓' + (filtered.length < DB.length ? ` (กรองข้อมูล ${filtered.length} รายการ)` : ''), 'success');
+    }
+
     async function sendBackToTL(id) {
       if (!id) return;
       const reason = prompt('ระบุเหตุผลในการส่งกลับแก้ไข:');
@@ -5061,6 +5161,39 @@
         closeModal('detailOverlay');
         renderTable(); renderKPI();
         toast('ส่งกลับให้ TL แก้ไขเรียบร้อยแล้ว', 'success');
+      } catch (err) {
+        toast('ผิดพลาด: ' + err.message, 'error');
+      }
+    }
+
+    async function sendBackBeforeAccept(id) {
+      if (!id) return;
+      const reason = prompt('ระบุเหตุผลในการส่งกลับก่อนรับงาน (ข้อมูลไม่ครบ):');
+      if (reason === null) return;
+      if (!reason.trim()) { toast('กรุณาระบุเหตุผล', 'error'); return; }
+
+      try {
+        const d = DB.find(x => x.id === id);
+        if (!d) return;
+
+        addLogEntry(d, `ส่งกลับก่อนรับงานโดย TL: ${reason}`, '🔙');
+        const updateObj = {
+          status: 'att', // กลับไปขั้นตอนแนบหลักฐาน
+          complete_tl: 'Pending',
+          tl_team: '', // ล้างข้อมูล TL ที่เคยเลือก
+          log: d.log
+        };
+
+        let updated;
+        if (USE_MOCK) {
+          updated = { ...d, ...updateObj };
+          const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+        } else {
+          updated = await updateDeposit(id, updateObj);
+          const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+        }
+        renderTLTasksPage();
+        toast('ส่งกลับก่อนรับงานเรียบร้อยแล้ว', 'success');
       } catch (err) {
         toast('ผิดพลาด: ' + err.message, 'error');
       }
@@ -5120,7 +5253,7 @@
       }
 
       // Show all tasks that are at the TL step, processed by TL, OR are marked as "Done" (ปิดงาน)
-      const tlData = filteredData.filter(d => {
+      let tlData = filteredData.filter(d => {
         const s = (d.status || '').toLowerCase();
         const matchesStatus = ['tl', 'on process', 'done', 'clo'].includes(s) ||
           d.complete_tl === 'On Process' ||
@@ -5129,6 +5262,16 @@
         const mq = !tlSearchQ || [d.place, d.customer, d.cid, d.pr].join(' ').toLowerCase().includes(tlSearchQ);
         return matchesStatus && mq;
       });
+
+      // Apply status filter
+      if (tlStatusFilter) {
+        tlData = tlData.filter(d => {
+          if (tlStatusFilter === 'tl') return d.status === 'tl' && d.complete_tl !== 'On Process';
+          if (tlStatusFilter === 'On Process') return d.complete_tl === 'On Process';
+          if (tlStatusFilter === 'Done') return d.status === 'Done' || d.status === 'done';
+          return true;
+        });
+      }
 
       document.getElementById('tlTaskCount').textContent = tlData.length + ' รายการ';
       const empty = document.getElementById('tlEmptyState');
@@ -5166,6 +5309,11 @@
           <td class="nowrap">${d.complete_tl === 'On Process' ? '<span class="badge b-orange">รับแล้ว</span>' : '<span style="color:var(--txt3)">ยังไม่รับ</span>'}</td>
           <td class="nowrap">${d.pdf_tl_work ? '<a href="' + d.pdf_tl_work + '" target="_blank" onclick="event.stopPropagation()" class="badge b-done" style="text-decoration:none">📄 ดู PDF</a>' : '<span style="color:var(--txt3)">—</span>'}</td>
           <td class="nowrap">${stepLabel(d)}</td>
+          <td class="nowrap">
+            <div class="actions">
+              ${d.status === 'tl' && d.complete_tl !== 'On Process' ? `<button class="act-btn delete" onclick="event.stopPropagation(); sendBackBeforeAccept('${d.id}')" title="ส่งกลับก่อนรับงาน">↩️</button>` : ''}
+            </div>
+          </td>
         </tr>
       `}).join('');
     }
