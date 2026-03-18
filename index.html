@@ -4677,6 +4677,8 @@
       if ((+d.deposit || 0) > 0) helpMsg.push('<span style="color:#065f46; font-weight:700;">💰 มีเงินประกันติดตั้ง (฿' + (+d.deposit).toLocaleString() + ')</span>');
       if ((+d.demolish || 0) > 0) helpMsg.push('<span style="color:#065f46; font-weight:700;">💰 มีเงินประกันรื้อถอน (฿' + (+d.demolish).toLocaleString() + ')</span>');
 
+      const progressHTML = `<div class="progress-track"><div class="progress-steps-new" id="tlProgress"></div></div>`;
+
       const insuranceHTML = `
         <div style="padding:18px; background:linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border:2px solid #10b981; border-radius:var(--r-lg); margin-bottom:24px; box-shadow:0 4px 15px rgba(16, 185, 129, 0.1);">
           <div style="font-size:14px; color:#065f46; font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:8px;">💎 ข้อมูลเงินประกันเบื้องต้น (Insurance Overview)</div>
@@ -4802,7 +4804,10 @@
         </div>
       `;
 
-      body.innerHTML = sendBackAlertHTML + insuranceHTML + infoHTML + financialHTML + filesHTML + opInfoHTML;
+      body.innerHTML = sendBackAlertHTML + progressHTML + insuranceHTML + infoHTML + financialHTML + filesHTML + opInfoHTML;
+
+      // Render progress tracker
+      renderWFProgress(d, 'tlProgress');
 
       // ACTION BUTTONS IN FOOTER (Just like the 'Edit' button in detailModal)
       const actionsContainer = document.getElementById('tlModalActions');
