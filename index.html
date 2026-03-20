@@ -4765,6 +4765,7 @@
       ` : '';
 
       // Operation Info Fields (Relocated as requested)
+      const isBuilding = (d.inspected_by === 'Building Dept');
       const opInfoHTML = `
         <div style="margin-bottom:24px; padding:20px; background:var(--bg-f); border:1px solid var(--border); border-radius:var(--r-lg);">
           <div style="font-size:14px; font-weight:800; color:var(--txt); margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:10px; display:flex; align-items:center; gap:8px;">
@@ -4773,12 +4774,16 @@
           <div class="form-grid" style="gap:15px; grid-template-columns: 1fr 1fr;">
             <div class="form-group">
               <label style="font-size:12px; color:var(--txt2); font-weight:600">ตรวจรับโดย</label>
-              <select class="form-control" id="f-inspected-by-modal" style="background:var(--white)">
+              <select class="form-control" id="f-inspected-by-modal" style="background:var(--white)" onchange="toggleTLFields(this.value)">
                 <option value="TL" ${d.inspected_by === 'TL' ? 'selected' : ''}>TL</option>
                 <option value="Building Dept" ${d.inspected_by === 'Building Dept' ? 'selected' : ''}>ฝ่ายอาคาร</option>
               </select>
             </div>
-            <div class="form-group">
+            <div class="form-group tl-only-field" style="display:${isBuilding ? 'none' : 'block'}">
+              <label style="font-size:12px; color:var(--txt2); font-weight:600">วันที่ติดตั้งเสร็จ</label>
+              <input type="date" id="f-install-date-modal" class="form-control" style="background:var(--white)" value="${d.install_date || ''}">
+            </div>
+            <div class="form-group tl-only-field" style="display:${isBuilding ? 'none' : 'block'}">
               <label style="font-size:12px; color:var(--txt2); font-weight:600">วันที่ตรวจรับเสร็จ</label>
               <input type="date" id="f-tl-complete-date-modal-permanent" class="form-control" style="background:var(--white)" value="${d.tl_complete_date || ''}">
             </div>
@@ -4791,6 +4796,11 @@
 
       body.innerHTML = sendBackAlertHTML + progressHTML + insuranceHTML + infoHTML + financialHTML + filesHTML + opInfoHTML;
 
+      // Add dynamic toggle helper
+      window.toggleTLFields = (val) => {
+        const fields = document.querySelectorAll('.tl-only-field');
+        fields.forEach(f => f.style.display = (val === 'Building Dept') ? 'none' : 'block');
+      };
       // Render progress tracker
       renderWFProgress(d, 'tlProgress');
 
@@ -4885,12 +4895,15 @@
       const originText = btn.textContent;
 
       let tlCompleteDate = '';
+      let installDate = '';
       let inspectedBy = '';
       if (fromModal) {
         tlCompleteDate = document.getElementById('f-tl-complete-date-modal-permanent')?.value;
+        installDate = document.getElementById('f-install-date-modal')?.value;
         inspectedBy = document.getElementById('f-inspected-by-modal')?.value;
       } else {
         tlCompleteDate = document.getElementById('f-tl-complete-date')?.value || d.tl_complete_date;
+        installDate = document.getElementById('f-install-date')?.value || d.install_date;
         inspectedBy = document.getElementById('f-inspected-by')?.value || d.inspected_by;
       }
 
@@ -4899,6 +4912,7 @@
         try {
           const updateObj = {
             tl_complete_date: tlCompleteDate,
+            install_date: installDate,
             inspected_by: inspectedBy,
             log: d.log
           };
@@ -4922,14 +4936,21 @@
         return;
       }
 
+      const isBuilding = (inspectedBy === 'Building Dept');
       const inputId = fromModal ? 'f-pdf-tl-work-modal' : 'f-pdf-tl-work-detail';
       const input = document.getElementById(inputId);
       const hasFiles = input && input.files && input.files.length > 0;
 
-      if (inspectedBy === 'TL' && !hasFiles) {
+      // Only check PDF if inspected by TL
+      if (!isBuilding && !hasFiles) {
         toast('กรุณาเลือกไฟล์ PDF หลักฐานงาน TL', 'error'); return;
       }
-      if (!tlCompleteDate) { toast('กรุณาระบุวันที่ดำเนินการเสร็จสิ้น', 'error'); return; }
+      
+      // Only check dates if inspected by TL
+      if (!isBuilding) {
+        if (!tlCompleteDate) { toast('กรุณาระบุวันที่ตรวจรับเสร็จสิ้น', 'error'); return; }
+        if (!installDate) { toast('กรุณาระบุวันที่ติดตั้งเสร็จสิ้น', 'error'); return; }
+      }
 
       const files = hasFiles ? Array.from(input.files) : [];
       btn.disabled = true; btn.textContent = '⌛ กำลังบันทึก...';
@@ -4949,7 +4970,7 @@
         }
 
         // Only throw error if we WERE supposed to have files but none uploaded successfully
-        if (hasFiles && uploadedUrls.length === 0) throw new Error('Upload failed');
+        if (hasFiles && uploadedUrls.length === 0 && !isBuilding) throw new Error('Upload failed');
         
         // If no NEW files uploaded, keep existing or set to empty
         let urlValue = d.pdf_tl_work || '';
@@ -4957,11 +4978,14 @@
           urlValue = uploadedUrls.length === 1 ? uploadedUrls[0] : uploadedUrls;
         }
 
-        addLogEntry(d, 'TL ดำเนินการเสร็จสิ้นและแนบหลักฐาน', '🏁');
+        const logMsg = isBuilding ? 'ฝ่ายอาคารตรวจรับและปิดงาน' : 'TL ดำเนินการเสร็จสิ้นและแนบหลักฐาน';
+        addLogEntry(d, logMsg, '🏁');
+        
         const updateObj = {
           status: 'ret',
           pdf_tl_work: urlValue,
           tl_complete_date: tlCompleteDate,
+          install_date: installDate,
           inspected_by: inspectedBy,
           log: d.log
         };
@@ -4972,13 +4996,12 @@
           const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
         } else {
           updated = await updateDeposit(id, updateObj);
-          // Removed manual DB[idx] update to avoid duplication with real-time listener
         }
 
         if (fromModal) openTLModal(id);
         else openDetail(id);
         renderTable(); renderKPI();
-        renderTLTasksPage(); // Fix: Re-render TL View immediately
+        renderTLTasksPage();
         toast('บันทึกสำเร็จและส่งต่องานแล้ว ✓', 'success');
       } catch (err) {
         console.error(err);
