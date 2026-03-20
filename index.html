@@ -2740,29 +2740,6 @@
       </form>
     </div>
   </div>
-  <div class="overlay" id="offServiceOverlay" style="z-index: 10001;">
-    <div class="modal" style="max-width:400px">
-      <div class="modal-head">
-        <div>
-          <div class="modal-title">Off Service / ยกเลิกบริการ</div>
-          <div class="modal-sub">แนบหลักฐานเพื่อยืนยันการขอคืนเงินประกันรื้อถอน</div>
-        </div>
-        <button type="button" class="modal-close" onclick="closeModal('offServiceOverlay')">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-group">
-          <label>หลักฐานการยกเลิกบริการ (PDF) <span class="required">*</span></label>
-          <input type="file" id="f-off-pdf" class="form-control" accept="application/pdf">
-        </div>
-      </div>
-      <div class="modal-foot">
-        <button type="button" class="btn btn-ghost" onclick="closeModal('offServiceOverlay')">ยกเลิก</button>
-        <button type="button" class="btn btn-primary" id="offServiceSubmitBtn" onclick="handleOffServiceSubmit()">💾
-          ยืนยัน Off Service</button>
-      </div>
-    </div>
-  </div>
-
   <div class="overlay" id="formOverlay">
     <div class="modal lg" id="formModal">
       <div class="modal-head">
@@ -3282,7 +3259,7 @@
         return STATUS_MAP[d.status];
       }
       // Legacy fallback
-      if (d.status === 'Done' || d.status === 'done') return 6;
+      if (d.status === 'Done' || d.status === 'done') return 5;
       if (d.status === 'Cancel') return 0;
       if (!d.pr && !d.deposit) return 0;
       if ((d.pr || d.deposit) && !d.pdf_payment) return 1;
@@ -3290,9 +3267,9 @@
       if (d.tl_team && d.complete !== 'Complete') return 3;
       if (d.complete === 'Complete' && d.complete_tl !== 'On Process') return 4;
       if (d.complete_tl === 'On Process' && !d.pdf_tl_work) return 5;
-      if (d.pdf_tl_work && !d.return_status) return 6;
-      if (d.return_status && !d.pdf_user_final) return 7;
-      return 6;
+      if (d.pdf_tl_work && !d.return_status) return 5;
+      if (d.return_status && !d.pdf_user_final) return 5;
+      return 5;
     }
 
     function getStatusLabel(d) {
@@ -3539,9 +3516,10 @@
 
     /* ════════ OFF SERVICE LOGIC ════════ */
     function openOffServiceModal(id) {
-      const d = DB.find(x => x.id === id);
+      // Use == to handle string/number ID mismatch
+      const d = DB.find(x => x.id == id);
       if (!d) return;
-      document.getElementById('offServiceTitle').textContent = d.place;
+      if (document.getElementById('offServiceTitle')) document.getElementById('offServiceTitle').textContent = d.place;
       document.getElementById('f-pdf-demo-off').value = '';
       const btn = document.getElementById('offServiceSaveBtn');
       btn.onclick = () => saveOffService(id);
@@ -3568,7 +3546,7 @@
         const updateObj = {
           demoReturn: 'Yes',
           pdf_demo_off: url,
-          status: 'Done' // Force status to remain Done
+          status: 'done' // Ensure status is consistent
         };
 
         const updated = await updateDeposit(id, updateObj);
@@ -3577,7 +3555,14 @@
         toast('บันทึก Off Service เรียบร้อยแล้ว', 'success');
         closeModal('offServiceOverlay');
         closeModal('detailOverlay');
-        await fetchData();
+        
+        // Refresh data
+        if (typeof fetchData === 'function') {
+          await fetchData();
+        } else {
+          await initApp();
+        }
+        
         if (typeof showPage === 'function') showPage('active-demo');
       } catch (err) {
         console.error(err);
@@ -5351,67 +5336,6 @@
           </td>
         </tr>
       `).join('');
-    }
-
-    let demoOffTargetId = null;
-    function openOffServiceModal(id) {
-      demoOffTargetId = id;
-      document.getElementById('f-off-pdf').value = '';
-      openModal('offServiceOverlay');
-    }
-
-    async function handleOffServiceSubmit() {
-      const fileInput = document.getElementById('f-off-pdf');
-      const file = fileInput.files[0];
-      if (!file) {
-        toast('กรุณาแนบไฟล์หลักฐาน PDF', 'error');
-        return;
-      }
-
-      const btn = document.getElementById('offServiceSubmitBtn');
-      btn.disabled = true;
-      const oldText = btn.textContent;
-      btn.textContent = 'กำลังบันทึก...';
-
-      try {
-        const url = await uploadFile(file, 'demo_off_evidence');
-        if (!url) {
-          toast('อัปโหลดไฟล์ไม่สำเร็จ', 'error');
-          return;
-        }
-
-        const d = DB.find(x => x.id === demoOffTargetId);
-        addLogEntry(d, 'ยกเลิกบริการ (Off Service)', `แนบไฟล์หลักฐาน: ${file.name}`);
-
-        const updateObj = {
-          demoReturn: 'Yes',
-          pdf_demo_off: url,
-          log: d.log
-        };
-
-        if (USE_MOCK) {
-          const idx = DB.findIndex(x => x.id === demoOffTargetId);
-          DB[idx] = { ...d, ...updateObj };
-        } else {
-          const updated = await updateDeposit(demoOffTargetId, updateObj);
-          const idx = DB.findIndex(x => x.id === demoOffTargetId);
-          DB[idx] = updated;
-        }
-
-        closeModal('offServiceOverlay');
-        renderActiveDemoPage();
-        renderTable();
-        renderKPI();
-        renderExecutiveDashboard();
-        renderMyDashboard();
-        toast('บันทึก Off Service เรียบร้อยแล้ว', 'success');
-      } catch (err) {
-        console.error(err);
-        toast('เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = oldText;
-      }
     }
 
     /* ════════ EXECUTIVE DASHBOARD LOGIC ════════ */
