@@ -3625,7 +3625,17 @@
     }
 
     /* ════════ RENDER TABLE ════════ */
+    function populateOwnerFilter() {
+      const ownerFilter = document.getElementById('ownerFilter');
+      if (!ownerFilter) return;
+      const currentVal = ownerFilter.value;
+      const owners = [...new Set(DB.map(d => d.owner).filter(Boolean))].sort();
+      ownerFilter.innerHTML = '<option value="">เจ้าของงานทั้งหมด</option>' + 
+        owners.map(o => `<option value="${o}" ${o === currentVal ? 'selected' : ''}>${o}</option>`).join('');
+    }
+
     function renderTable() {
+      populateOwnerFilter();
       // Role-based filtering
       let roleAllowedData = DB;
       if (CURRENT_USER && CURRENT_USER.role === 'admin') {
@@ -5554,14 +5564,19 @@
       const luxuryPalette = ['#1e293b', '#d4af37', '#94a3b8', '#334155', '#b8860b'];
 
       // 1. Monthly Financial Trend
+      const currentYear = new Date().getFullYear();
       const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
       const feeData = new Array(12).fill(0);
       const depositData = new Array(12).fill(0);
+      
       filteredDB.forEach(d => {
         if (d.dateReq) {
-          const m = new Date(d.dateReq).getMonth();
-          feeData[m] += (d.fee || 0);
-          depositData[m] += ((d.deposit || 0) + (d.demolish || 0));
+          const dt = new Date(d.dateReq);
+          if (dt.getFullYear() === currentYear) {
+            const m = dt.getMonth();
+            feeData[m] += (d.fee || 0);
+            depositData[m] += ((d.deposit || 0) + (d.demolish || 0));
+          }
         }
       });
 
@@ -5571,7 +5586,7 @@
         data: {
           labels: months,
           datasets: [{
-            label: 'ค่าธรรมเนียมอาคาร',
+            label: `ค่าธรรมเนียมอาคาร (${currentYear})`,
             data: feeData,
             borderColor: '#94a3b8',
             backgroundColor: 'rgba(148, 163, 184, 0.1)',
@@ -5582,12 +5597,18 @@
             pointBorderColor: '#94a3b8',
             pointRadius: 4
           }, {
-            label: 'เงินประกันอาคาร',
+            label: `เงินประกันอาคาร (${currentYear})`,
             data: depositData,
             borderColor: '#d4af37',
             backgroundColor: 'rgba(212, 175, 55, 0.1)',
             fill: true,
             tension: 0.4,
+            borderWidth: 3,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: '#d4af37',
+            pointRadius: 4
+          }]
+        },
             borderWidth: 3,
             pointBackgroundColor: '#fff',
             pointBorderColor: '#d4af37',
