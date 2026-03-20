@@ -3601,9 +3601,9 @@
       }
 
       const items = filteredData.filter(d => {
-        const s = (d.status || '').toLowerCase();
+        const s = (d.status || '').trim().toLowerCase();
         const hasDemo = parseFixed(d.demolish) > 0;
-        const notReturned = (d.demoReturn || '').trim().toLowerCase() !== 'yes';
+        const notReturned = (d.demoReturn || '').trim() !== 'Yes';
         // "On Service" logic: Status is DONE/CLO and has pending removal deposit
         return (s === 'done' || s === 'clo') && hasDemo && notReturned;
       });
@@ -4794,7 +4794,7 @@
               </select>
             </div>
             <div class="form-group">
-              <label style="font-size:12px; color:var(--txt2); font-weight:600">วันที่ดำเนินการเสร็จสิ้น</label>
+              <label style="font-size:12px; color:var(--txt2); font-weight:600">วันที่ตรวจรับเสร็จ</label>
               <input type="date" id="f-tl-complete-date-modal-permanent" class="form-control" style="background:var(--white)" value="${d.tl_complete_date || ''}">
             </div>
           </div>
@@ -5574,7 +5574,7 @@
       
       const demoPendingCount = filteredDB.filter(d => {
         if (parseFixed(d.demolish) <= 0) return false;
-        return (d.demoReturn || '').trim().toLowerCase() !== 'yes';
+        return (d.demoReturn || '').trim() !== 'Yes';
       }).length;
 
       // 3. Overall Summary (Hero)
