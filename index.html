@@ -2276,6 +2276,7 @@
                     <th>PR No.</th>
                     <th>วันที่ตั้งเบิก</th>
                     <th>ยอดรวม</th>
+                    <th>พื้นที่</th>
                     <th>ขั้นตอน</th>
                     <th id="th-action">การดำเนินการ</th>
                   </tr>
@@ -3245,6 +3246,16 @@
       'new': 0, 'fin': 1, 'att': 2, 'tl': 3, 'On Process': 3, 'ret': 4, 'clo': 5, 'done': 6
     };
 
+    function copyCID(cid) {
+      if (!cid || cid === '—') return;
+      navigator.clipboard.writeText(cid).then(() => {
+        toast(`คัดลอก CID ${cid} เรียบร้อยแล้ว`, 'success');
+      }).catch(err => {
+        console.error('Copy failed:', err);
+        toast('ไม่สามารถคัดลอกได้', 'error');
+      });
+    }
+
     /* ════════ HELPERS ════════ */
     function parseFixed(val) {
       if (typeof val === 'number') return val || 0;
@@ -3634,8 +3645,18 @@
         owners.map(o => `<option value="${o}" ${o === currentVal ? 'selected' : ''}>${o}</option>`).join('');
     }
 
+    function populateAreaFilter() {
+      const areaFilter = document.getElementById('areaFilter');
+      if (!areaFilter) return;
+      const currentVal = areaFilter.value;
+      const areas = [...new Set(DB.map(d => d.area).filter(Boolean))].sort();
+      areaFilter.innerHTML = '<option value="">พื้นที่ทั้งหมด</option>' + 
+        areas.map(a => `<option value="${a}" ${a === currentVal ? 'selected' : ''}>${a}</option>`).join('');
+    }
+
     function renderTable() {
       populateOwnerFilter();
+      populateAreaFilter();
       // Role-based filtering
       let roleAllowedData = DB;
       if (CURRENT_USER && CURRENT_USER.role === 'admin') {
@@ -3679,8 +3700,10 @@
       empty.style.display = 'none';
 
       document.getElementById('tbody').innerHTML = data.map(d => `
-    <tr onclick="if(event.target.tagName !== 'BUTTON' && event.target.tagName !== 'SELECT') { if(window.CURRENT_USER?.role === 'tl') openTLModal('${d.id}'); else openEdit('${d.id}', 'auto'); }" style="cursor:pointer;" title="${isTL ? 'คลิกเพื่อเข้าสู่หน้าต่างงานหน้างาน (TL)' : 'คลิกเพื่ออัปเดตสถานะงาน'}">
-      <td class="nowrap" style="color:var(--txt3);font-size:12px">${d.cid || '—'}</td>
+    <tr onclick="if(event.target.tagName !== 'BUTTON' && event.target.tagName !== 'SELECT' && !event.target.classList.contains('copyable-cid')) { if(window.CURRENT_USER?.role === 'tl') openTLModal('${d.id}'); else openEdit('${d.id}', 'auto'); }" style="cursor:pointer;" title="${isTL ? 'คลิกเพื่อเข้าสู่หน้าต่างงานหน้างาน (TL)' : 'คลิกเพื่ออัปเดตสถานะงาน'}">
+      <td class="nowrap" style="color:var(--txt3);font-size:12px">
+        <span class="copyable-cid" onclick="event.stopPropagation(); copyCID('${d.cid}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline;">${d.cid || '—'}</span>
+      </td>
       <td class="nowrap">
         <div style="${statusSelectStyle(d.status)}; font-size:13px; font-weight:600; text-align:center;">
           ${getStatusLabel(d)}
@@ -3696,6 +3719,7 @@
       <td class="nowrap" style="color:var(--txt2)">${d.pr || '—'}</td>
       <td class="nowrap" style="color:var(--txt2);font-size:12px">${d.dateReq || '—'}</td>
       <td class="nowrap"><span class="amt ${d.total > 0 ? 'pos' : ''}">${d.total > 0 ? '฿' + d.total.toLocaleString() : '—'}</span></td>
+      <td class="nowrap"><span class="badge b-wait" style="font-size:10px">${d.area || '—'}</span></td>
       <td class="nowrap">${stepLabel(d)}</td>
       ${isTL ? '' : `
       <td class="nowrap">
@@ -4495,10 +4519,11 @@
         ['พื้นที่', d.area || '—'],
         ['Project Code', d.project || '—'],
         ['PR No.', d.pr || '—'],
-        ['CID', d.cid || '—'],
+        ['CID', `<span class="copyable-cid" onclick="copyCID('${d.cid}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline; color:var(--blue); font-weight:700;">${d.cid || '—'}</span>`],
         ['ทีม TL กทม/ตจว', d.tl_team || '—'],
         ['ผู้ประสานงาน', d.contact || '—'],
         ['เบอร์โทร (มือถือ)', d.tel || '—'],
+        ['กำหนดตรวจรับ (TL)', d.tl_due_date ? `<span style="color:var(--orange); font-weight:700;">${d.tl_due_date}</span>` : '—'],
       ];
 
       const user = window.CURRENT_USER || {};
@@ -4687,10 +4712,11 @@
         ['📍 ชื่อสถานที่/โครงการ', d.place],
         ['🏠 พื้นที่ (Area)', d.area || '—'],
         ['🏢 ชื่อลูกค้า/ผู้เช่า', d.customer || '—'],
-        ['CID', d.cid || '—'],
+        ['CID', `<span class="copyable-cid" onclick="copyCID('${d.cid}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline; color:var(--blue); font-weight:700;">${d.cid || '—'}</span>`],
         ['👤 เจ้าของงาน', d.owner || '—'],
         ['📞 ผู้ประสานงาน', d.contact || '—'],
         ['📱 เบอร์ติดต่อ', d.mobile || d.tel || '—'],
+        ['📅 กำหนดตรวจรับ (TL)', d.tl_due_date ? `<span style="color:var(--orange); font-weight:700;">${d.tl_due_date}</span>` : '—'],
         ['📅 วันที่เสร็จสิ้น (TL)', d.tl_complete_date || '—']
       ];
 
@@ -4796,6 +4822,10 @@
             <div class="form-group tl-only-field" style="display:${isBuilding ? 'none' : 'block'}">
               <label style="font-size:12px; color:var(--txt2); font-weight:600">วันที่ตรวจรับเสร็จ</label>
               <input type="date" id="f-tl-complete-date-modal-permanent" class="form-control" style="background:var(--white)" value="${d.tl_complete_date || ''}">
+            </div>
+            <div class="form-group tl-only-field" style="display:${isBuilding ? 'none' : 'block'}">
+              <label style="font-size:12px; color:var(--txt2); font-weight:600">กำหนดตรวจรับ</label>
+              <input type="date" id="f-tl-due-date-modal" class="form-control" style="background:var(--white)" value="${d.tl_due_date || ''}">
             </div>
           </div>
           <div style="margin-top:15px; text-align:right">
@@ -4916,12 +4946,15 @@
         installDate = document.getElementById('f-install-date')?.value || d.install_date;
         inspectedBy = document.getElementById('f-inspected-by')?.value || d.inspected_by;
       }
+      
+      const tlDueDate = fromModal ? document.getElementById('f-tl-due-date-modal')?.value : (d.tl_due_date || '');
 
       if (saveOnlyInfo) {
         btn.disabled = true; btn.textContent = '⌛ กำลังบันทึก...';
         try {
           const updateObj = {
             tl_complete_date: tlCompleteDate,
+            tl_due_date: tlDueDate,
             install_date: installDate,
             inspected_by: inspectedBy,
             log: d.log
@@ -4995,6 +5028,7 @@
           status: 'ret',
           pdf_tl_work: urlValue,
           tl_complete_date: tlCompleteDate,
+          tl_due_date: tlDueDate,
           install_date: installDate,
           inspected_by: inspectedBy,
           log: d.log
@@ -5317,7 +5351,9 @@
 
         return `
         <tr onclick="openTLModal('${d.id}')" style="cursor:pointer" title="คลิกเพื่อดูรายละเอียด">
-          <td class="nowrap" style="color:var(--txt3);font-size:12px">${d.cid || '—'}</td>
+          <td class="nowrap" style="color:var(--txt3);font-size:12px">
+            <span class="copyable-cid" onclick="event.stopPropagation(); copyCID('${d.cid}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline;">${d.cid || '—'}</span>
+          </td>
           <td class="nowrap">
             <div style="${statusSelectStyle(d.status)}; font-size:13px; font-weight:600; text-align:center;">
               ${getStatusLabel(d)}
