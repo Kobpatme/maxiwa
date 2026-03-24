@@ -2709,6 +2709,13 @@
                   <span class="pill b" data-val="On Process" onclick="setTLStatusFilter('On Process')">🚧 กำลังดำเนินการ</span>
                   <span class="pill g" data-val="Done" onclick="setTLStatusFilter('Done')">✓ เสร็จแล้ว</span>
                 </div>
+                <div class="multi-select-wrap" id="tlAreaFilterWrap">
+                  <button class="multi-select-btn" id="tlAreaFilterBtn" onclick="toggleTLAreaDropdown(event)" type="button">
+                    <span id="tlAreaFilterLabel">พื้นที่ทั้งหมด</span>
+                    <span class="multi-select-arrow">▾</span>
+                  </button>
+                  <div class="multi-select-dropdown" id="tlAreaFilterContainer" style="display:none;"></div>
+                </div>
                 <div style="display:flex; gap:8px; align-items:center">
                   <select id="tl-export-month" class="form-control" style="width:100px; height:32px; font-size:12px">
                     <option value="">ทุกเดือน</option>
@@ -3353,6 +3360,7 @@
     let searchQ = '';
     let tlSearchQ = '';
     let tlStatusFilter = '';
+    let tlFilterAreas = [];
     let isDirty = false;
     let currentTablePage = 1;
     const ITEMS_PER_PAGE = 10;
@@ -4125,6 +4133,75 @@
       });
       applyTLSearch();
     }
+
+    function populateTLAreaFilter(sourceData) {
+      const container = document.getElementById('tlAreaFilterContainer');
+      if (!container) return;
+
+      const areas = [...new Set(sourceData.map(d => d.area).filter(Boolean))].sort();
+      if (areas.length <= 1) {
+        // Hide dropdown if only 1 or no area
+        const wrap = document.getElementById('tlAreaFilterWrap');
+        if (wrap) wrap.style.display = 'none';
+        return;
+      }
+      const wrap = document.getElementById('tlAreaFilterWrap');
+      if (wrap) wrap.style.display = '';
+
+      let html = `<div class="multi-select-option ${tlFilterAreas.length === 0 ? 'checked' : ''}" onclick="toggleTLAreaFilter('')">
+        <input type="checkbox" ${tlFilterAreas.length === 0 ? 'checked' : ''} onclick="event.stopPropagation();toggleTLAreaFilter('')"> ทั้งหมด
+      </div>`;
+      html += '<hr class="multi-select-divider">';
+      html += areas.map(a => `
+        <div class="multi-select-option ${tlFilterAreas.includes(a) ? 'checked' : ''}" onclick="toggleTLAreaFilter('${a}')">
+          <input type="checkbox" ${tlFilterAreas.includes(a) ? 'checked' : ''} onclick="event.stopPropagation();toggleTLAreaFilter('${a}')"> ${a}
+        </div>
+      `).join('');
+      container.innerHTML = html;
+
+      const btn = document.getElementById('tlAreaFilterBtn');
+      const label = document.getElementById('tlAreaFilterLabel');
+      if (tlFilterAreas.length === 0) {
+        label.textContent = 'พื้นที่ทั้งหมด';
+        btn.classList.remove('has-selection');
+      } else if (tlFilterAreas.length === 1) {
+        label.textContent = tlFilterAreas[0];
+        btn.classList.add('has-selection');
+      } else {
+        label.textContent = `พื้นที่ (${tlFilterAreas.length})`;
+        btn.classList.add('has-selection');
+      }
+    }
+
+    function toggleTLAreaFilter(a) {
+      if (a === '') {
+        tlFilterAreas = [];
+      } else {
+        const idx = tlFilterAreas.indexOf(a);
+        if (idx > -1) tlFilterAreas.splice(idx, 1);
+        else tlFilterAreas.push(a);
+      }
+      renderTLTasksPage();
+    }
+
+    function toggleTLAreaDropdown(e) {
+      e.stopPropagation();
+      const dropdown = document.getElementById('tlAreaFilterContainer');
+      const btn = document.getElementById('tlAreaFilterBtn');
+      const isOpen = dropdown.style.display !== 'none';
+      dropdown.style.display = isOpen ? 'none' : 'block';
+      btn.classList.toggle('open', !isOpen);
+    }
+
+    document.addEventListener('click', function(e) {
+      const wrap = document.getElementById('tlAreaFilterWrap');
+      if (wrap && !wrap.contains(e.target)) {
+        const dropdown = document.getElementById('tlAreaFilterContainer');
+        const btn = document.getElementById('tlAreaFilterBtn');
+        if (dropdown) dropdown.style.display = 'none';
+        if (btn) btn.classList.remove('open');
+      }
+    });
     function setOwnerFilter(v) {
       filterOwner = v;
       filterStatus = '';
@@ -5660,6 +5737,14 @@
         const mq = !tlSearchQ || [d.place, d.customer, d.cid, d.pr].join(' ').toLowerCase().includes(tlSearchQ);
         return matchesStatus && mq;
       });
+
+      // Populate area dropdown (based on pre-filter data)
+      populateTLAreaFilter(tlData);
+
+      // Apply area filter
+      if (tlFilterAreas.length > 0) {
+        tlData = tlData.filter(d => tlFilterAreas.includes(d.area));
+      }
 
       // Apply status filter
       if (tlStatusFilter) {
