@@ -445,6 +445,82 @@
       min-width: 130px;
     }
 
+    /* ─── MULTI-SELECT DROPDOWN ──────────────────── */
+    .multi-select-wrap {
+      position: relative;
+    }
+    .multi-select-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 7px 12px;
+      font-size: 13px;
+      color: var(--txt2);
+      background: var(--surface);
+      cursor: pointer;
+      min-width: 160px;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .multi-select-btn.has-selection {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: rgba(67,97,238,.06);
+    }
+    .multi-select-arrow {
+      margin-left: auto;
+      font-size: 11px;
+      transition: transform .2s;
+    }
+    .multi-select-btn.open .multi-select-arrow {
+      transform: rotate(180deg);
+    }
+    .multi-select-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      z-index: 999;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      box-shadow: 0 4px 16px rgba(0,0,0,.12);
+      min-width: 180px;
+      max-height: 260px;
+      overflow-y: auto;
+      padding: 4px 0;
+    }
+    .multi-select-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      font-size: 13px;
+      color: var(--txt2);
+      cursor: pointer;
+      user-select: none;
+      transition: background .15s;
+    }
+    .multi-select-option:hover {
+      background: var(--surface);
+    }
+    .multi-select-option.checked {
+      color: var(--blue);
+      font-weight: 600;
+    }
+    .multi-select-option input[type=checkbox] {
+      accent-color: var(--blue);
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+    }
+    .multi-select-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 4px 0;
+    }
+
     /* ─── TABLE CARD ─────────────────────────────── */
     .card {
       background: var(--white);
@@ -2307,7 +2383,12 @@
               <option>ณัฐพงศ์</option>
               <option>วฬารัตน์</option>
             </select>
-            <div class="pill-group" id="areaFilterContainer" style="margin-left:8px; flex-wrap:nowrap; overflow-x:auto; padding-bottom:4px; max-width:400px;">
+            <div class="multi-select-wrap" id="areaFilterWrap" style="margin-left:8px;">
+              <button class="multi-select-btn" id="areaFilterBtn" onclick="toggleAreaDropdown(event)" type="button">
+                <span id="areaFilterLabel">พื้นที่ทั้งหมด</span>
+                <span class="multi-select-arrow">▾</span>
+              </button>
+              <div class="multi-select-dropdown" id="areaFilterContainer" style="display:none;"></div>
             </div>
           </div>
 
@@ -3697,15 +3778,34 @@
     function populateAreaFilter() {
       const container = document.getElementById('areaFilterContainer');
       if (!container) return;
-      
+
       const areas = [...new Set(DB.map(d => d.area).filter(Boolean))].sort();
-      
-      let html = `<span class="pill ${filterAreas.length === 0 ? 'active' : ''}" onclick="toggleAreaFilter('')">ทั้งหมด</span>`;
+
+      let html = `<div class="multi-select-option ${filterAreas.length === 0 ? 'checked' : ''}" onclick="toggleAreaFilter('')">
+        <input type="checkbox" ${filterAreas.length === 0 ? 'checked' : ''} onclick="event.stopPropagation();toggleAreaFilter('')"> ทั้งหมด
+      </div>`;
+      if (areas.length > 0) html += '<hr class="multi-select-divider">';
       html += areas.map(a => `
-        <span class="pill ${filterAreas.includes(a) ? 'active' : ''}" onclick="toggleAreaFilter('${a}')">${a}</span>
+        <div class="multi-select-option ${filterAreas.includes(a) ? 'checked' : ''}" onclick="toggleAreaFilter('${a}')">
+          <input type="checkbox" ${filterAreas.includes(a) ? 'checked' : ''} onclick="event.stopPropagation();toggleAreaFilter('${a}')"> ${a}
+        </div>
       `).join('');
-      
+
       container.innerHTML = html;
+
+      // Update button label
+      const btn = document.getElementById('areaFilterBtn');
+      const label = document.getElementById('areaFilterLabel');
+      if (filterAreas.length === 0) {
+        label.textContent = 'พื้นที่ทั้งหมด';
+        btn.classList.remove('has-selection');
+      } else if (filterAreas.length === 1) {
+        label.textContent = filterAreas[0];
+        btn.classList.add('has-selection');
+      } else {
+        label.textContent = `พื้นที่ (${filterAreas.length})`;
+        btn.classList.add('has-selection');
+      }
     }
 
     function toggleAreaFilter(a) {
@@ -3722,6 +3822,25 @@
       populateAreaFilter();
       applyFilters();
     }
+
+    function toggleAreaDropdown(e) {
+      e.stopPropagation();
+      const dropdown = document.getElementById('areaFilterContainer');
+      const btn = document.getElementById('areaFilterBtn');
+      const isOpen = dropdown.style.display !== 'none';
+      dropdown.style.display = isOpen ? 'none' : 'block';
+      btn.classList.toggle('open', !isOpen);
+    }
+
+    document.addEventListener('click', function(e) {
+      const wrap = document.getElementById('areaFilterWrap');
+      if (wrap && !wrap.contains(e.target)) {
+        const dropdown = document.getElementById('areaFilterContainer');
+        const btn = document.getElementById('areaFilterBtn');
+        if (dropdown) dropdown.style.display = 'none';
+        if (btn) btn.classList.remove('open');
+      }
+    });
 
     function getFilteredData() {
       // 1. Role-based filtering
