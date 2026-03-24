@@ -706,6 +706,65 @@
       border-color: var(--blue)
     }
 
+    /* ─── PAGINATION ─────────────────────────────── */
+    .pagination-bar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      padding: 14px 18px;
+      border-top: 1px solid var(--border);
+      background: var(--white);
+    }
+
+    .pagination-bar .pg-info {
+      font-size: 12px;
+      color: var(--txt3);
+      margin-right: auto;
+    }
+
+    .pagination-bar .pg-btn {
+      min-width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid var(--border);
+      background: var(--white);
+      color: var(--txt2);
+      cursor: pointer;
+      transition: all .15s;
+      padding: 0 8px;
+    }
+
+    .pagination-bar .pg-btn:hover:not(:disabled) {
+      background: var(--blue-l);
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+
+    .pagination-bar .pg-btn.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(30, 41, 59, .2);
+    }
+
+    .pagination-bar .pg-btn:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    .pagination-bar .pg-ellipsis {
+      font-size: 13px;
+      color: var(--txt3);
+      padding: 0 4px;
+      user-select: none;
+    }
+
     /* ─── MODAL ──────────────────────────────────── */
     .overlay {
       position: fixed;
@@ -2248,15 +2307,8 @@
               <option>ณัฐพงศ์</option>
               <option>วฬารัตน์</option>
             </select>
-            <select class="select-filter" id="areaFilter" onchange="applyFilters()">
-              <option value="">พื้นที่ทั้งหมด</option>
-              <option>BKK 1</option>
-              <option>BKK 2</option>
-              <option>BKK 3</option>
-              <option>BKK 4</option>
-              <option>CBI</option>
-              <option>CMI</option>
-            </select>
+            <div class="pill-group" id="areaFilterContainer" style="margin-left:8px; flex-wrap:nowrap; overflow-x:auto; padding-bottom:4px; max-width:400px;">
+            </div>
           </div>
 
           <!-- Table -->
@@ -2288,6 +2340,8 @@
                 <p>ไม่พบรายการที่ตรงกัน</p>
               </div>
             </div>
+            <!-- Pagination -->
+            <div class="pagination-bar" id="paginationBar" style="display:none"></div>
           </div>
 
         </div>
@@ -3209,11 +3263,13 @@
     let editingId = null;
     let filterStatus = '';
     let filterOwner = '';
-    let filterArea = '';
+    let filterAreas = [];
     let searchQ = '';
     let tlSearchQ = '';
     let tlStatusFilter = '';
     let isDirty = false;
+    let currentTablePage = 1;
+    const ITEMS_PER_PAGE = 10;
 
     function setDirty(val) {
       isDirty = val;
@@ -3467,14 +3523,7 @@
 
     /* ════════ RENDER KPI ════════ */
     function renderKPI() {
-      // Role-based filtering
-      let filteredData = DB;
-      if (CURRENT_USER && CURRENT_USER.role === 'user') {
-        filteredData = DB.filter(d => d.owner === CURRENT_USER.name);
-      } else if (CURRENT_USER && CURRENT_USER.role === 'tl' && CURRENT_USER.area) {
-        const allowedAreas = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
-        filteredData = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
-      }
+      const filteredData = getFilteredData();
 
       const total = filteredData.length;
       const done = filteredData.filter(d => {
@@ -3646,32 +3695,48 @@
     }
 
     function populateAreaFilter() {
-      const areaFilter = document.getElementById('areaFilter');
-      if (!areaFilter) return;
-      const currentVal = areaFilter.value;
+      const container = document.getElementById('areaFilterContainer');
+      if (!container) return;
+      
       const areas = [...new Set(DB.map(d => d.area).filter(Boolean))].sort();
-      areaFilter.innerHTML = '<option value="">พื้นที่ทั้งหมด</option>' + 
-        areas.map(a => `<option value="${a}" ${a === currentVal ? 'selected' : ''}>${a}</option>`).join('');
+      
+      let html = `<span class="pill ${filterAreas.length === 0 ? 'active' : ''}" onclick="toggleAreaFilter('')">ทั้งหมด</span>`;
+      html += areas.map(a => `
+        <span class="pill ${filterAreas.includes(a) ? 'active' : ''}" onclick="toggleAreaFilter('${a}')">${a}</span>
+      `).join('');
+      
+      container.innerHTML = html;
     }
 
-    function renderTable() {
-      populateOwnerFilter();
+    function toggleAreaFilter(a) {
+      if (a === '') {
+        filterAreas = [];
+      } else {
+        const idx = filterAreas.indexOf(a);
+        if (idx > -1) {
+          filterAreas.splice(idx, 1);
+        } else {
+          filterAreas.push(a);
+        }
+      }
       populateAreaFilter();
-      // Role-based filtering
+      applyFilters();
+    }
+
+    function getFilteredData() {
+      // 1. Role-based filtering
       let roleAllowedData = DB;
       if (CURRENT_USER && CURRENT_USER.role === 'admin') {
-        // Admin sees EVERYTHING
         roleAllowedData = DB;
       } else if (CURRENT_USER && CURRENT_USER.role === 'user') {
-        // user role can see all tasks (including those created by admin)
         roleAllowedData = DB;
       } else if (CURRENT_USER && CURRENT_USER.role === 'tl' && CURRENT_USER.area) {
-        // tl role sees only their areas
         const allowedAreas = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
         roleAllowedData = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
       }
 
-      let data = roleAllowedData.filter(d => {
+      // 2. UI Filters (Search, Status, Owner, Area)
+      return roleAllowedData.filter(d => {
         let ms = !filterStatus || d.status === filterStatus;
         if (filterStatus === 'On Service') {
           ms = (d.status || '').trim().toLowerCase() === 'done' && (+(d.demolish || 0) > 0 && d.demoReturn !== 'Yes');
@@ -3679,12 +3744,19 @@
           ms = (d.status || '').trim().toLowerCase() === 'done' && !(+(d.demolish || 0) > 0 && d.demoReturn !== 'Yes');
         }
         const mo = !filterOwner || d.owner === filterOwner;
-        const ma = !filterArea || d.area === filterArea;
+        const ma = filterAreas.length === 0 || filterAreas.includes(d.area);
         const mq = !searchQ || [d.place, d.customer, d.owner, d.project, d.pr].join(' ').toLowerCase().includes(searchQ);
         return ms && mo && ma && mq;
       });
+    }
 
-      document.getElementById('tableCount').textContent = data.length + ' รายการ';
+    function renderTable() {
+      populateOwnerFilter();
+      populateAreaFilter();
+      
+      const data = getFilteredData();
+      const totalFiltered = data.length;
+      document.getElementById('tableCount').textContent = totalFiltered + ' รายการ';
       const empty = document.getElementById('emptyState');
       const thAction = document.getElementById('th-action');
       const isTL = CURRENT_USER && CURRENT_USER.role === 'tl';
@@ -3695,11 +3767,20 @@
 
       if (!data.length) {
         document.getElementById('tbody').innerHTML = '';
-        empty.style.display = 'block'; return;
+        empty.style.display = 'block';
+        renderPagination(0, 0);
+        return;
       }
       empty.style.display = 'none';
 
-      document.getElementById('tbody').innerHTML = data.map(d => `
+      // Pagination: slice data for current page
+      const totalPages = Math.ceil(totalFiltered / ITEMS_PER_PAGE);
+      if (currentTablePage > totalPages) currentTablePage = totalPages;
+      if (currentTablePage < 1) currentTablePage = 1;
+      const startIdx = (currentTablePage - 1) * ITEMS_PER_PAGE;
+      const pageData = data.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+
+      document.getElementById('tbody').innerHTML = pageData.map(d => `
     <tr onclick="if(event.target.tagName !== 'BUTTON' && event.target.tagName !== 'SELECT' && !event.target.classList.contains('copyable-cid')) { if(window.CURRENT_USER?.role === 'tl') openTLModal('${d.id}'); else openEdit('${d.id}', 'auto'); }" style="cursor:pointer;" title="${isTL ? 'คลิกเพื่อเข้าสู่หน้าต่างงานหน้างาน (TL)' : 'คลิกเพื่ออัปเดตสถานะงาน'}">
       <td class="nowrap" style="color:var(--txt3);font-size:12px">
         <span class="copyable-cid" onclick="event.stopPropagation(); copyCID('${d.cid}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline;">${d.cid || '—'}</span>
@@ -3733,6 +3814,8 @@
       `}
     </tr>
   `).join('');
+
+      renderPagination(totalFiltered, totalPages);
     }
 
     // Real-time Listener
@@ -3908,6 +3991,7 @@
       });
       document.getElementById('ownerFilter').value = '';
       filterOwner = '';
+      currentTablePage = 1;
       applyFilters();
     }
     function setTLStatusFilter(v) {
@@ -3928,8 +4012,70 @@
     function applyFilters() {
       searchQ = document.getElementById('searchInput').value.toLowerCase();
       filterOwner = document.getElementById('ownerFilter').value;
-      filterArea = document.getElementById('areaFilter').value;
+      currentTablePage = 1;
       renderTable();
+      renderKPI();
+    }
+
+    /* ════════ PAGINATION ════════ */
+    function goToTablePage(page) {
+      currentTablePage = page;
+      renderTable();
+      // Scroll to top of table
+      const tableEl = document.querySelector('#page-list .card');
+      if (tableEl) tableEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function renderPagination(totalItems, totalPages) {
+      const bar = document.getElementById('paginationBar');
+      if (!bar) return;
+
+      if (totalPages <= 1) {
+        bar.style.display = 'none';
+        return;
+      }
+
+      bar.style.display = 'flex';
+      const startItem = (currentTablePage - 1) * ITEMS_PER_PAGE + 1;
+      const endItem = Math.min(currentTablePage * ITEMS_PER_PAGE, totalItems);
+
+      let html = `<span class="pg-info">แสดง ${startItem}-${endItem} จาก ${totalItems} รายการ</span>`;
+
+      // Prev button
+      html += `<button class="pg-btn" ${currentTablePage === 1 ? 'disabled' : ''} onclick="goToTablePage(${currentTablePage - 1})">◀</button>`;
+
+      // Page number buttons (show max 7 pages with ellipsis)
+      const maxVisible = 7;
+      let pages = [];
+
+      if (totalPages <= maxVisible) {
+        for (let i = 1; i <= totalPages; i++) pages.push(i);
+      } else {
+        pages.push(1);
+        let start = Math.max(2, currentTablePage - 1);
+        let end = Math.min(totalPages - 1, currentTablePage + 1);
+
+        if (currentTablePage <= 3) { start = 2; end = 5; }
+        if (currentTablePage >= totalPages - 2) { start = totalPages - 4; end = totalPages - 1; }
+
+        if (start > 2) pages.push('...');
+        for (let i = start; i <= end; i++) pages.push(i);
+        if (end < totalPages - 1) pages.push('...');
+        pages.push(totalPages);
+      }
+
+      pages.forEach(p => {
+        if (p === '...') {
+          html += `<span class="pg-ellipsis">…</span>`;
+        } else {
+          html += `<button class="pg-btn ${p === currentTablePage ? 'active' : ''}" onclick="goToTablePage(${p})">${p}</button>`;
+        }
+      });
+
+      // Next button
+      html += `<button class="pg-btn" ${currentTablePage === totalPages ? 'disabled' : ''} onclick="goToTablePage(${currentTablePage + 1})">▶</button>`;
+
+      bar.innerHTML = html;
     }
 
     function applyTLSearch() {
@@ -5413,7 +5559,9 @@
 
     function renderMyDashboard() {
       if (!CURRENT_USER) return;
-      const myData = DB.filter(d => (d.owner || '').includes(CURRENT_USER.name) || (d.created_by || '').includes(CURRENT_USER.name));
+      // My Dashboard should also probably respect the UI filters if they are set, 
+      // but primarily it shows "My" stuff. Let's sync with filters for consistency.
+      const myData = getFilteredData().filter(d => (d.owner || '').includes(CURRENT_USER.name) || (d.created_by || '').includes(CURRENT_USER.name));
 
       const totalInstall = myData.reduce((s, d) => s + parseFixed(d.deposit), 0);
       const totalDemo = myData.reduce((s, d) => s + parseFixed(d.demolish), 0);
@@ -5531,12 +5679,10 @@
     }
 
     function renderExecutiveDashboard() {
-      // Filtering logic for TL dashboard access
-      let filteredDB = DB;
-      if (CURRENT_USER && CURRENT_USER.role === 'tl' && CURRENT_USER.area) {
-        const allowedAreas = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
-        filteredDB = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
-      }
+      // Executive Dashboard can either follow UI filters or stay global. 
+      // Usually, it's global for "Executives", but since user complained about cards not syncing, 
+      // I'll make it follow UI filters when they are active.
+      const filteredDB = getFilteredData();
 
       const totalInstall = filteredDB.reduce((s, d) => s + parseFixed(d.deposit), 0);
       const totalDemo = filteredDB.reduce((s, d) => s + parseFixed(d.demolish), 0);
