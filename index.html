@@ -2403,6 +2403,7 @@
                 <thead>
                   <tr>
                     <th>CID</th>
+                    <th>NO.</th>
                     <th>สถานะ</th>
                     <th>อาคาร / ลูกค้า</th>
                     <th>เจ้าของงาน</th>
@@ -2958,6 +2959,10 @@
               </div>
             </div>
             <div class="form-grid cols3" style="margin-top:15px">
+              <div class="form-group">
+                <label>NO.</label>
+                <input class="form-control" id="f-no" placeholder="ระบุ NO.">
+              </div>
               <div class="form-group">
                 <label>Project Code</label>
                 <input class="form-control" id="f-project" placeholder="เช่น HRA025">
@@ -3917,6 +3922,7 @@
       <td class="nowrap" style="color:var(--txt3);font-size:12px">
         <span class="copyable-cid" onclick="event.stopPropagation(); copyCID('${d.cid}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline;">${d.cid || '—'}</span>
       </td>
+      <td class="nowrap" style="color:var(--txt2);font-size:12px;font-weight:600">${d.no || '—'}</td>
       <td class="nowrap">
         <div style="${statusSelectStyle(d.status)}; font-size:13px; font-weight:600; text-align:center;">
           ${getStatusLabel(d)}
@@ -4333,7 +4339,7 @@
     }
 
     function clearForm() {
-      ['f-place', 'f-customer', 'f-owner', 'f-area', 'f-project', 'f-deal',
+      ['f-place', 'f-customer', 'f-owner', 'f-area', 'f-no', 'f-project', 'f-deal',
         'f-pr', 'f-date-req', 'f-date-due', 'f-date-check', 'f-date-acc',
         'f-payto', 'f-paytype', 'f-deposit', 'f-demolish', 'f-fee', 'f-other', 'f-other-desc', 'f-total',
         'f-dep-status', 'f-demo-status', 'f-complete',
@@ -4379,6 +4385,7 @@
       const ownerDisp = document.getElementById('f-owner-display');
       if (ownerDisp) ownerDisp.textContent = d.owner || '—';
       setVal('f-area', d.area || '');
+      setVal('f-no', d.no || '');
       setVal('f-project', d.project || '');
       setVal('f-deal', d.deal || '');
       setVal('f-pr', d.pr || '');
@@ -4738,6 +4745,7 @@
           created_by: editingId ? (oldData?.created_by || 'Unknown') : (CURRENT_USER?.name || 'Unknown'),
           customer: getVal('f-customer'),
           area: getVal('f-area'),
+          no: getVal('f-no'),
           project: getVal('f-project'),
           deal: getVal('f-deal'),
           pr: getVal('f-pr'),
