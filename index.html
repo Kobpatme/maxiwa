@@ -2370,7 +2370,7 @@
             </div>
             <div class="pill-group" id="statusPills">
               <span class="pill active" data-val="" onclick="setStatusFilter('')">ทั้งหมด</span>
-              <span class="pill o" data-val="On Process" onclick="setStatusFilter('On Process')">⏳ กำลังดำเนินการ</span>
+              <span class="pill o" data-val="On Process" onclick="setStatusFilter('On Process')">⏳ อยู่ระหว่างขอคืนเงิน</span>
               <span class="pill b" data-val="On Service" onclick="setStatusFilter('On Service')">🚧 On Service</span>
               <span class="pill g" data-val="Done" onclick="setStatusFilter('Done')">✓ เสร็จแล้ว</span>
               <span class="pill r" data-val="Cancel" onclick="setStatusFilter('Cancel')">✕ ยกเลิก</span>
@@ -2707,7 +2707,7 @@
                 <div class="pill-group" id="tlStatusPills">
                   <span class="pill active" data-val="" onclick="setTLStatusFilter('')">ทั้งหมด</span>
                   <span class="pill o" data-val="tl" onclick="setTLStatusFilter('tl')">⏳ รอ TL รับงาน</span>
-                  <span class="pill b" data-val="On Process" onclick="setTLStatusFilter('On Process')">🚧 กำลังดำเนินการ</span>
+                  <span class="pill b" data-val="On Process" onclick="setTLStatusFilter('On Process')">🚧 อยู่ระหว่างตรวจรับ</span>
                   <span class="pill g" data-val="Done" onclick="setTLStatusFilter('Done')">✓ เสร็จแล้ว</span>
                 </div>
                 <div class="multi-select-wrap" id="tlAreaFilterWrap">
@@ -3444,21 +3444,28 @@
         return '✅ เสร็จสมบูรณ์';
       }
       if (d.status === 'Cancel') return '✕ ยกเลิก';
+      
+      const isTL = CURRENT_USER && CURRENT_USER.role === 'tl';
+      const onProcLabel = isTL ? '⏳ อยู่ระหว่างตรวจรับ' : '⏳ อยู่ระหว่างขอคืนเงิน';
+
       if (d.status === 'tl') {
-        return d.complete_tl === 'On Process' ? '⏳ กำลังดำเนินการ' : '🔴 รอ TL รับงาน';
+        return d.complete_tl === 'On Process' ? onProcLabel : '🔴 รอ TL รับงาน';
       }
-      if (d.status === 'On Process' || d.complete_tl === 'On Process') return '⏳ กำลังดำเนินการ';
+      if (d.status === 'On Process' || d.complete_tl === 'On Process') return onProcLabel;
       if (d.status === 'ret') return '📄 รอ User ตรวจรับ';
       if (d.status === 'clo') return '🏁 รอแนบหลักฐานปิดงาน';
       return 'ใหม่';
     }
 
     function statusBadge(s, d) {
+      const isTL = CURRENT_USER && CURRENT_USER.role === 'tl';
+      const onProcLabel = isTL ? 'อยู่ระหว่างตรวจรับ' : 'อยู่ระหว่างขอคืนเงิน';
+
       if (d && d.status === 'Done' && (d.demolish > 0 && d.demoReturn !== 'Yes')) {
         return `<span class="badge b-wait"><span class="dot"></span>On Service</span>`;
       }
       if (s === 'Done') return `<span class="badge b-done"><span class="dot"></span>Done</span>`;
-      if (s === 'On Process') return `<span class="badge b-process"><span class="dot"></span>กำลังดำเนินการ</span>`;
+      if (s === 'On Process') return `<span class="badge b-process"><span class="dot"></span>${onProcLabel}</span>`;
       if (s === 'Cancel') return `<span class="badge b-cancel"><span class="dot"></span>ยกเลิก</span>`;
       return `<span class="badge b-new"><span class="dot"></span>ใหม่</span>`;
     }
@@ -3623,6 +3630,8 @@
     /* ════════ RENDER KPI ════════ */
     function renderKPI() {
       const filteredData = getFilteredData();
+      const isTL = CURRENT_USER && CURRENT_USER.role === 'tl';
+      const onProcLabel = isTL ? 'อยู่ระหว่างตรวจรับ' : 'อยู่ระหว่างขอคืนเงิน';
 
       const total = filteredData.length;
       const done = filteredData.filter(d => {
@@ -3644,7 +3653,7 @@
     </div>
     <div class="kpi" style="border-left: 4px solid var(--orange)">
       <div class="kpi-icon2 orange">⏳</div>
-      <div><div class="kpi-val" style="color:var(--orange)">${proc}</div><div class="kpi-lbl">กำลังดำเนินการ</div></div>
+      <div><div class="kpi-val" style="color:var(--orange)">${proc}</div><div class="kpi-lbl">${onProcLabel}</div></div>
     </div>
     <div class="kpi" style="border-left: 4px solid var(--green)">
       <div class="kpi-icon2 green">✅</div>
