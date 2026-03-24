@@ -5646,23 +5646,10 @@
     }
 
     /* ════════ TL KPI CARDS ════════ */
-    function renderTLKPIs() {
+    function renderTLKPIs(tlData) {
       const el = document.getElementById('tlKpiRow');
       const labelEl = document.getElementById('tlKpiLabel');
       if (!el) return;
-
-      // Same role-based filtering as renderTLTasksPage
-      let baseData = DB;
-      if (CURRENT_USER && CURRENT_USER.role === 'tl' && CURRENT_USER.area) {
-        const allowedAreas = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
-        baseData = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
-      }
-
-      // All TL-relevant records (same criteria as renderTLTasksPage)
-      const tlData = baseData.filter(d => {
-        const s = (d.status || '').toLowerCase();
-        return ['tl', 'on process', 'done', 'clo'].includes(s) || d.complete_tl === 'On Process' || d.pdf_tl_work;
-      });
 
       const waiting    = tlData.filter(d => d.status === 'tl' && d.complete_tl !== 'On Process').length;
       const inProgress = tlData.filter(d => d.complete_tl === 'On Process').length;
@@ -5717,7 +5704,6 @@
 
     /* ════════ TL TASKS PAGE ════════ */
     function renderTLTasksPage() {
-      renderTLKPIs();
       // Role-based area filtering: If TL, only show their areas. If Admin, show everything.
       let filteredData = DB;
       if (CURRENT_USER && CURRENT_USER.role === 'admin') {
@@ -5738,7 +5724,7 @@
         return matchesStatus && mq;
       });
 
-      // Populate area dropdown (based on pre-filter data)
+      // Populate area dropdown (based on pre-area-filter data)
       populateTLAreaFilter(tlData);
 
       // Apply area filter
@@ -5746,7 +5732,10 @@
         tlData = tlData.filter(d => tlFilterAreas.includes(d.area));
       }
 
-      // Apply status filter
+      // Render KPI cards based on current area + search (not status filter, to show full breakdown)
+      renderTLKPIs(tlData);
+
+      // Apply status filter (table only)
       if (tlStatusFilter) {
         tlData = tlData.filter(d => {
           if (tlStatusFilter === 'tl') return d.status === 'tl' && d.complete_tl !== 'On Process';
