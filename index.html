@@ -2686,6 +2686,11 @@
       <!-- TL Tasks Page -->
       <div class="page" id="page-tl-tasks">
         <div style="padding:24px 28px 0">
+
+          <!-- TL KPI Summary -->
+          <div style="margin-bottom:6px; font-size:12px; color:var(--txt3); font-weight:600; letter-spacing:.4px; text-transform:uppercase;" id="tlKpiLabel">สรุปงานของฉัน</div>
+          <div class="kpi-row" id="tlKpiRow" style="grid-template-columns:repeat(5,1fr); margin-bottom:20px;"></div>
+
           <div class="card">
             <div class="card-header">
               <span class="card-title">🛠️ งานหน้างาน TL ทั้งหมด</span>
@@ -5563,8 +5568,79 @@
       }
     }
 
+    /* ════════ TL KPI CARDS ════════ */
+    function renderTLKPIs() {
+      const el = document.getElementById('tlKpiRow');
+      const labelEl = document.getElementById('tlKpiLabel');
+      if (!el) return;
+
+      // Same role-based filtering as renderTLTasksPage
+      let baseData = DB;
+      if (CURRENT_USER && CURRENT_USER.role === 'tl' && CURRENT_USER.area) {
+        const allowedAreas = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
+        baseData = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
+      }
+
+      // All TL-relevant records (same criteria as renderTLTasksPage)
+      const tlData = baseData.filter(d => {
+        const s = (d.status || '').toLowerCase();
+        return ['tl', 'on process', 'done', 'clo'].includes(s) || d.complete_tl === 'On Process' || d.pdf_tl_work;
+      });
+
+      const waiting    = tlData.filter(d => d.status === 'tl' && d.complete_tl !== 'On Process').length;
+      const inProgress = tlData.filter(d => d.complete_tl === 'On Process').length;
+      const done       = tlData.filter(d => (d.status || '').toLowerCase() === 'done').length;
+      const totalDemo  = tlData.reduce((s, d) => s + parseFixed(d.demolish), 0);
+      const returned   = tlData.filter(d => (d.demoReturn || '').toLowerCase() === 'yes').length;
+
+      if (labelEl) {
+        const isAdmin = CURRENT_USER && CURRENT_USER.role === 'admin';
+        const name = CURRENT_USER ? (CURRENT_USER.name || CURRENT_USER.email || '') : '';
+        labelEl.textContent = isAdmin ? 'สรุปงาน TL ทั้งหมด' : `สรุปงานของ ${name}`;
+      }
+
+      el.innerHTML = `
+        <div class="kpi" style="border-left:4px solid var(--orange)">
+          <div class="kpi-icon2 orange">⏳</div>
+          <div>
+            <div class="kpi-val" style="color:var(--orange)">${waiting}</div>
+            <div class="kpi-lbl">รอ TL รับงาน</div>
+          </div>
+        </div>
+        <div class="kpi" style="border-left:4px solid var(--blue)">
+          <div class="kpi-icon2 blue">🚧</div>
+          <div>
+            <div class="kpi-val" style="color:var(--blue)">${inProgress}</div>
+            <div class="kpi-lbl">กำลังดำเนินการ</div>
+          </div>
+        </div>
+        <div class="kpi" style="border-left:4px solid var(--green)">
+          <div class="kpi-icon2 green">✅</div>
+          <div>
+            <div class="kpi-val" style="color:var(--green)">${done}</div>
+            <div class="kpi-lbl">เสร็จแล้ว</div>
+          </div>
+        </div>
+        <div class="kpi" style="border-left:4px solid var(--red)">
+          <div class="kpi-icon2 red">💰</div>
+          <div>
+            <div class="kpi-val" style="color:var(--red);font-size:${totalDemo >= 1000000 ? '14px' : '18px'}">฿${totalDemo.toLocaleString()}</div>
+            <div class="kpi-lbl">มูลค่าประกันรื้อถอน</div>
+          </div>
+        </div>
+        <div class="kpi" style="border-left:4px solid var(--green)">
+          <div class="kpi-icon2 green">🎉</div>
+          <div>
+            <div class="kpi-val" style="color:var(--green)">${returned}</div>
+            <div class="kpi-lbl">คืนเงินประกันแล้ว</div>
+          </div>
+        </div>
+      `;
+    }
+
     /* ════════ TL TASKS PAGE ════════ */
     function renderTLTasksPage() {
+      renderTLKPIs();
       // Role-based area filtering: If TL, only show their areas. If Admin, show everything.
       let filteredData = DB;
       if (CURRENT_USER && CURRENT_USER.role === 'admin') {
