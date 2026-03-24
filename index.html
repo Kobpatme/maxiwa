@@ -3445,8 +3445,10 @@
       }
       if (d.status === 'Cancel') return '✕ ยกเลิก';
       
+      // แสดง "อยู่ระหว่างตรวจรับ" เมื่อเป็น TL หรืออยู่ในขั้นตอน STEP4 (On Process)
       const isTL = CURRENT_USER && CURRENT_USER.role === 'tl';
-      const onProcLabel = isTL ? '⏳ อยู่ระหว่างตรวจรับ' : '⏳ อยู่ระหว่างขอคืนเงิน';
+      const isAtStep4 = d.status === 'On Process' || d.complete_tl === 'On Process';
+      const onProcLabel = (isTL || isAtStep4) ? '⏳ อยู่ระหว่างตรวจรับ' : '⏳ อยู่ระหว่างขอคืนเงิน';
 
       if (d.status === 'tl') {
         return d.complete_tl === 'On Process' ? onProcLabel : '🔴 รอ TL รับงาน';
@@ -3458,8 +3460,10 @@
     }
 
     function statusBadge(s, d) {
+      // แสดง "อยู่ระหว่างตรวจรับ" เมื่อเป็น TL หรืออยู่ในขั้นตอน STEP4 (On Process)
       const isTL = CURRENT_USER && CURRENT_USER.role === 'tl';
-      const onProcLabel = isTL ? 'อยู่ระหว่างตรวจรับ' : 'อยู่ระหว่างขอคืนเงิน';
+      const isAtStep4 = d && (d.status === 'On Process' || d.complete_tl === 'On Process');
+      const onProcLabel = (isTL || isAtStep4) ? 'อยู่ระหว่างตรวจรับ' : 'อยู่ระหว่างขอคืนเงิน';
 
       if (d && d.status === 'Done' && (d.demolish > 0 && d.demoReturn !== 'Yes')) {
         return `<span class="badge b-wait"><span class="dot"></span>On Service</span>`;
