@@ -4997,6 +4997,10 @@
               <div id="tl-upload-ui" style="display:none; margin-top:20px; padding:20px; background:var(--blue-l); border-radius:var(--r-md); border:1px solid var(--blue);">
                  <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">📤 แนบหลักฐาน PDF (บังคับ)</div>
                  <input type="file" id="f-pdf-tl-work-detail" accept=".pdf" class="form-control" multiple style="margin-bottom:15px; background:var(--white);">
+                 
+                 <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">📎 แนบเอกสารเพิ่มเติม (ถ้ามี)</div>
+                 <input type="file" id="f-pdf-tl-extra-detail" accept=".pdf" class="form-control" multiple style="margin-bottom:15px; background:var(--white);">
+                 
                  <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveTLWorkDetail('${d.id}')">✅ บันทึกและส่งต่องาน</button>
               </div>
             </div>
@@ -5156,16 +5160,22 @@
       const fileRows = [
         { label: 'หลักฐานการจ่าย', key: 'pdf_payment' },
         { label: 'แบบ / Drawing', key: 'pdf_layout' },
-        { label: 'เอกสารเพิ่มเติม', key: 'pdf_additional' }
-      ].filter(f => d[f.key]).map(f => `
-      <a href="${d[f.key]}" target="_blank" class="detail-row" style="text-decoration:none; display:flex; align-items:center; gap:8px; background:var(--bg-f); border:1px solid var(--border); padding:8px 12px; border-radius:var(--r-sm)">
-        <span style="font-size:18px">📄</span>
-        <div style="flex:1">
-          <div style="font-size:11px; color:var(--txt2); font-weight:700; text-transform:uppercase">${f.label}</div>
-          <div style="font-size:12px; color:var(--blue)">คลิกเพื่อดู PDF</div>
-        </div>
-      </a>
-      `).join('');
+        { label: 'เอกสารเพิ่มเติม', key: 'pdf_additional' },
+        { label: 'หลักฐานงาน TL', key: 'pdf_tl_work' },
+        { label: 'เอกสารเพิ่มเติม TL', key: 'pdf_tl_extra' }
+      ].filter(f => d[f.key]).map(f => {
+        const val = d[f.key];
+        const urls = Array.isArray(val) ? val : [val];
+        return urls.map((url, idx) => `
+        <a href="${url}" target="_blank" class="detail-row" style="text-decoration:none; display:flex; align-items:center; gap:8px; background:var(--bg-f); border:1px solid var(--border); padding:8px 12px; border-radius:var(--r-sm)">
+          <span style="font-size:18px">📄</span>
+          <div style="flex:1">
+            <div style="font-size:11px; color:var(--txt2); font-weight:700; text-transform:uppercase">${f.label} ${urls.length > 1 ? '#' + (idx + 1) : ''}</div>
+            <div style="font-size:12px; color:var(--blue)">คลิกเพื่อดู PDF</div>
+          </div>
+        </a>
+        `).join('');
+      }).join('');
 
       const filesHTML = fileRows ? `
       <div style="margin-top:0px; margin-bottom:24px;">
@@ -5247,6 +5257,10 @@
         uploadUI.innerHTML = `
              <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">📤 แนบหลักฐาน PDF (บังคับ)</div>
              <input type="file" id="f-pdf-tl-work-modal" accept=".pdf" class="form-control" multiple style="margin-bottom:15px; background:var(--white);">
+             
+             <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">📎 แนบเอกสารเพิ่มเติม (ถ้ามี)</div>
+             <input type="file" id="f-pdf-tl-extra-modal" accept=".pdf" class="form-control" multiple style="margin-bottom:15px; background:var(--white);">
+             
              <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveTLWorkDetail('${d.id}', true)">✅ บันทึกและส่งต่องาน</button>
         `;
         body.appendChild(uploadUI);
@@ -5305,7 +5319,7 @@
         return;
       }
 
-      const btn = event.target;
+      const btn = event.currentTarget || event.target;
       const originText = btn.textContent;
 
       let tlCompleteDate = '';
@@ -5333,7 +5347,7 @@
             inspected_by: inspectedBy,
             log: d.log
           };
-          addLogEntry(updateObj, 'บันทึกข้อมูลเบื้องต้น (วันที่/ผู้ตรวจรับ)', '📝');
+          addLogEntry(d, 'บันทึกข้อมูลเบื้องต้น (วันที่/ผู้ตรวจรับ)', '📝');
 
           let updated;
           if (USE_MOCK) {
@@ -5354,12 +5368,16 @@
       }
 
       const isBuilding = (inspectedBy === 'Building Dept');
-      const inputId = fromModal ? 'f-pdf-tl-work-modal' : 'f-pdf-tl-work-detail';
-      const input = document.getElementById(inputId);
-      const hasFiles = input && input.files && input.files.length > 0;
+      const workInputId = fromModal ? 'f-pdf-tl-work-modal' : 'f-pdf-tl-work-detail';
+      const extraInputId = fromModal ? 'f-pdf-tl-extra-modal' : 'f-pdf-tl-extra-detail';
+      const workInput = document.getElementById(workInputId);
+      const extraInput = document.getElementById(extraInputId);
+      
+      const workFiles = (workInput && workInput.files) ? Array.from(workInput.files) : [];
+      const extraFiles = (extraInput && extraInput.files) ? Array.from(extraInput.files) : [];
 
       // Only check PDF if inspected by TL
-      if (!isBuilding && !hasFiles) {
+      if (!isBuilding && workFiles.length === 0 && !d.pdf_tl_work) {
         toast('กรุณาเลือกไฟล์ PDF หลักฐานงาน TL', 'error'); return;
       }
       
@@ -5369,38 +5387,43 @@
         if (!installDate) { toast('กรุณาระบุวันที่ติดตั้งเสร็จสิ้น', 'error'); return; }
       }
 
-      const files = hasFiles ? Array.from(input.files) : [];
       btn.disabled = true; btn.textContent = '⌛ กำลังบันทึก...';
 
       try {
-        const uploadedUrls = [];
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i];
-          toast(`กำลังอัปโหลดหลักฐาน (${i + 1}/${files.length})...`, 'info');
-          let fUrl = '';
-          if (USE_MOCK) {
-            fUrl = `mock://uploads/tl_works/${file.name}`;
-          } else {
-            fUrl = await uploadFile(file, 'tl_works');
-          }
-          if (fUrl) uploadedUrls.push(fUrl);
+        // Upload Main Evidence
+        const uploadedWorkUrls = [];
+        for (let i = 0; i < workFiles.length; i++) {
+          const file = workFiles[i];
+          toast(`อัปโหลดหลักฐานหลัก (${i + 1}/${workFiles.length})...`, 'info');
+          let fUrl = USE_MOCK ? `mock://uploads/tl_works/${file.name}` : await uploadFile(file, 'tl_works');
+          if (fUrl) uploadedWorkUrls.push(fUrl);
         }
 
-        // Only throw error if we WERE supposed to have files but none uploaded successfully
-        if (hasFiles && uploadedUrls.length === 0 && !isBuilding) throw new Error('Upload failed');
-        
-        // If no NEW files uploaded, keep existing or set to empty
-        let urlValue = d.pdf_tl_work || '';
-        if (uploadedUrls.length > 0) {
-          urlValue = uploadedUrls.length === 1 ? uploadedUrls[0] : uploadedUrls;
+        // Upload Extra Documents
+        const uploadedExtraUrls = [];
+        for (let i = 0; i < extraFiles.length; i++) {
+          const file = extraFiles[i];
+          toast(`อัปโหลดเอกสารเพิ่มเติม (${i + 1}/${extraFiles.length})...`, 'info');
+          let fUrl = USE_MOCK ? `mock://uploads/tl_extra/${file.name}` : await uploadFile(file, 'tl_extra');
+          if (fUrl) uploadedExtraUrls.push(fUrl);
         }
+
+        // Update URLs (Append if existing)
+        let finalWorkUrls = d.pdf_tl_work ? (Array.isArray(d.pdf_tl_work) ? d.pdf_tl_work : [d.pdf_tl_work]) : [];
+        if (uploadedWorkUrls.length > 0) finalWorkUrls = [...finalWorkUrls, ...uploadedWorkUrls];
+        let workValue = finalWorkUrls.length === 0 ? '' : (finalWorkUrls.length === 1 ? finalWorkUrls[0] : finalWorkUrls);
+
+        let finalExtraUrls = d.pdf_tl_extra ? (Array.isArray(d.pdf_tl_extra) ? d.pdf_tl_extra : [d.pdf_tl_extra]) : [];
+        if (uploadedExtraUrls.length > 0) finalExtraUrls = [...finalExtraUrls, ...uploadedExtraUrls];
+        let extraValue = finalExtraUrls.length === 0 ? '' : (finalExtraUrls.length === 1 ? finalExtraUrls[0] : finalExtraUrls);
 
         const logMsg = isBuilding ? 'ฝ่ายอาคารตรวจรับและปิดงาน' : 'TL ดำเนินการเสร็จสิ้นและแนบหลักฐาน';
         addLogEntry(d, logMsg, '🏁');
         
         const updateObj = {
           status: 'ret',
-          pdf_tl_work: urlValue,
+          pdf_tl_work: workValue,
+          pdf_tl_extra: extraValue,
           tl_complete_date: tlCompleteDate,
           tl_due_date: tlDueDate,
           install_date: installDate,
@@ -5808,7 +5831,11 @@
           </td>
           <td class="nowrap">${d.area || '—'}</td>
           <td class="nowrap">${d.complete_tl === 'On Process' ? '<span class="badge b-orange">รับแล้ว</span>' : '<span style="color:var(--txt3)">ยังไม่รับ</span>'}</td>
-          <td class="nowrap">${d.pdf_tl_work ? '<a href="' + d.pdf_tl_work + '" target="_blank" onclick="event.stopPropagation()" class="badge b-done" style="text-decoration:none">📄 ดู PDF</a>' : '<span style="color:var(--txt3)">—</span>'}</td>
+          <td class="nowrap">${d.pdf_tl_work ? 
+            (Array.isArray(d.pdf_tl_work) 
+              ? d.pdf_tl_work.map((url, i) => `<a href="${url}" target="_blank" onclick="event.stopPropagation()" class="badge b-done" style="text-decoration:none; margin-right:2px;">📄 ไฟล์ ${i+1}</a>`).join('')
+              : `<a href="${d.pdf_tl_work}" target="_blank" onclick="event.stopPropagation()" class="badge b-done" style="text-decoration:none">📄 ดู PDF</a>`)
+            : '<span style="color:var(--txt3)">—</span>'}</td>
           <td class="nowrap">${stepLabel(d)}</td>
           <td class="nowrap">
             <div class="actions">
