@@ -2425,7 +2425,7 @@
                 <thead>
                   <tr>
                     <th>CID</th>
-                    <th>NO.</th>
+                    <th id="th-no" onclick="toggleSortNo()" style="cursor:pointer;user-select:none;" title="คลิกเพื่อเรียงลำดับ NO.">NO. <span id="sort-no-icon"></span></th>
                     <th>สถานะ</th>
                     <th>อาคาร / ลูกค้า</th>
                     <th>เจ้าของงาน</th>
@@ -3392,6 +3392,25 @@
     let filterOwner = '';
     let filterAreas = [];
     let searchQ = '';
+    let sortNoDir = '';
+    let _realtimeDebounce = null;
+
+    // Security helpers
+    function esc(str) {
+      return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;');
+    }
+    function safeUrl(url) {
+      if (!url || typeof url !== 'string') return '#';
+      try {
+        const u = new URL(url);
+        return (u.protocol === 'https:' || u.protocol === 'http:') ? url : '#';
+      } catch { return '#'; }
+    }
     let tlSearchQ = '';
     let tlStatusFilter = '';
     let tlFilterAreas = [];
@@ -3932,7 +3951,7 @@
       }
 
       // 2. UI Filters (Search, Status, Owner, Area)
-      return roleAllowedData.filter(d => {
+      const filtered = roleAllowedData.filter(d => {
         let ms = !filterStatus || d.status === filterStatus;
         if (filterStatus === 'On Service') {
           ms = (d.status || '').trim().toLowerCase() === 'done' && (+(d.demolish || 0) > 0 && d.demoReturn !== 'Yes');
@@ -3944,6 +3963,26 @@
         const mq = !searchQ || [d.place, d.customer, d.owner, d.project, d.pr].join(' ').toLowerCase().includes(searchQ);
         return ms && mo && ma && mq;
       });
+
+      // 3. Sort by NO.
+      if (sortNoDir) {
+        filtered.sort((a, b) => {
+          const na = parseFloat((a.no || '').toString().replace(/[^0-9.]/g, '')) || 0;
+          const nb = parseFloat((b.no || '').toString().replace(/[^0-9.]/g, '')) || 0;
+          return sortNoDir === 'asc' ? na - nb : nb - na;
+        });
+      }
+      return filtered;
+    }
+
+    function toggleSortNo() {
+      sortNoDir = sortNoDir === '' ? 'asc' : sortNoDir === 'asc' ? 'desc' : '';
+      const icon = document.getElementById('sort-no-icon');
+      if (icon) icon.textContent = sortNoDir === 'asc' ? '▲' : sortNoDir === 'desc' ? '▼' : '';
+      const th = document.getElementById('th-no');
+      if (th) th.style.color = sortNoDir ? 'var(--blue, #3b82f6)' : '';
+      currentTablePage = 1;
+      renderTable();
     }
 
     function renderTable() {
@@ -3979,25 +4018,25 @@
       document.getElementById('tbody').innerHTML = pageData.map(d => `
     <tr onclick="if(event.target.tagName !== 'BUTTON' && event.target.tagName !== 'SELECT' && !event.target.classList.contains('copyable-cid')) { if(window.CURRENT_USER?.role === 'tl') openTLModal('${d.id}'); else openEdit('${d.id}', 'auto'); }" style="cursor:pointer;" title="${isTL ? 'คลิกเพื่อเข้าสู่หน้าต่างงานหน้างาน (TL)' : 'คลิกเพื่ออัปเดตสถานะงาน'}">
       <td class="nowrap" style="color:var(--txt3);font-size:12px">
-        <span class="copyable-cid" onclick="event.stopPropagation(); copyCID('${d.cid}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline;">${d.cid || '—'}</span>
+        <span class="copyable-cid" onclick="event.stopPropagation(); copyCID('${esc(d.cid)}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline;">${esc(d.cid) || '—'}</span>
       </td>
-      <td class="nowrap" style="color:var(--txt2);font-size:12px;font-weight:600">${d.no || '—'}</td>
+      <td class="nowrap" style="color:var(--txt2);font-size:12px;font-weight:600">${esc(d.no) || '—'}</td>
       <td class="nowrap">
         <div style="${statusSelectStyle(d.status)}; font-size:13px; font-weight:600; text-align:center;">
           ${getStatusLabel(d)}
         </div>
       </td>
       <td class="td-place">
-        <div class="place">${d.place}</div>
-        <div class="cust">${d.customer || '—'}</div>
+        <div class="place">${esc(d.place)}</div>
+        <div class="cust">${esc(d.customer) || '—'}</div>
       </td>
       <td class="nowrap">
-        ${d.owner ? `<span class="badge b-violet" style="font-size:11px">${d.owner}</span>` : '<span style="color:var(--txt3)">—</span>'}
+        ${d.owner ? `<span class="badge b-violet" style="font-size:11px">${esc(d.owner)}</span>` : '<span style="color:var(--txt3)">—</span>'}
       </td>
-      <td class="nowrap" style="color:var(--txt2)">${d.pr || '—'}</td>
-      <td class="nowrap" style="color:var(--txt2);font-size:12px">${d.dateReq || '—'}</td>
+      <td class="nowrap" style="color:var(--txt2)">${esc(d.pr) || '—'}</td>
+      <td class="nowrap" style="color:var(--txt2);font-size:12px">${esc(d.dateReq) || '—'}</td>
       <td class="nowrap"><span class="amt ${d.total > 0 ? 'pos' : ''}">${d.total > 0 ? '฿' + d.total.toLocaleString() : '—'}</span></td>
-      <td class="nowrap"><span class="badge b-wait" style="font-size:10px">${d.area || '—'}</span></td>
+      <td class="nowrap"><span class="badge b-wait" style="font-size:10px">${esc(d.area) || '—'}</span></td>
       <td class="nowrap">${stepLabel(d)}</td>
       ${isTL ? '' : `
       <td class="nowrap">
@@ -4031,8 +4070,11 @@
             }
           }
         });
-        // Refresh local data
-        initApp().then(() => typeof updateNotifs === 'function' && updateNotifs());
+        // Refresh local data (debounced to avoid multiple rapid reloads)
+        clearTimeout(_realtimeDebounce);
+        _realtimeDebounce = setTimeout(() => {
+          initApp().then(() => typeof updateNotifs === 'function' && updateNotifs());
+        }, 800);
       });
 
       // User duplicate login listener
@@ -4384,6 +4426,11 @@
 
     function openEdit(id, targetStep = 1) {
       const d = DB.find(x => x.id === id);
+      if (!d) { toast('ไม่พบรายการ #' + id, 'error'); return; }
+      if (CURRENT_USER?.role === 'tl' && CURRENT_USER.area) {
+        const allowed = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
+        if (!allowed.includes((d.area || '').toLowerCase())) { toast('ไม่มีสิทธิ์แก้ไขรายการนี้', 'error'); return; }
+      }
       if (targetStep === 'auto') {
         targetStep = getStepIndex(d) + 1;
         if (targetStep > 6) targetStep = 6;
@@ -4534,7 +4581,7 @@
       if (step5EvidenceEl) {
         if (d.pdf_tl_work) {
           step5EvidenceEl.innerHTML = `
-            <a href="${d.pdf_tl_work}" target="_blank" style="display:flex; align-items:center; gap:10px; text-decoration:none; padding:12px; background:var(--blue-l); border:1px solid var(--blue); border-radius:var(--r-sm);">
+            <a href="${safeUrl(d.pdf_tl_work)}" target="_blank" style="display:flex; align-items:center; gap:10px; text-decoration:none; padding:12px; background:var(--blue-l); border:1px solid var(--blue); border-radius:var(--r-sm);">
               <span style="font-size:24px">📄</span>
               <div style="flex:1; text-align:left;">
                 <div style="font-size:12px; color:var(--blue); font-weight:700; text-transform:uppercase;">หลักฐานงาน TL</div>
@@ -4661,11 +4708,29 @@
         const pendingCleanups = [];
         const oldData = editingId ? DB.find(x => x.id == editingId) : null;
 
+        const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
+        const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+
         for (const ff of fileFields) {
           const input = document.getElementById(ff.id);
           // Only upload if NEW file(s) selected
           if (input && input.files && input.files.length > 0 && input.value !== '') {
             const files = Array.from(input.files);
+
+            // Validate each file before uploading
+            for (const file of files) {
+              if (file.size > MAX_FILE_SIZE) {
+                btn.disabled = false; btn.textContent = originalText;
+                toast(`ไฟล์ "${file.name}" ขนาดใหญ่เกินไป (สูงสุด 20MB)`, 'error');
+                return;
+              }
+              if (!ALLOWED_TYPES.includes(file.type)) {
+                btn.disabled = false; btn.textContent = originalText;
+                toast(`ไฟล์ "${file.name}" ไม่รองรับ (รองรับเฉพาะ PDF, JPG, PNG)`, 'error');
+                return;
+              }
+            }
+
             const fileKeys = files.map(f => f.name + f.size).join('|');
 
             // Session Cache: Avoid re-uploading if same set of files was uploaded in this session
@@ -4922,6 +4987,11 @@
     /* ════════ DETAIL VIEW ════════ */
     function openDetail(id) {
       const d = DB.find(x => x.id === id);
+      if (!d) { toast('ไม่พบรายการ #' + id, 'error'); return; }
+      if (CURRENT_USER?.role === 'tl' && CURRENT_USER.area) {
+        const allowed = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
+        if (!allowed.includes((d.area || '').toLowerCase())) { toast('ไม่มีสิทธิ์เข้าถึงรายการนี้', 'error'); return; }
+      }
       const detailBody = document.getElementById('detailBody');
       if (!detailBody) return;
 
@@ -4932,12 +5002,12 @@
         ['ลูกค้า', d.customer || '—'],
         ['เจ้าของงาน', d.owner || '—'],
         ['พื้นที่', d.area || '—'],
-        ['Project Code', d.project || '—'],
-        ['PR No.', d.pr || '—'],
-        ['CID', `<span class="copyable-cid" onclick="copyCID('${d.cid}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline; color:var(--blue); font-weight:700;">${d.cid || '—'}</span>`],
-        ['ทีม TL กทม/ตจว', d.tl_team || '—'],
-        ['ผู้ประสานงาน', d.contact || '—'],
-        ['เบอร์โทร (มือถือ)', d.tel || '—'],
+        ['Project Code', esc(d.project) || '—'],
+        ['PR No.', esc(d.pr) || '—'],
+        ['CID', `<span class="copyable-cid" onclick="copyCID('${esc(d.cid)}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline; color:var(--blue); font-weight:700;">${esc(d.cid) || '—'}</span>`],
+        ['ทีม TL กทม/ตจว', esc(d.tl_team) || '—'],
+        ['ผู้ประสานงาน', esc(d.contact) || '—'],
+        ['เบอร์โทร (มือถือ)', esc(d.tel) || '—'],
         ['กำหนดตรวจรับ (TL)', d.tl_due_date ? `<span style="color:var(--orange); font-weight:700;">${d.tl_due_date}</span>` : '—'],
       ];
 
@@ -4981,7 +5051,7 @@
               <span style="font-weight:700; color:var(--txt)">฿${parseFixed(d.fee).toLocaleString()}</span>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:13px; color:var(--txt2)">ค่าใช้จ่ายอื่นๆ/Other ${d.other_desc ? '<span style="color:var(--txt3);font-size:11px">(' + d.other_desc + ')</span>' : ''}</span>
+              <span style="font-size:13px; color:var(--txt2)">ค่าใช้จ่ายอื่นๆ/Other ${d.other_desc ? '<span style="color:var(--txt3);font-size:11px">(' + esc(d.other_desc) + ')</span>' : ''}</span>
               <span style="font-weight:700; color:var(--txt)">฿${parseFixed(d.other).toLocaleString()}</span>
             </div>
             <div style="margin-top:8px; padding-top:12px; border-top:2px solid var(--blue-l); display:flex; justify-content:space-between; align-items:center;">
@@ -5003,7 +5073,7 @@
         const val = d[f.key];
         const urls = Array.isArray(val) ? val : [val];
         return urls.map((url, idx) => `
-          <a href="${url}" target="_blank" class="detail-row" style="text-decoration:none; display:flex; align-items:center; gap:8px; background:var(--blue-l); border:1px solid var(--blue-m); padding:8px 12px; border-radius:var(--r-sm)">
+          <a href="${safeUrl(url)}" target="_blank" class="detail-row" style="text-decoration:none; display:flex; align-items:center; gap:8px; background:var(--blue-l); border:1px solid var(--blue-m); padding:8px 12px; border-radius:var(--r-sm)">
             <span style="font-size:18px">📄</span>
             <div style="flex:1">
               <div style="font-size:11px; color:var(--blue); font-weight:700; text-transform:uppercase">${f.label} ${urls.length > 1 ? '#' + (idx + 1) : ''}</div>
@@ -5020,7 +5090,7 @@
       </div>
     ` : '';
 
-      const remarkHTML = d.remark ? `<div style="margin-top:12px;padding:10px 12px;background:var(--orange-l);border-radius:var(--r-sm);font-size:12.5px;color:#92400e">📝 ${d.remark}</div>` : '';
+      const remarkHTML = d.remark ? `<div style="margin-top:12px;padding:10px 12px;background:var(--orange-l);border-radius:var(--r-sm);font-size:12.5px;color:#92400e">📝 ${esc(d.remark)}</div>` : '';
 
       // TL Action Section
       let tlActionHTML = '';
@@ -5106,6 +5176,11 @@
     /* ════════ Specialized TL Work Modal ════════ */
     function openTLModal(id) {
       const d = DB.find(x => x.id === id);
+      if (!d) { toast('ไม่พบรายการ #' + id, 'error'); return; }
+      if (CURRENT_USER?.role === 'tl' && CURRENT_USER.area) {
+        const allowed = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
+        if (!allowed.includes((d.area || '').toLowerCase())) { toast('ไม่มีสิทธิ์เข้าถึงรายการนี้', 'error'); return; }
+      }
       const body = document.getElementById('tlWorkBody');
       if (!body) return;
 
@@ -5129,12 +5204,12 @@
       const infoRows = [
         ['วันที่แจ้งงาน', d.dateReq || '—'],
         ['📍 ชื่อสถานที่/โครงการ', d.place],
-        ['🏠 พื้นที่ (Area)', d.area || '—'],
-        ['🏢 ชื่อลูกค้า/ผู้เช่า', d.customer || '—'],
-        ['CID', `<span class="copyable-cid" onclick="copyCID('${d.cid}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline; color:var(--blue); font-weight:700;">${d.cid || '—'}</span>`],
-        ['👤 เจ้าของงาน', d.owner || '—'],
-        ['📞 ผู้ประสานงาน', d.contact || '—'],
-        ['📱 เบอร์ติดต่อ', d.mobile || d.tel || '—'],
+        ['🏠 พื้นที่ (Area)', esc(d.area) || '—'],
+        ['🏢 ชื่อลูกค้า/ผู้เช่า', esc(d.customer) || '—'],
+        ['CID', `<span class="copyable-cid" onclick="copyCID('${esc(d.cid)}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline; color:var(--blue); font-weight:700;">${esc(d.cid) || '—'}</span>`],
+        ['👤 เจ้าของงาน', esc(d.owner) || '—'],
+        ['📞 ผู้ประสานงาน', esc(d.contact) || '—'],
+        ['📱 เบอร์ติดต่อ', esc(d.mobile || d.tel) || '—'],
         ['📅 กำหนดตรวจรับ (TL)', d.tl_due_date ? `<span style="color:var(--orange); font-weight:700;">${d.tl_due_date}</span>` : '—'],
         ['📅 วันที่เสร็จสิ้น (TL)', d.tl_complete_date || '—']
       ];
@@ -5186,7 +5261,7 @@
               <span style="font-weight:700; color:var(--txt)">฿${parseFixed(d.fee).toLocaleString()}</span>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center;">
-              <span style="font-size:13px; color:var(--txt2)">ค่าใช้จ่ายอื่นๆ/Other ${d.other_desc ? '<span style="color:var(--txt3);font-size:11px">(' + d.other_desc + ')</span>' : ''}</span>
+              <span style="font-size:13px; color:var(--txt2)">ค่าใช้จ่ายอื่นๆ/Other ${d.other_desc ? '<span style="color:var(--txt3);font-size:11px">(' + esc(d.other_desc) + ')</span>' : ''}</span>
               <span style="font-weight:700; color:var(--txt)">฿${parseFixed(d.other).toLocaleString()}</span>
             </div>
             <div style="margin-top:8px; padding-top:12px; border-top:2px solid var(--blue-l); display:flex; justify-content:space-between; align-items:center;">
@@ -5208,7 +5283,7 @@
         const val = d[f.key];
         const urls = Array.isArray(val) ? val : [val];
         return urls.map((url, idx) => `
-        <a href="${url}" target="_blank" class="detail-row" style="text-decoration:none; display:flex; align-items:center; gap:8px; background:var(--bg-f); border:1px solid var(--border); padding:8px 12px; border-radius:var(--r-sm)">
+        <a href="${safeUrl(url)}" target="_blank" class="detail-row" style="text-decoration:none; display:flex; align-items:center; gap:8px; background:var(--bg-f); border:1px solid var(--border); padding:8px 12px; border-radius:var(--r-sm)">
           <span style="font-size:18px">📄</span>
           <div style="flex:1">
             <div style="font-size:11px; color:var(--txt2); font-weight:700; text-transform:uppercase">${f.label} ${urls.length > 1 ? '#' + (idx + 1) : ''}</div>
@@ -5468,6 +5543,14 @@
       if (!isBuilding) {
         if (!tlCompleteDate) { toast('กรุณาระบุวันที่ตรวจรับเสร็จสิ้น', 'error'); return; }
         if (!installDate) { toast('กรุณาระบุวันที่ติดตั้งเสร็จสิ้น', 'error'); return; }
+      }
+
+      // Validate file size and type before uploading
+      const TL_MAX_SIZE = 20 * 1024 * 1024;
+      const TL_ALLOWED = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+      for (const file of [...workFiles, ...extraFiles]) {
+        if (file.size > TL_MAX_SIZE) { toast(`ไฟล์ "${file.name}" ขนาดใหญ่เกินไป (สูงสุด 20MB)`, 'error'); return; }
+        if (!TL_ALLOWED.includes(file.type)) { toast(`ไฟล์ "${file.name}" ไม่รองรับ (รองรับเฉพาะ PDF, JPG, PNG)`, 'error'); return; }
       }
 
       btn.disabled = true; btn.textContent = '⌛ กำลังบันทึก...';
@@ -5969,7 +6052,7 @@
         return `
         <tr onclick="openTLModal('${d.id}')" style="cursor:pointer" title="คลิกเพื่อดูรายละเอียด">
           <td class="nowrap" style="color:var(--txt3);font-size:12px">
-            <span class="copyable-cid" onclick="event.stopPropagation(); copyCID('${d.cid}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline;">${d.cid || '—'}</span>
+            <span class="copyable-cid" onclick="event.stopPropagation(); copyCID('${esc(d.cid)}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline;">${esc(d.cid) || '—'}</span>
           </td>
           <td class="nowrap">
             <div style="${statusSelectStyle(d.status)}; font-size:13px; font-weight:600; text-align:center;">
@@ -5985,8 +6068,8 @@
           <td class="nowrap">${d.complete_tl === 'On Process' ? '<span class="badge b-orange">รับแล้ว</span>' : '<span style="color:var(--txt3)">ยังไม่รับ</span>'}</td>
           <td class="nowrap">${d.pdf_tl_work ? 
             (Array.isArray(d.pdf_tl_work) 
-              ? d.pdf_tl_work.map((url, i) => `<a href="${url}" target="_blank" onclick="event.stopPropagation()" class="badge b-done" style="text-decoration:none; margin-right:2px;">📄 ไฟล์ ${i+1}</a>`).join('')
-              : `<a href="${d.pdf_tl_work}" target="_blank" onclick="event.stopPropagation()" class="badge b-done" style="text-decoration:none">📄 ดู PDF</a>`)
+              ? d.pdf_tl_work.map((url, i) => `<a href="${safeUrl(url)}" target="_blank" onclick="event.stopPropagation()" class="badge b-done" style="text-decoration:none; margin-right:2px;">📄 ไฟล์ ${i+1}</a>`).join('')
+              : `<a href="${safeUrl(d.pdf_tl_work)}" target="_blank" onclick="event.stopPropagation()" class="badge b-done" style="text-decoration:none">📄 ดู PDF</a>`)
             : '<span style="color:var(--txt3)">—</span>'}</td>
           <td class="nowrap">${stepLabel(d)}</td>
           <td class="nowrap">
