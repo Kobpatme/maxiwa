@@ -3823,11 +3823,9 @@
       }
 
       const items = filteredData.filter(d => {
-        const s = (d.status || '').trim().toLowerCase();
         const hasDemo = parseFixed(d.demolish) > 0;
         const notReturned = (d.demoReturn || '').trim() !== 'Yes';
-        // "On Service" logic: Status is DONE/CLO and has pending removal deposit
-        return (s === 'done' || s === 'clo') && hasDemo && notReturned;
+        return hasDemo && notReturned;
       });
 
       if (items.length === 0) {
