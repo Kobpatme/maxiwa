@@ -2290,6 +2290,9 @@
         <div class="nav-item" id="nav-active-demo" onclick="showPage('active-demo')">
           <span class="icon">🚧</span> มีประกันรื้อถอน (On Service)
         </div>
+        <div class="nav-item" id="nav-done-list" onclick="showPage('done-list')">
+          <span class="icon">✅</span> งานสำเร็จ
+        </div>
 
 
         <!-- TL Section -->
@@ -2819,6 +2822,35 @@
           </div>
         </div>
       </div>
+
+      <!-- Done List Page -->
+      <div class="page" id="page-done-list">
+        <div style="padding:24px 28px 0">
+          <div class="card">
+            <div class="card-header" style="justify-content:space-between">
+              <span class="card-title">✅ งานสำเร็จ (เสร็จสมบูรณ์)</span>
+              <span style="font-size:13px; color:var(--txt3)">รายการที่ดำเนินการเสร็จสมบูรณ์แล้ว</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>อาคาร / ลูกค้า</th>
+                    <th>พื้นที่ / เจ้าของงาน</th>
+                    <th style="text-align:right">เงินประกันติดตั้ง</th>
+                    <th style="text-align:right">เงินประกันรื้อถอน</th>
+                    <th style="text-align:center">สถานะ</th>
+                    <th style="text-align:right">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody id="done-list-tbody">
+                  <!-- JS Render -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div><!-- /page-done-list -->
 
       <!-- User Management Page -->
       <div class="page" id="page-users">
@@ -3854,6 +3886,52 @@
               <button class="btn btn-primary btn-sm" onclick="openOffServiceModal('${d.id}')">Off Service</button>
               <button class="icon-btn" onclick="openDetail('${d.id}')">👁️</button>
             </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    /* ════════ RENDER: DONE LIST ════════ */
+    function renderDoneListTable() {
+      const tbody = document.getElementById('done-list-tbody');
+      if (!tbody) return;
+
+      let filteredData = DB;
+      if (CURRENT_USER && CURRENT_USER.role !== 'admin') {
+        const userAreas = CURRENT_USER.area ? CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase()) : [];
+        if (userAreas.length > 0) {
+          filteredData = DB.filter(d => userAreas.includes((d.area || '').toLowerCase()));
+        }
+      }
+
+      const items = filteredData.filter(d => (d.status || '').toLowerCase() === 'done');
+
+      if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--txt3)">ไม่พบรายการที่เสร็จสมบูรณ์</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = items.map(d => `
+        <tr>
+          <td>
+            <div style="font-weight:700; color:var(--txt)">${d.place}</div>
+            <div style="font-size:11px; color:var(--txt3)">${d.customer || '-'}</div>
+          </td>
+          <td>
+            <div style="font-size:13px">${d.area || '-'}</div>
+            <div style="font-size:11px; color:var(--blue)">${d.owner || '-'}</div>
+          </td>
+          <td style="text-align:right; font-weight:700; color:var(--green)">
+            ${parseFixed(d.deposit) > 0 ? '฿' + parseFixed(d.deposit).toLocaleString() : '-'}
+          </td>
+          <td style="text-align:right; font-weight:700; color:var(--green)">
+            ${parseFixed(d.demolish) > 0 ? '฿' + parseFixed(d.demolish).toLocaleString() : '-'}
+          </td>
+          <td style="text-align:center">
+            <span class="badge" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600">✅ เสร็จสมบูรณ์</span>
+          </td>
+          <td style="text-align:right">
+            <button class="icon-btn" onclick="openDetail('${d.id}')">👁️</button>
           </td>
         </tr>
       `).join('');
@@ -5918,6 +5996,10 @@
         document.getElementById('nav-active-demo').classList.add('active');
         document.getElementById('topbar-sub').textContent = 'รายการที่มีเงินประกันรื้อถอนคงค้าง (On Service)';
         renderActiveDemoTable();
+      } else if (id === 'done-list') {
+        document.getElementById('nav-done-list').classList.add('active');
+        document.getElementById('topbar-sub').textContent = 'รายการที่ดำเนินการเสร็จสมบูรณ์แล้ว';
+        renderDoneListTable();
       } else if (id === 'users') {
         document.getElementById('nav-users').classList.add('active');
         document.getElementById('topbar-sub').textContent = 'จัดการสิทธิ์ผู้เข้าใช้งานระบบ';
@@ -6549,8 +6631,9 @@
       // Hide other sections if strict TL role
       if (isTLOnly) {
         document.getElementById('nav-my-dashboard').style.display = 'none';
-        
+
         document.getElementById('nav-list').style.display = 'none';
+        document.getElementById('nav-done-list').style.display = 'none';
         document.getElementById('admin-nav').style.display = 'none';
 
         const statsEl = document.querySelector('.sidebar-stats');
@@ -6570,8 +6653,9 @@
         showPage('tl-tasks');
       } else {
         document.getElementById('nav-my-dashboard').style.display = 'block';
-        
+
         document.getElementById('nav-list').style.display = 'block';
+        document.getElementById('nav-done-list').style.display = 'block';
         const navDemo = document.getElementById('nav-active-demo');
         if (navDemo) navDemo.style.display = 'block';
 
@@ -6829,6 +6913,8 @@
           renderTLTasksPage();
         } else if (activePageId === 'page-active-demo') {
           renderActiveDemoTable();
+        } else if (activePageId === 'page-done-list') {
+          renderDoneListTable();
         } else if (activePageId === 'page-users') {
           loadUserTable();
         }
