@@ -6177,7 +6177,7 @@
           <td class="nowrap">${d.area || '—'}</td>
           <td class="nowrap">${d.complete_tl === 'On Process' ? '<span class="badge b-orange">รับแล้ว</span>' : '<span style="color:var(--txt3)">ยังไม่รับ</span>'}</td>
           <td class="nowrap">${(() => { const info = getTLAcceptInfo(d); return info ? `<span style="font-size:13px">${info.dateStr}</span>` : '<span style="color:var(--txt3)">—</span>'; })()}</td>
-          <td class="nowrap">${(() => { const info = getTLAcceptInfo(d); if (!info) return '<span style="color:var(--txt3)">—</span>'; const color = info.stopped ? 'var(--txt3)' : (info.diff >= 19 ? '#ef4444' : info.diff >= 10 ? '#f97316' : '#16a34a'); return `<span style="font-size:13px; font-weight:600; color:${color}">${info.diff} วัน${info.stopped ? ' <span style="font-size:11px; font-weight:400">(หยุดนับ)</span>' : ''}</span>`; })()}</td>
+          <td class="nowrap">${(() => { const info = getTLAcceptInfo(d); if (!info) return '<span style="color:var(--txt3)">—</span>'; const color = info.stopped ? 'var(--txt3)' : (info.diff >= 19 ? '#ef4444' : info.diff >= 10 ? '#f97316' : '#16a34a'); return `<span style="font-size:13px; font-weight:600; color:${color}">${info.diff} วัน</span>`; })()}</td>
           <td class="nowrap">${d.pdf_tl_work ? 
             (Array.isArray(d.pdf_tl_work) 
               ? d.pdf_tl_work.map((url, i) => `<a href="${safeUrl(url)}" target="_blank" onclick="event.stopPropagation()" class="badge b-done" style="text-decoration:none; margin-right:2px;">📄 ไฟล์ ${i+1}</a>`).join('')
