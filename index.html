@@ -6074,6 +6074,19 @@
     }
 
     /* ════════ TL TASKS PAGE ════════ */
+    function getTLAcceptInfo(d) {
+      const entry = (d.log || []).find(l => l.title && l.title.includes('TL รับงานเข้าดำเนินการ'));
+      if (!entry || !entry.time) return null;
+      const datePart = entry.time.split(' ')[0]; // "30/3/2569"
+      const parts = datePart.split('/');
+      if (parts.length < 3) return null;
+      const day = parseInt(parts[0]), month = parseInt(parts[1]) - 1, yearBE = parseInt(parts[2]);
+      const date = new Date(yearBE - 543, month, day);
+      const dateStr = `${String(day).padStart(2,'0')}/${String(month+1).padStart(2,'0')}/${yearBE}`;
+      const diff = Math.floor((new Date() - date) / 86400000);
+      return { dateStr, diff };
+    }
+
     function renderTLTasksPage() {
       // Role-based area filtering: If TL, only show their areas. If Admin, show everything.
       let filteredData = DB;
@@ -6152,8 +6165,8 @@
           </td>
           <td class="nowrap">${d.area || '—'}</td>
           <td class="nowrap">${d.complete_tl === 'On Process' ? '<span class="badge b-orange">รับแล้ว</span>' : '<span style="color:var(--txt3)">ยังไม่รับ</span>'}</td>
-          <td class="nowrap">${d.tl_accept_date ? `<span style="font-size:13px">${d.tl_accept_date}</span>` : '<span style="color:var(--txt3)">—</span>'}</td>
-          <td class="nowrap">${d.tl_accept_date ? (() => { const diff = Math.floor((new Date() - new Date(d.tl_accept_date)) / 86400000); return `<span style="font-size:13px; font-weight:600; color:${diff >= 19 ? '#ef4444' : diff >= 10 ? '#f97316' : '#16a34a'}">${diff} วัน</span>`; })() : '<span style="color:var(--txt3)">—</span>'}</td>
+          <td class="nowrap">${(() => { const info = getTLAcceptInfo(d); return info ? `<span style="font-size:13px">${info.dateStr}</span>` : '<span style="color:var(--txt3)">—</span>'; })()}</td>
+          <td class="nowrap">${(() => { const info = getTLAcceptInfo(d); return info ? `<span style="font-size:13px; font-weight:600; color:${info.diff >= 19 ? '#ef4444' : info.diff >= 10 ? '#f97316' : '#16a34a'}">${info.diff} วัน</span>` : '<span style="color:var(--txt3)">—</span>'; })()}</td>
           <td class="nowrap">${d.pdf_tl_work ? 
             (Array.isArray(d.pdf_tl_work) 
               ? d.pdf_tl_work.map((url, i) => `<a href="${safeUrl(url)}" target="_blank" onclick="event.stopPropagation()" class="badge b-done" style="text-decoration:none; margin-right:2px;">📄 ไฟล์ ${i+1}</a>`).join('')
