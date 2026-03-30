@@ -2778,6 +2778,8 @@
                     <th>อาคาร / ลูกค้า</th>
                     <th>พื้นที่</th>
                     <th>TL รับงาน</th>
+                    <th>วันที่รับงาน</th>
+                    <th>จำนวนวัน</th>
                     <th>หลักฐาน TL</th>
                     <th>ขั้นตอน</th>
                     <th>การดำเนินการ</th>
@@ -5523,7 +5525,7 @@
       addLogEntry(d, 'TL รับงานเข้าดำเนินการ', '✔️');
 
       try {
-        const updateObj = { status: 'On Process', complete_tl: 'On Process', log: d.log };
+        const updateObj = { status: 'On Process', complete_tl: 'On Process', tl_accept_date: new Date().toISOString().split('T')[0], log: d.log };
         const updated = await updateDeposit(id, updateObj);
         const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
         if (fromModal) openTLModal(id);
@@ -6150,6 +6152,8 @@
           </td>
           <td class="nowrap">${d.area || '—'}</td>
           <td class="nowrap">${d.complete_tl === 'On Process' ? '<span class="badge b-orange">รับแล้ว</span>' : '<span style="color:var(--txt3)">ยังไม่รับ</span>'}</td>
+          <td class="nowrap">${d.tl_accept_date ? `<span style="font-size:13px">${d.tl_accept_date}</span>` : '<span style="color:var(--txt3)">—</span>'}</td>
+          <td class="nowrap">${d.tl_accept_date ? (() => { const diff = Math.floor((new Date() - new Date(d.tl_accept_date)) / 86400000); return `<span style="font-size:13px; font-weight:600; color:${diff >= 19 ? '#ef4444' : diff >= 10 ? '#f97316' : '#16a34a'}">${diff} วัน</span>`; })() : '<span style="color:var(--txt3)">—</span>'}</td>
           <td class="nowrap">${d.pdf_tl_work ? 
             (Array.isArray(d.pdf_tl_work) 
               ? d.pdf_tl_work.map((url, i) => `<a href="${safeUrl(url)}" target="_blank" onclick="event.stopPropagation()" class="badge b-done" style="text-decoration:none; margin-right:2px;">📄 ไฟล์ ${i+1}</a>`).join('')
