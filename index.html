@@ -2809,6 +2809,7 @@
                   <tr>
                     <th>อาคาร / ลูกค้า</th>
                     <th>พื้นที่ / ทีม TL</th>
+                    <th>CID</th>
                     <th style="text-align:right">เงินประกันรื้อถอน</th>
                     <th style="text-align:center">สถานะ</th>
                     <th style="text-align:right">จัดการ</th>
@@ -3861,7 +3862,7 @@
       });
 
       if (items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:40px; color:var(--txt3)">ไม่พบรายการ On Service</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--txt3)">ไม่พบรายการ On Service</td></tr>`;
         return;
       }
 
@@ -3874,6 +3875,9 @@
           <td>
             <div style="font-size:13px">${d.area || '-'}</div>
             <div style="font-size:11px; color:var(--blue)">${d.tl_team || '-'}</div>
+          </td>
+          <td class="nowrap" style="color:var(--txt3);font-size:12px">
+            <span class="copyable-cid" onclick="event.stopPropagation(); copyCID('${esc(d.cid)}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline;">${esc(d.cid) || '—'}</span>
           </td>
           <td style="text-align:right; font-weight:700; color:var(--orange)">
             ฿${parseFixed(d.demolish).toLocaleString()}
