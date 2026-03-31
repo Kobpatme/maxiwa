@@ -45,10 +45,103 @@
       --glass: rgba(255, 255, 255, 0.7);
       --glass-border: rgba(255, 255, 255, 0.4);
 
+      --gray-l: #f1f5f9;
+
       --r: 16px;
       --r-sm: 10px;
       --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
       --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    /* ─── DARK MODE TOKENS ───────────────────────── */
+    html[data-theme="dark"] {
+      --bg: #0f172a;
+      --white: #1e293b;
+      --surface: #0f172a;
+      --border: #334155;
+      --border-focus: #94a3b8;
+
+      --txt: #f1f5f9;
+      --txt2: #94a3b8;
+      --txt3: #64748b;
+
+      --navy: #1e293b;
+      --gold: #d4af37;
+      --gold-l: #2d1c00;
+      --gold-dark: #e8c84a;
+
+      --blue: #3b82f6;
+      --blue-l: #1e3a5f;
+
+      --green: #10b981;
+      --green-l: #052e16;
+      --orange: #f59e0b;
+      --orange-l: #431407;
+      --red: #f87171;
+      --red-l: #3f0e0e;
+
+      --glass: rgba(30, 41, 59, 0.9);
+      --glass-border: rgba(148, 163, 184, 0.15);
+
+      --gray-l: #334155;
+
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+      --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ─── DARK MODE HARDCODED OVERRIDES ─────────── */
+    html[data-theme="dark"] tbody tr {
+      border-bottom-color: #1e293b;
+    }
+
+    html[data-theme="dark"] tbody tr:hover {
+      background: #263247;
+    }
+
+    html[data-theme="dark"] thead th {
+      background: #0f172a;
+    }
+
+    html[data-theme="dark"] #uploadProgressOverlay {
+      background: rgba(15, 23, 42, 0.85);
+    }
+
+    html[data-theme="dark"] .btn-primary:hover {
+      background: #2563eb;
+    }
+
+    html[data-theme="dark"] .btn-danger {
+      border-color: #7f1d1d;
+    }
+
+    html[data-theme="dark"] #loginOverlay {
+      background: #0f172a;
+    }
+
+    html[data-theme="dark"] .login-input {
+      background: #1e293b;
+      color: var(--txt);
+      border-color: var(--border);
+    }
+
+    html[data-theme="dark"] .login-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+    }
+
+    html[data-theme="dark"] .overlay {
+      background: rgba(0, 0, 0, 0.7);
+    }
+
+    html[data-theme="dark"] select option {
+      background: #1e293b;
+      color: #f1f5f9;
+    }
+
+    /* ─── THEME TRANSITION ───────────────────────── */
+    body, .sidebar, .topbar, .modal, .card, .filter-bar, .form-control,
+    .btn, thead th, .nav-item, .login-box, .login-input {
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     }
 
     /* ─── RESET ──────────────────────────────────── */
@@ -2201,6 +2294,27 @@
       margin-bottom: 20px;
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* ─── THEME TOGGLE BUTTON ────────────────────── */
+    .theme-toggle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--gray-l);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+    .theme-toggle:hover {
+      background: var(--blue-l);
+      border-color: var(--blue);
+      transform: scale(1.08);
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -2332,6 +2446,7 @@
           </div>
         </div>
         <div class="topbar-right">
+          <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="เปลี่ยน Dark/Light Mode">🌙</button>
           <div class="notif-wrapper" id="notif-root">
             <button class="notif-btn" id="notif-btn" onclick="toggleNotif(event)">
               🔔
@@ -3407,6 +3522,31 @@
   </div>
 
   <script>
+    /* ════════════════════════════════════════════════════════
+       THEME MANAGEMENT (Dark / Light Mode)
+    ════════════════════════════════════════════════════════ */
+    (function () {
+      const saved = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme') || 'light';
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+      const btn = document.getElementById('theme-toggle-btn');
+      if (btn) btn.textContent = next === 'dark' ? '☀️' : '🌙';
+    }
+
+    // sync icon on page load
+    document.addEventListener('DOMContentLoaded', function () {
+      const theme = document.documentElement.getAttribute('data-theme') || 'light';
+      const btn = document.getElementById('theme-toggle-btn');
+      if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    });
+
     /* ════════════════════════════════════════════════════════
        CONFIG / FLAGS
        หมายเหตุ: ตั้งค่า USE_MOCK = false สำหรับ production
