@@ -4257,7 +4257,7 @@
         ${d.owner ? `<span class="badge b-violet" style="font-size:11px">${esc(d.owner)}</span>` : '<span style="color:var(--txt3)">—</span>'}
       </td>
       <td class="nowrap" style="color:var(--txt2)">${esc(d.pr) || '—'}</td>
-      <td class="nowrap" style="color:var(--txt2);font-size:12px">${esc(d.dateReq) || '—'}</td>
+      <td class="nowrap" style="color:var(--txt2);font-size:12px">${fmtDate(d.dateReq)}</td>
       <td class="nowrap"><span class="amt ${d.total > 0 ? 'pos' : ''}">${d.total > 0 ? '฿' + d.total.toLocaleString() : '—'}</span></td>
       <td class="nowrap"><span class="badge b-wait" style="font-size:10px">${esc(d.area) || '—'}</span></td>
       <td class="nowrap">${stepLabel(d)}</td>
@@ -5232,7 +5232,7 @@
         ['ทีม TL กทม/ตจว', esc(d.tl_team) || '—'],
         ['ผู้ประสานงาน', esc(d.contact) || '—'],
         ['เบอร์โทร (มือถือ)', esc(d.tel) || '—'],
-        ['กำหนดตรวจรับ (TL)', d.tl_due_date ? `<span style="color:var(--orange); font-weight:700;">${d.tl_due_date}</span>` : '—'],
+        ['กำหนดตรวจรับ (TL)', d.tl_due_date ? `<span style="color:var(--orange); font-weight:700;">${fmtDate(d.tl_due_date)}</span>` : '—'],
       ];
 
       const user = window.CURRENT_USER || {};
@@ -5426,7 +5426,7 @@
 
       // Format exactly same as detail-grid for required fields only
       const infoRows = [
-        ['วันที่แจ้งงาน', d.dateReq || '—'],
+        ['วันที่แจ้งงาน', fmtDate(d.dateReq)],
         ['📍 ชื่อสถานที่/โครงการ', d.place],
         ['🏠 พื้นที่ (Area)', esc(d.area) || '—'],
         ['🏢 ชื่อลูกค้า/ผู้เช่า', esc(d.customer) || '—'],
@@ -5434,8 +5434,8 @@
         ['👤 เจ้าของงาน', esc(d.owner) || '—'],
         ['📞 ผู้ประสานงาน', esc(d.contact) || '—'],
         ['📱 เบอร์ติดต่อ', esc(d.mobile || d.tel) || '—'],
-        ['📅 กำหนดตรวจรับ (TL)', d.tl_due_date ? `<span style="color:var(--orange); font-weight:700;">${d.tl_due_date}</span>` : '—'],
-        ['📅 วันที่เสร็จสิ้น (TL)', d.tl_complete_date || '—']
+        ['📅 กำหนดตรวจรับ (TL)', d.tl_due_date ? `<span style="color:var(--orange); font-weight:700;">${fmtDate(d.tl_due_date)}</span>` : '—'],
+        ['📅 วันที่เสร็จสิ้น (TL)', fmtDate(d.tl_complete_date)]
       ];
 
       const infoHTML = `<div class="detail-grid" style="margin-bottom:24px">${infoRows.map(([k, v]) => `<div class="detail-row"><div class="detail-key">${k}</div><div class="detail-val">${v}</div></div>`).join('')}</div>`;
@@ -6215,6 +6215,14 @@
       `;
     }
 
+    /* ════════ DATE FORMATTING ════════ */
+    function fmtDate(val) {
+      if (!val) return '—';
+      const parts = val.split('-');
+      if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      return val;
+    }
+
     /* ════════ TL TASKS PAGE ════════ */
     function parseTHLogDate(timeStr) {
       if (!timeStr) return null;
@@ -6319,7 +6327,7 @@
           <td class="nowrap">${d.area || '—'}</td>
           <td class="nowrap">${d.complete_tl === 'On Process' ? '<span class="badge b-orange">รับแล้ว</span>' : '<span style="color:var(--txt3)">ยังไม่รับ</span>'}</td>
           <td class="nowrap">${(() => { const info = getTLAcceptInfo(d); return info ? `<span style="font-size:13px">${info.dateStr}</span>` : '<span style="color:var(--txt3)">—</span>'; })()}</td>
-          <td class="nowrap">${d.tl_due_date ? `<span style="color:var(--orange); font-weight:600; font-size:13px">${d.tl_due_date}</span>` : '<span style="color:var(--txt3)">—</span>'}</td>
+          <td class="nowrap">${d.tl_due_date ? `<span style="color:var(--orange); font-weight:600; font-size:13px">${fmtDate(d.tl_due_date)}</span>` : '<span style="color:var(--txt3)">—</span>'}</td>
           <td class="nowrap">${(() => { const info = getTLAcceptInfo(d); if (!info) return '<span style="color:var(--txt3)">—</span>'; const color = info.stopped ? 'var(--txt3)' : (info.diff >= 19 ? '#ef4444' : info.diff >= 10 ? '#f97316' : '#16a34a'); return `<span style="font-size:13px; font-weight:600; color:${color}">${info.diff} วัน</span>`; })()}</td>
           <td class="nowrap">${d.pdf_tl_work ? 
             (Array.isArray(d.pdf_tl_work) 
