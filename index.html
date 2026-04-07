@@ -3881,7 +3881,7 @@
         const s = (d.status || '').trim().toLowerCase();
         return s === 'done';
       }).length;
-      const proc = filteredData.filter(d => d.status === 'On Process').length;
+      const proc = filteredData.filter(d => getStatusLabel(d) === '⏳ อยู่ระหว่างขอคืนเงิน').length;
 
       const buildingFee = filteredData.reduce((s, d) => s + parseFixed(d.fee) + parseFixed(d.other), 0);
       const installDep = filteredData.reduce((s, d) => s + parseFixed(d.deposit), 0);
@@ -4180,6 +4180,10 @@
           ms = (d.status || '').trim().toLowerCase() === 'done' && (+(d.demolish || 0) > 0 && d.demoReturn !== 'Yes');
         } else if (filterStatus === 'Done') {
           ms = (d.status || '').trim().toLowerCase() === 'done' && !(+(d.demolish || 0) > 0 && d.demoReturn !== 'Yes');
+        } else if (filterStatus === 'On Process') {
+          ms = getStatusLabel(d) === '⏳ อยู่ระหว่างขอคืนเงิน';
+        } else if (filterStatus === 'Cancel') {
+          ms = (d.status || '') === 'Cancel';
         }
         const mo = !filterOwner || d.owner === filterOwner;
         const ma = filterAreas.length === 0 || filterAreas.includes(d.area);
