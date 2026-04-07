@@ -6504,10 +6504,12 @@
     }
 
     function renderExecutiveDashboard() {
-      // Executive Dashboard can either follow UI filters or stay global. 
-      // Usually, it's global for "Executives", but since user complained about cards not syncing, 
-      // I'll make it follow UI filters when they are active.
-      const filteredDB = getFilteredData();
+      // Executive Dashboard always shows all role-allowed data (not tied to list-page UI filters)
+      let filteredDB = DB;
+      if (CURRENT_USER && CURRENT_USER.role === 'tl' && CURRENT_USER.area) {
+        const allowedAreas = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
+        filteredDB = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
+      }
 
       const totalInstall = filteredDB.reduce((s, d) => s + parseFixed(d.deposit), 0);
       const totalDemo = filteredDB.reduce((s, d) => s + parseFixed(d.demolish), 0);
@@ -6570,19 +6572,25 @@
 
       const luxuryPalette = ['#1e293b', '#d4af37', '#94a3b8', '#334155', '#b8860b'];
 
-      // 1. Monthly Financial Trend
-      const currentYear = new Date().getFullYear();
-      const months = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+      // 1. Monthly Financial Trend — last 12 months rolling
+      const monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+      const now = new Date();
+      // Build last 12 month buckets: [{year, month (0-11), label}, ...]
+      const monthBuckets = [];
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        monthBuckets.push({ year: d.getFullYear(), month: d.getMonth(), label: monthNames[d.getMonth()] + ' ' + (d.getFullYear() % 100) });
+      }
       const feeData = new Array(12).fill(0);
       const depositData = new Array(12).fill(0);
-      
+
       filteredDB.forEach(d => {
         if (d.dateReq) {
           const dt = new Date(d.dateReq);
-          if (dt.getFullYear() === currentYear) {
-            const m = dt.getMonth();
-            feeData[m] += (d.fee || 0);
-            depositData[m] += ((d.deposit || 0) + (d.demolish || 0));
+          const idx = monthBuckets.findIndex(b => b.year === dt.getFullYear() && b.month === dt.getMonth());
+          if (idx !== -1) {
+            feeData[idx] += parseFixed(d.fee);
+            depositData[idx] += parseFixed(d.deposit) + parseFixed(d.demolish);
           }
         }
       });
@@ -6591,9 +6599,9 @@
       trendChart = new Chart(document.getElementById('trendChart'), {
         type: 'line',
         data: {
-          labels: months,
+          labels: monthBuckets.map(b => b.label),
           datasets: [{
-            label: `ค่าธรรมเนียมอาคาร (${currentYear})`,
+            label: 'ค่าธรรมเนียมอาคาร (12 เดือนล่าสุด)',
             data: feeData,
             borderColor: '#94a3b8',
             backgroundColor: 'rgba(148, 163, 184, 0.1)',
@@ -6604,7 +6612,7 @@
             pointBorderColor: '#94a3b8',
             pointRadius: 4
           }, {
-            label: `เงินประกันอาคาร (${currentYear})`,
+            label: 'เงินประกันอาคาร (12 เดือนล่าสุด)',
             data: depositData,
             borderColor: '#d4af37',
             backgroundColor: 'rgba(212, 175, 55, 0.1)',
