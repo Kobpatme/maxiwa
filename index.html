@@ -4973,9 +4973,12 @@
           }
 
           // Upload all files in this field in parallel
-          const results = await Promise.all(files.map(file => uploadFile(file, ff.folder)));
-          const failed = files.find((_, i) => !results[i]);
-          if (failed) throw new Error(`อัปโหลดไฟล์ ${failed.name} ไม่สำเร็จ`);
+          // หาก uploadFile() โยน error จะ propagate ขึ้นมาที่นี่พร้อมข้อความจาก Firebase
+          const results = await Promise.all(
+            files.map(file => uploadFile(file, ff.folder).catch(err => {
+              throw new Error(`ไฟล์ "${file.name}": ${err.message}`);
+            }))
+          );
 
           const uploadedUrls = results;
           fileUrls[ff.key] = uploadedUrls.length === 1 ? uploadedUrls[0] : uploadedUrls;
@@ -5017,9 +5020,12 @@
           }
         }
 
-        // Step 6: ต้องมีหลักฐานการคืนเงินก่อนปิดงานเสมอ
+        // Step 6: ตรวจสอบหลักฐานการคืนเงินก่อนปิดงาน
+        // ถ้า "ฝ่ายอาคาร" ตรวจรับ → ไฟล์เป็น optional; ถ้า "TL" ตรวจรับ → ไฟล์บังคับ
         const hasFinalDoc = !!(fileUrls.pdf_user_final || (oldData && oldData.pdf_user_final));
-        if (currentStep === 6) {
+        const closingInspector = document.getElementById('f-inspected-by')?.value || 'TL';
+        const isFinalDocRequired = (closingInspector !== 'Building Dept');
+        if (currentStep === 6 && isFinalDocRequired) {
           if (!hasFinalDoc) {
             btn.disabled = false;
             btn.textContent = originalText;
@@ -5080,9 +5086,14 @@
         if (finalStatus === 'ret' && autoReturnStatus === 'Done') {
           finalStatus = 'clo';
         }
-        const inspectedBy = getVal('f-inspected-by');
-        if (finalStatus === 'clo' && (fileUrls.pdf_user_final || oldData?.pdf_user_final)) {
-          finalStatus = 'done';
+        // ถ้าฝ่ายอาคารตรวจรับ → ไม่ต้องมีไฟล์ก็ปิดงานได้ (ไฟล์ optional)
+        // ถ้า TL ตรวจรับ → ต้องมีไฟล์จึงจะปิดงานได้
+        const inspectedBy = getVal('f-inspected-by') || 'TL';
+        const canCloseWithoutFile = (inspectedBy === 'Building Dept');
+        if (finalStatus === 'clo') {
+          if (fileUrls.pdf_user_final || oldData?.pdf_user_final || canCloseWithoutFile) {
+            finalStatus = 'done';
+          }
         }
 
         // Automated Return Flags
@@ -7133,32 +7144,4 @@
         { status: 'Done', depStatus: 'Wait Insp. SC', demoStatus: 'On Service', owner: 'เจษฎาภรณ์', place: 'เซ็นทรัลเวิลด์ พลาซา', area: 'BKK 4', customer: 'MUJI (จากชั้น B1 - ชั้น 4)', deal: '62741', project: 'HRA025', pr: '001', dateReq: '2026-01-13', dateDue: '2026-01-16', dateAcc: '2026-01-19', payType: 'เช็ค', complete: 'Complete', payTo: 'บมจ.เซ็นทรัลพัฒนา', expense: 'ค่าธรรมเนียม,ค่าประกันรื้อถอน,ค่าประกันติดตั้ง', deposit: 50000, demolish: 10700, fee: 29960, other: 0, total: 90660, depReturn: 'Yes', demoReturn: 'Yes', contact: 'Thitnapha Khengkhan (Bee)', tel: '02-640-7000 Ext.1005', mobile: '06 1941 6966', remark: '' },
         // ... add more if needed
       ];
-      for (const item of mockData) {
-        await insertDeposit(item);
-      }
-      initApp();
-    }
-    function toggleFinalFileUploadRequirement() {
-      const label = document.getElementById('final-upload-label');
-      if (label) {
-        label.innerHTML = 'แนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF) <span class="required">*</span>';
-      }
-    }
-    // Track unsaved changes in form
-    document.getElementById('formOverlay').addEventListener('input', (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
-        setDirty(true);
-      }
-    });
-
-    // Browser warning for unsaved changes
-    window.onbeforeunload = function (e) {
-      if (isDirty) {
-        e.preventDefault();
-        e.returnValue = ''; // Trigger browser prompt
-      }
-    };
-  </script>
-</body>
-
-</html>
+      for (const item of

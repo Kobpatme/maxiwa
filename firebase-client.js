@@ -111,15 +111,31 @@ async function uploadFile(file, folder = 'misc') {
         const fileExt = file.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
         const filePath = `${folder}/${fileName}`;
-        
+
         const storageRef = storage.ref().child(filePath);
         const snapshot = await storageRef.put(file);
         const publicUrl = await snapshot.ref.getDownloadURL();
-        
+
         return publicUrl;
     } catch (err) {
         console.error('Error uploading file:', err);
-        return null;
+        // แปล Firebase Storage error code เป็นข้อความที่เข้าใจง่าย
+        const code = err.code || '';
+        if (code === 'storage/unauthorized') {
+            throw new Error(`อัปโหลดไม่สำเร็จ: ไม่มีสิทธิ์อัปโหลดไฟล์ไปยัง Firebase Storage (unauthorized) — กรุณาตรวจสอบ Storage Rules`);
+        } else if (code === 'storage/quota-exceeded') {
+            throw new Error(`อัปโหลดไม่สำเร็จ: พื้นที่จัดเก็บ Firebase Storage เต็มแล้ว (quota-exceeded)`);
+        } else if (code === 'storage/network-request-failed') {
+            throw new Error(`อัปโหลดไม่สำเร็จ: ปัญหาการเชื่อมต่อเครือข่าย (network-request-failed) — กรุณาตรวจสอบอินเทอร์เน็ต`);
+        } else if (code === 'storage/canceled') {
+            throw new Error(`อัปโหลดถูกยกเลิก (canceled)`);
+        } else if (code === 'storage/unknown') {
+            throw new Error(`อัปโหลดไม่สำเร็จ: เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ (unknown) — ${err.message}`);
+        } else if (code) {
+            throw new Error(`อัปโหลดไม่สำเร็จ [${code}]: ${err.message}`);
+        } else {
+            throw new Error(`อัปโหลดไม่สำเร็จ: ${err.message || 'เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ'}`);
+        }
     }
 }
 
@@ -208,49 +224,4 @@ async function updateUser(id, userData) {
     }
 }
 
-// บันทึกคำขอรีเซ็ตรหัสผ่านให้แอดมินจัดการ (แบบเก่า - มีไว้แจ้งเตือนแอดมิน)
-async function requestPasswordReset(payload) {
-    try {
-        await db.collection('password_reset_requests').add({
-            employee_id: payload.employee_id,
-            contact: payload.email || payload.contact || '',
-            reason: payload.reason || 'Requested automatic reset',
-            created_at: Date.now()
-        });
-        return true;
-    } catch (error) {
-        console.error('Error creating password reset request:', error);
-        throw error;
-    }
-}
-
-// ระบบรีเซ็ตรหัสผ่านอัตโนมัติ (Phase 2)
-async function verifyAndResetPassword(employeeId, email, newPassword) {
-    try {
-        const snapshot = await db.collection('users')
-            .where('employee_id', '==', employeeId)
-            .where('email', '==', email)
-            .get();
-
-        if (snapshot.empty) {
-            throw new Error('ข้อมูลไม่ถูกต้อง: ไม่พบรหัสพนักงานหรืออีเมลนี้ในระบบ');
-        }
-
-        const userDoc = snapshot.docs[0];
-        await db.collection('users').doc(userDoc.id).update({
-            password: newPassword
-        });
-
-        // บันทึกประวัติการขอรีเซ็ตด้วย
-        await requestPasswordReset({ 
-            employee_id: employeeId, 
-            email: email, 
-            reason: 'Automatic reset successful' 
-        });
-
-        return true;
-    } catch (error) {
-        console.error('Verify and Reset error:', error);
-        throw error;
-    }
-}
+// บันทึกคำขอรีเซ็ตรหัสผ่�
