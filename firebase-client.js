@@ -224,4 +224,49 @@ async function updateUser(id, userData) {
     }
 }
 
-// บันทึกคำขอรีเซ็ตรหัสผ่�
+// บันทึกคำขอรีเซ็ตรหัสผ่านให้แอดมินจัดการ (แบบเก่า - มีไว้แจ้งเตือนแอดมิน)
+async function requestPasswordReset(payload) {
+    try {
+        await db.collection('password_reset_requests').add({
+            employee_id: payload.employee_id,
+            contact: payload.email || payload.contact || '',
+            reason: payload.reason || 'Requested automatic reset',
+            created_at: Date.now()
+        });
+        return true;
+    } catch (error) {
+        console.error('Error creating password reset request:', error);
+        throw error;
+    }
+}
+
+// ระบบรีเซ็ตรหัสผ่านอัตโนมัติ (Phase 2)
+async function verifyAndResetPassword(employeeId, email, newPassword) {
+    try {
+        const snapshot = await db.collection('users')
+            .where('employee_id', '==', employeeId)
+            .where('email', '==', email)
+            .get();
+
+        if (snapshot.empty) {
+            throw new Error('ข้อมูลไม่ถูกต้อง: ไม่พบรหัสพนักงานหรืออีเมลนี้ในระบบ');
+        }
+
+        const userDoc = snapshot.docs[0];
+        await db.collection('users').doc(userDoc.id).update({
+            password: newPassword
+        });
+
+        // บันทึกประวัติการขอรีเซ็ตด้วย
+        await requestPasswordReset({ 
+            employee_id: employeeId, 
+            email: email, 
+            reason: 'Automatic reset successful' 
+        });
+
+        return true;
+    } catch (error) {
+        console.error('Verify and Reset error:', error);
+        throw error;
+    }
+}
