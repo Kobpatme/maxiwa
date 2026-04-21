@@ -3597,6 +3597,24 @@
         return (u.protocol === 'https:' || u.protocol === 'http:') ? url : '#';
       } catch { return '#'; }
     }
+    function sameId(a, b) {
+      return String(a ?? '') === String(b ?? '');
+    }
+    function findDepositById(id) {
+      return DB.find(x => sameId(x.id, id) || sameId(x.id_firestore, id));
+    }
+    function findDepositIndexById(id) {
+      return DB.findIndex(x => sameId(x.id, id) || sameId(x.id_firestore, id));
+    }
+    function mergeDepositIntoDB(id, partial) {
+      const idx = findDepositIndexById(id);
+      if (idx === -1) {
+        if (partial && partial.id) DB.unshift(partial);
+        return partial;
+      }
+      DB[idx] = { ...DB[idx], ...partial };
+      return DB[idx];
+    }
     let tlSearchQ = '';
     let tlStatusFilter = '';
     let tlFilterAreas = [];
@@ -3849,7 +3867,7 @@
         <div class="activity-item">
           <div class="activity-icon">${item.icon || '📝'}</div>
           <div class="activity-item-content">
-            <div class="activity-item-title">${item.title}</div>
+            <div class="activity-item-title">${esc(item.title)}</div>
             <div class="activity-item-meta">${item.user || 'System'} · ${item.time}</div>
           </div>
         </div>
@@ -3865,6 +3883,59 @@
         time: now,
         user: CURRENT_USER ? CURRENT_USER.name : 'System'
       });
+    }
+
+    const AUDIT_FIELDS = [
+      ['place', 'Place'],
+      ['customer', 'Customer'],
+      ['owner', 'Owner'],
+      ['area', 'Area'],
+      ['no', 'No.'],
+      ['project', 'Project'],
+      ['deal', 'Deal'],
+      ['pr', 'PR'],
+      ['dateReq', 'Request date'],
+      ['dateCheck', 'Check date'],
+      ['dateAcc', 'Accounting date'],
+      ['payTo', 'Pay to'],
+      ['payType', 'Pay type'],
+      ['deposit', 'Deposit'],
+      ['demolish', 'Removal deposit'],
+      ['fee', 'Fee'],
+      ['other', 'Other amount'],
+      ['other_desc', 'Other detail'],
+      ['total', 'Total'],
+      ['depReturn', 'Deposit return'],
+      ['demoReturn', 'Removal return'],
+      ['contact', 'Contact'],
+      ['tel', 'Phone'],
+      ['office_tel', 'Office phone'],
+      ['email', 'Email'],
+      ['mobile', 'Mobile'],
+      ['remark', 'Remark'],
+      ['tl_team', 'TL team'],
+      ['return_status', 'Return status'],
+      ['cost_sheet', 'Cost sheet'],
+      ['cid', 'CID'],
+      ['date_return', 'Return date'],
+      ['return_type', 'Return type'],
+      ['final_remark', 'Final remark'],
+      ['date_accounting', 'Final accounting date'],
+      ['tl_complete_date', 'TL complete date'],
+      ['inspected_by', 'Inspected by']
+    ];
+
+    function auditValue(val) {
+      if (val === undefined || val === null || val === '') return '';
+      if (typeof val === 'number') return String(val);
+      return String(val).trim();
+    }
+
+    function getChangedAuditLabels(oldData, newData) {
+      if (!oldData || !newData) return [];
+      return AUDIT_FIELDS
+        .filter(([key]) => auditValue(oldData[key]) !== auditValue(newData[key]))
+        .map(([, label]) => label);
     }
 
     function setReturnStatus(val) {
@@ -3968,8 +4039,8 @@
     /* ════════ OFF SERVICE LOGIC ════════ */
     function openOffServiceModal(id) {
       // Use == to handle string/number ID mismatch
-      const d = DB.find(x => x.id == id);
-      if (!d) return;
+      const d = findDepositById(id);
+      if (!d) { toast('Record not found', 'error'); return; }
       if (document.getElementById('offServiceTitle')) document.getElementById('offServiceTitle').textContent = d.place;
       document.getElementById('f-pdf-demo-off').value = '';
       const btn = document.getElementById('offServiceSaveBtn');
@@ -4319,7 +4390,7 @@
         snapshot.docChanges().forEach(change => {
           if (change.type === "added" || change.type === "modified") {
             const data = change.doc.data();
-            const old = DB.find(x => x.id === data.id);
+            const old = findDepositById(data.id);
             if (data.pdf_payment && (!old || !old.pdf_payment)) {
               toast(`🔔 ใหม่: ${data.place} แนบหลักฐานการชำระเงินแล้ว`, 'info');
             }
@@ -4435,7 +4506,7 @@
       }
 
       list.innerHTML = NOTIFS.map(n => `
-        <div class="notif-item" onclick="openEdit(${n.taskId}, getStepIndex(DB.find(x => x.id === n.taskId)) + 1); document.getElementById('notif-dropdown').classList.remove('open')">
+        <div class="notif-item" onclick="openEdit('${esc(n.taskId)}', getStepIndex(findDepositById('${esc(n.taskId)}')) + 1); document.getElementById('notif-dropdown').classList.remove('open')">
           <div class="notif-icon" style="background:${n.color}">${n.icon}</div>
           <div class="notif-info">
             <div class="notif-title">${n.title}</div>
@@ -4468,11 +4539,10 @@
     /* ════════ QUICK STATUS CHANGE ════════ */
     async function quickStatus(id, val) {
       try {
-        const d = DB.find(x => x.id === id);
+        const d = findDepositById(id);
         if (!d) return;
         const updated = await updateDeposit(id, { status: val, complete: (val === 'Done' && !d.complete) ? 'Complete' : d.complete });
-        const idx = DB.findIndex(x => x.id === id);
-        DB[idx] = updated;
+        mergeDepositIntoDB(id, updated);
         renderTable(); renderKPI();
         toast(`อัปเดตสถานะ "${d.place}" → ${val || 'ใหม่'}`, 'success');
       } catch (err) {
@@ -4681,7 +4751,7 @@
     }
 
     function openEdit(id, targetStep = 1) {
-      const d = DB.find(x => x.id === id);
+      const d = findDepositById(id);
       if (!d) { toast('ไม่พบรายการ #' + id, 'error'); return; }
       if (CURRENT_USER?.role === 'tl' && CURRENT_USER.area) {
         const allowed = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
@@ -4930,6 +5000,22 @@
       document.getElementById('f-total').value = d + m + f + o;
     }
 
+    function getAllowedSubmitStep(d) {
+      if (!d) return 1;
+      switch (getWorkflowStatusKey(d)) {
+        case 'new': return 1;
+        case 'fin': return 2;
+        case 'att': return 3;
+        case 'tl_wait':
+        case 'tl_process': return 4;
+        case 'ret': return 5;
+        case 'clo':
+        case 'done':
+        case 'on_service': return 6;
+        default: return 1;
+      }
+    }
+
     async function submitForm(e) {
       if (e && e.preventDefault) e.preventDefault();
       const place = document.getElementById('f-place').value.trim();
@@ -4962,7 +5048,16 @@
 
         const fileUrls = {};
         const pendingCleanups = [];
-        const oldData = editingId ? DB.find(x => x.id == editingId) : null;
+        const oldData = editingId ? findDepositById(editingId) : null;
+        const allowedSubmitStep = getAllowedSubmitStep(oldData);
+        if (currentStep > allowedSubmitStep) {
+          btn.disabled = false;
+          btn.textContent = originalText;
+          toggleUploadOverlay(false);
+          toast('Please complete the current workflow step before moving forward.', 'error');
+          goToStep(allowedSubmitStep);
+          return;
+        }
 
         const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
         const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
@@ -5180,14 +5275,14 @@
           tl_complete_date: getVal('f-tl-complete-date'),
           inspected_by: getVal('f-inspected-by'),
           ...fileUrls, // Spread uploaded URLs
-          log: (editingId && DB.find(x => x.id === editingId)?.log) || []
+          log: (editingId && findDepositById(editingId)?.log) || []
         };
 
         // Add Log entry for major changes
         if (!editingId) {
           addLogEntry(obj, 'สร้างรายการใหม่', '➕');
         } else {
-          const oldData = DB.find(x => x.id === editingId);
+          const oldData = findDepositById(editingId);
           if (oldData && (oldData.status || '').toLowerCase() !== (obj.status || '').toLowerCase()) {
             addLogEntry(obj, `เปลี่ยนสถานะเป็น: ${obj.status}`, '🔄');
           }
@@ -5199,16 +5294,17 @@
         }
 
         if (editingId) {
-          const updated = await updateDeposit(editingId, obj);
-          if (USE_MOCK) {
-            const idx = DB.findIndex(x => x.id == editingId);
-            DB[idx] = updated;
+          const changedLabels = getChangedAuditLabels(oldData, obj);
+          if (changedLabels.length > 0) {
+            const shown = changedLabels.slice(0, 8).join(', ');
+            const more = changedLabels.length > 8 ? ` +${changedLabels.length - 8} more` : '';
+            addLogEntry(obj, `Edited fields: ${shown}${more}`, 'AUDIT');
           }
+          const updated = await updateDeposit(editingId, obj);
+          mergeDepositIntoDB(editingId, updated);
         } else {
           const inserted = await insertDeposit(obj);
-          if (USE_MOCK) {
-            DB.unshift(inserted);
-          }
+          mergeDepositIntoDB(inserted.id, inserted);
           toast('เพิ่มรายการใหม่สำเร็จ ✓' + (depositVal === 0 ? ' (ระบบปิดงานอัตโนมัติเนื่องจากไม่มีเงินประกันติดตั้ง)' : ''), 'success');
           if (inserted && inserted.id) editingId = inserted.id; // Fix: Track the new ID for workflow continuity
         }
@@ -5255,7 +5351,7 @@
     /* ════════ DETAIL VIEW ════════ */
     /* ════════ DETAIL VIEW ════════ */
     function openDetail(id) {
-      const d = DB.find(x => x.id === id);
+      const d = findDepositById(id);
       if (!d) { toast('ไม่พบรายการ #' + id, 'error'); return; }
       if (CURRENT_USER?.role === 'tl' && CURRENT_USER.area) {
         const allowed = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
@@ -5444,7 +5540,7 @@
 
     /* ════════ Specialized TL Work Modal ════════ */
     function openTLModal(id) {
-      const d = DB.find(x => x.id === id);
+      const d = findDepositById(id);
       if (!d) { toast('ไม่พบรายการ #' + id, 'error'); return; }
       if (CURRENT_USER?.role === 'tl' && CURRENT_USER.area) {
         const allowed = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
@@ -5701,7 +5797,7 @@
     /* ════════ TL ACTIONS (DETAIL VIEW) ════════ */
     async function acceptJobTLDetail(id, fromModal = false) {
       if (!confirm('ยืนยันการรับงานหน้างาน?')) return;
-      const d = DB.find(x => x.id === id);
+      const d = findDepositById(id);
       if (!d) return;
       if ((d.status || '').toLowerCase() !== 'tl') {
         toast('งานนี้ยังไม่ถึงขั้นตอนของ TL หรือถูกดำเนินการไปแล้ว', 'error');
@@ -5714,7 +5810,7 @@
       try {
         const updateObj = { status: 'On Process', complete_tl: 'On Process', tl_accept_date: new Date().toISOString().split('T')[0], log: d.log };
         const updated = await updateDeposit(id, updateObj);
-        const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+        mergeDepositIntoDB(id, updated);
         if (fromModal) openTLModal(id);
         else openDetail(id); // Reload view
         renderTable(); renderKPI();
@@ -5740,7 +5836,7 @@
     }
 
     async function saveTLWorkDetail(id, fromModal = false, saveOnlyInfo = false) {
-      const d = DB.find(x => x.id === id);
+      const d = findDepositById(id);
       if ((d.status || '').toLowerCase() !== 'on process' && d.complete_tl !== 'On Process') {
         toast('สถานะงานไม่ถูกต้อง งานจำเป็นต้องถูกกดยืนยันรับงานก่อน', 'error');
         return;
@@ -5779,10 +5875,10 @@
           let updated;
           if (USE_MOCK) {
             updated = { ...d, ...updateObj };
-            const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+            mergeDepositIntoDB(id, updated);
           } else {
             updated = await updateDeposit(id, updateObj);
-            const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+            mergeDepositIntoDB(id, updated);
           }
           toast('บันทึกข้อมูลสำเร็จ ✓', 'success');
           if (fromModal) openTLModal(id);
@@ -5870,9 +5966,10 @@
         let updated;
         if (USE_MOCK) {
           updated = { ...d, ...updateObj };
-          const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+          mergeDepositIntoDB(id, updated);
         } else {
           updated = await updateDeposit(id, updateObj);
+          mergeDepositIntoDB(id, updated);
         }
 
         if (fromModal) openTLModal(id);
@@ -5894,7 +5991,7 @@
     }
 
     async function saveExtraDocsOnly(id) {
-      const d = DB.find(x => x.id === id);
+      const d = findDepositById(id);
       if (!d) return;
 
       const input = document.getElementById('f-pdf-tl-extra-after');
@@ -5937,10 +6034,10 @@
         let updated;
         if (USE_MOCK) {
           updated = { ...d, ...updateObj };
-          const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+          mergeDepositIntoDB(id, updated);
         } else {
           updated = await updateDeposit(id, updateObj);
-          const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+          mergeDepositIntoDB(id, updated);
         }
 
         toast('บันทึกเอกสารเพิ่มเติมสำเร็จ ✓', 'success');
@@ -5958,7 +6055,8 @@
 
     /* ════════ CANCEL / DELETE ════════ */
     function confirmCancel(id) {
-      const d = DB.find(x => x.id === id);
+      const d = findDepositById(id);
+      if (!d) { toast('Record not found', 'error'); return; }
       document.getElementById('cancelTitle').textContent = `ยกเลิกรายการ "${d.place}"?`;
       document.getElementById('f-cancel-reason').value = '';
 
@@ -5966,16 +6064,26 @@
         const reason = document.getElementById('f-cancel-reason').value.trim();
         if (!reason) { toast('กรุณาระบุเหตุผลการยกเลิก', 'error'); return; }
 
+        const btn = document.getElementById('cancelOkBtn');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
         try {
-          const idx = DB.findIndex(x => x.id === id);
+          const idx = findDepositIndexById(id);
           if (idx !== -1) {
+            const auditData = { ...DB[idx], log: [...(DB[idx].log || [])] };
+            addLogEntry(auditData, `Canceled request. Reason: ${reason}`, 'AUDIT');
             const updated = await updateDeposit(id, {
               status: 'Cancel',
               status_final: 'Cancel',
               cancel_reason: reason,
+              canceled_by: CURRENT_USER ? CURRENT_USER.name : 'System',
+              canceled_at: new Date().toISOString(),
+              log: auditData.log,
               final_remark: (DB[idx].final_remark ? DB[idx].final_remark + ' | ' : '') + 'ยกเลิกเนื่องจาก: ' + reason
             });
-            DB[idx] = updated;
+            mergeDepositIntoDB(id, updated);
             closeModal('cancelOverlay');
             renderTable(); renderKPI();
             toast(`ยกเลิกรายการ "${d.place}" แล้ว`, 'info');
@@ -5983,6 +6091,9 @@
         } catch (err) {
           console.error(err);
           toast('เกิดข้อผิดพลาดในการยกเลิกข้อมูล', 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = originalText;
         }
       };
       openModal('cancelOverlay');
@@ -5993,17 +6104,25 @@
         toast('เฉพาะผู้ดูแลระบบ (Admin) เท่านั้นที่สามารถลบข้อมูลได้', 'error');
         return;
       }
-      const d = DB.find(x => x.id == id);
+      const d = findDepositById(id);
+      if (!d) { toast('Record not found', 'error'); return; }
       document.getElementById('confirmTitle').textContent = `ลบถาวร "${d.place}"?`;
       document.getElementById('confirmOkBtn').onclick = async () => {
+        const btn = document.getElementById('confirmOkBtn');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Deleting...';
         try {
           await deleteDeposit(id);
-          DB = DB.filter(x => x.id != id);
+          DB = DB.filter(x => !sameId(x.id, id) && !sameId(x.id_firestore, id));
           closeModal('confirmOverlay');
           renderTable(); renderKPI();
           toast(`ลบรายการ "${d.place}" แล้ว`, 'info');
         } catch (err) {
           toast('เกิดข้อผิดพลาดในการลบข้อมูล', 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = originalText;
         }
       };
       openModal('confirmOverlay');
@@ -6094,7 +6213,7 @@
       if (!reason.trim()) { toast('กรุณาระบุเหตุผล', 'error'); return; }
 
       try {
-        const d = DB.find(x => x.id === id);
+        const d = findDepositById(id);
         if (!d) return;
 
         addLogEntry(d, `ส่งกลับแก้ไขโดย User: ${reason}`, '🔙');
@@ -6107,10 +6226,10 @@
         let updated;
         if (USE_MOCK) {
           updated = { ...d, ...updateObj };
-          const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+          mergeDepositIntoDB(id, updated);
         } else {
           updated = await updateDeposit(id, updateObj);
-          const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+          mergeDepositIntoDB(id, updated);
         }
         closeModal('formOverlay');
         closeModal('detailOverlay');
@@ -6128,7 +6247,7 @@
       if (!reason.trim()) { toast('กรุณาระบุเหตุผล', 'error'); return; }
 
       try {
-        const d = DB.find(x => x.id === id);
+        const d = findDepositById(id);
         if (!d) return;
 
         addLogEntry(d, `ส่งกลับก่อนรับงานโดย TL: ${reason}`, '🔙');
@@ -6142,10 +6261,10 @@
         let updated;
         if (USE_MOCK) {
           updated = { ...d, ...updateObj };
-          const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+          mergeDepositIntoDB(id, updated);
         } else {
           updated = await updateDeposit(id, updateObj);
-          const idx = DB.findIndex(x => x.id === id); DB[idx] = updated;
+          mergeDepositIntoDB(id, updated);
         }
         renderTLTasksPage();
         toast('ส่งกลับก่อนรับงานเรียบร้อยแล้ว', 'success');
