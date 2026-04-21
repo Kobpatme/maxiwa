@@ -2508,13 +2508,20 @@
               <input type="text" placeholder="ค้นหาอาคาร, ลูกค้า, เจ้าของงาน..." id="searchInput"
                 oninput="applyFilters()">
             </div>
-            <div class="pill-group" id="statusPills">
-              <span class="pill active" data-val="" onclick="setStatusFilter('')">ทั้งหมด</span>
-              <span class="pill o" data-val="On Process" onclick="setStatusFilter('On Process')">⏳ อยู่ระหว่างขอคืนเงิน</span>
-              <span class="pill b" data-val="On Service" onclick="setStatusFilter('On Service')">🚧 On Service</span>
-              <span class="pill g" data-val="Done" onclick="setStatusFilter('Done')">✓ เสร็จแล้ว</span>
-              <span class="pill r" data-val="Cancel" onclick="setStatusFilter('Cancel')">✕ ยกเลิก</span>
-            </div>
+            <select class="select-filter" id="statusFilter" onchange="setStatusFilter(this.value)" style="min-width:190px">
+              <option value="">สถานะงานทั้งหมด</option>
+              <option value="new">ใหม่</option>
+              <option value="fin">รอทีมการเงิน</option>
+              <option value="att">รอแนบเอกสาร</option>
+              <option value="tl_wait">รอ TL รับงาน</option>
+              <option value="tl_process">อยู่ระหว่างตรวจรับ</option>
+              <option value="ret">รอ User ตรวจรับ</option>
+              <option value="clo">รอแนบหลักฐานปิดงาน</option>
+              <option value="refund_process">อยู่ระหว่างขอคืนเงิน</option>
+              <option value="done">เสร็จแล้ว</option>
+              <option value="on_service">On Service</option>
+              <option value="cancel">ยกเลิก</option>
+            </select>
             <select class="select-filter" id="ownerFilter" onchange="applyFilters()">
               <option value="">เจ้าของงานทั้งหมด</option>
               <option>เจษฎาภรณ์</option>
@@ -2844,12 +2851,15 @@
                   <span class="search-icon">🔍</span>
                   <input type="text" placeholder="ค้นหา CID, อาคาร, ลูกค้า..." id="tlSearchInput" oninput="applyTLSearch()">
                 </div>
-                <div class="pill-group" id="tlStatusPills">
-                  <span class="pill active" data-val="" onclick="setTLStatusFilter('')">ทั้งหมด</span>
-                  <span class="pill o" data-val="tl" onclick="setTLStatusFilter('tl')">⏳ รอ TL รับงาน</span>
-                  <span class="pill b" data-val="On Process" onclick="setTLStatusFilter('On Process')">🚧 อยู่ระหว่างตรวจรับ</span>
-                  <span class="pill g" data-val="Done" onclick="setTLStatusFilter('Done')">✓ เสร็จแล้ว</span>
-                </div>
+                <select class="select-filter" id="tlStatusFilter" onchange="setTLStatusFilter(this.value)" style="min-width:200px">
+                  <option value="">สถานะงานทั้งหมด</option>
+                  <option value="tl_wait">รอ TL รับงาน</option>
+                  <option value="tl_process">อยู่ระหว่างตรวจรับ</option>
+                  <option value="ret">รอ User ตรวจรับ</option>
+                  <option value="clo">รอแนบหลักฐานปิดงาน</option>
+                  <option value="done">เสร็จแล้ว</option>
+                  <option value="on_service">On Service</option>
+                </select>
                 <div class="multi-select-wrap" id="tlAreaFilterWrap">
                   <button class="multi-select-btn" id="tlAreaFilterBtn" onclick="toggleTLAreaDropdown(event)" type="button">
                     <span id="tlAreaFilterLabel">พื้นที่ทั้งหมด</span>
@@ -3625,6 +3635,35 @@
       'new': 0, 'fin': 1, 'att': 2, 'tl': 3, 'On Process': 3, 'ret': 4, 'clo': 5, 'done': 6
     };
 
+    function isOnServiceItem(d) {
+      return (d.status || '').trim().toLowerCase() === 'done' &&
+        parseFixed(d.demolish) > 0 &&
+        (d.demoReturn || '').trim() !== 'Yes';
+    }
+
+    function getWorkflowStatusKey(d) {
+      const status = (d.status || '').trim().toLowerCase();
+
+      if (status === 'cancel') return 'cancel';
+      if (status === 'done') return isOnServiceItem(d) ? 'on_service' : 'done';
+      if (status === 'ret') return 'ret';
+      if (status === 'clo') return 'clo';
+      if (status === 'att') return 'att';
+      if (status === 'fin') return 'fin';
+      if (status === 'tl') return d.complete_tl === 'On Process' ? 'tl_process' : 'tl_wait';
+      if (status === 'on process') return d.complete_tl === 'On Process' ? 'tl_process' : 'refund_process';
+      if (d.complete_tl === 'On Process') return 'tl_process';
+      return 'new';
+    }
+
+    function matchesStatusFilter(d, filterValue) {
+      return !filterValue || getWorkflowStatusKey(d) === filterValue;
+    }
+
+    function isTLWorkflowItem(d) {
+      return ['tl_wait', 'tl_process', 'ret', 'clo', 'done', 'on_service'].includes(getWorkflowStatusKey(d));
+    }
+
     function copyCID(cid) {
       if (!cid || cid === '—') return;
       navigator.clipboard.writeText(cid).then(() => {
@@ -3672,45 +3711,46 @@
     }
 
     function getStatusLabel(d) {
-      if (d.status === 'Done' || d.status === 'done') {
-        if (d.demolish > 0 && d.demoReturn !== 'Yes') return '🚧 On Service';
-        return '✅ เสร็จสมบูรณ์';
+      switch (getWorkflowStatusKey(d)) {
+        case 'fin': return '💳 รอทีมการเงิน';
+        case 'att': return '📎 รอแนบเอกสาร';
+        case 'tl_wait': return '🔴 รอ TL รับงาน';
+        case 'tl_process': return '⏳ อยู่ระหว่างตรวจรับ';
+        case 'ret': return '📄 รอ User ตรวจรับ';
+        case 'clo': return '🏁 รอแนบหลักฐานปิดงาน';
+        case 'refund_process': return '⏳ อยู่ระหว่างขอคืนเงิน';
+        case 'done': return '✅ เสร็จสมบูรณ์';
+        case 'on_service': return '🚧 On Service';
+        case 'cancel': return '✕ ยกเลิก';
+        default: return 'ใหม่';
       }
-      if (d.status === 'Cancel') return '✕ ยกเลิก';
-      
-      // ตรวจสอบว่าอยู่ใน Step 4 (index = 3) และ complete_tl === 'On Process' หรือไม่
-      const stepIdx = getStepIndex(d);
-      const isAtStep4WithTLProcess = stepIdx === 3 && d.complete_tl === 'On Process';
-      
-      // ถ้าเป็น Step 4 และ TL กำลังดำเนินการ = อยู่ระหว่างตรวจรับ
-      // ถ้าเป็น On Process ที่ไม่ใช่ Step 4 = อยู่ระหว่างขอคืนเงิน
-      const onProcLabel = isAtStep4WithTLProcess ? '⏳ อยู่ระหว่างตรวจรับ' : '⏳ อยู่ระหว่างขอคืนเงิน';
-
-      if (d.status === 'tl') {
-        return d.complete_tl === 'On Process' ? onProcLabel : '🔴 รอ TL รับงาน';
-      }
-      if (d.status === 'On Process' || d.complete_tl === 'On Process') return onProcLabel;
-      if (d.status === 'ret') return '📄 รอ User ตรวจรับ';
-      if (d.status === 'clo') return '🏁 รอแนบหลักฐานปิดงาน';
-      return 'ใหม่';
     }
 
     function statusBadge(s, d) {
-      // ตรวจสอบว่าอยู่ใน Step 4 (index = 3) และ complete_tl === 'On Process' หรือไม่
-      const stepIdx = d ? getStepIndex(d) : 0;
-      const isAtStep4WithTLProcess = stepIdx === 3 && d && d.complete_tl === 'On Process';
-      
-      // ถ้าเป็น Step 4 และ TL กำลังดำเนินการ = อยู่ระหว่างตรวจรับ
-      // ถ้าเป็น On Process ที่ไม่ใช่ Step 4 = อยู่ระหว่างขอคืนเงิน
-      const onProcLabel = isAtStep4WithTLProcess ? 'อยู่ระหว่างตรวจรับ' : 'อยู่ระหว่างขอคืนเงิน';
-
-      if (d && d.status === 'Done' && (d.demolish > 0 && d.demoReturn !== 'Yes')) {
-        return `<span class="badge b-wait"><span class="dot"></span>On Service</span>`;
+      switch (getWorkflowStatusKey(d || { status: s })) {
+        case 'fin':
+          return `<span class="badge b-wait"><span class="dot"></span>รอทีมการเงิน</span>`;
+        case 'att':
+          return `<span class="badge b-wait"><span class="dot"></span>รอแนบเอกสาร</span>`;
+        case 'tl_wait':
+          return `<span class="badge b-wait"><span class="dot"></span>รอ TL รับงาน</span>`;
+        case 'tl_process':
+          return `<span class="badge b-process"><span class="dot"></span>อยู่ระหว่างตรวจรับ</span>`;
+        case 'ret':
+          return `<span class="badge b-wait"><span class="dot"></span>รอ User ตรวจรับ</span>`;
+        case 'clo':
+          return `<span class="badge b-process"><span class="dot"></span>รอแนบหลักฐานปิดงาน</span>`;
+        case 'refund_process':
+          return `<span class="badge b-process"><span class="dot"></span>อยู่ระหว่างขอคืนเงิน</span>`;
+        case 'done':
+          return `<span class="badge b-done"><span class="dot"></span>เสร็จแล้ว</span>`;
+        case 'on_service':
+          return `<span class="badge b-wait"><span class="dot"></span>On Service</span>`;
+        case 'cancel':
+          return `<span class="badge b-cancel"><span class="dot"></span>ยกเลิก</span>`;
+        default:
+          return `<span class="badge b-new"><span class="dot"></span>ใหม่</span>`;
       }
-      if (s === 'Done') return `<span class="badge b-done"><span class="dot"></span>Done</span>`;
-      if (s === 'On Process') return `<span class="badge b-process"><span class="dot"></span>${onProcLabel}</span>`;
-      if (s === 'Cancel') return `<span class="badge b-cancel"><span class="dot"></span>ยกเลิก</span>`;
-      return `<span class="badge b-new"><span class="dot"></span>ใหม่</span>`;
     }
 
     function fmt(n) { return n > 0 ? '฿' + n.toLocaleString() : `<span style="color:var(--txt3)">—</span>` }
@@ -4175,16 +4215,7 @@
 
       // 2. UI Filters (Search, Status, Owner, Area)
       const filtered = roleAllowedData.filter(d => {
-        let ms = !filterStatus || d.status === filterStatus;
-        if (filterStatus === 'On Service') {
-          ms = (d.status || '').trim().toLowerCase() === 'done' && (+(d.demolish || 0) > 0 && d.demoReturn !== 'Yes');
-        } else if (filterStatus === 'Done') {
-          ms = (d.status || '').trim().toLowerCase() === 'done' && !(+(d.demolish || 0) > 0 && d.demoReturn !== 'Yes');
-        } else if (filterStatus === 'On Process') {
-          ms = getStatusLabel(d) === '⏳ อยู่ระหว่างขอคืนเงิน';
-        } else if (filterStatus === 'Cancel') {
-          ms = (d.status || '') === 'Cancel';
-        }
+        const ms = matchesStatusFilter(d, filterStatus);
         const mo = !filterOwner || d.owner === filterOwner;
         const ma = filterAreas.length === 0 || filterAreas.includes(d.area);
         const mq = !searchQ || [d.place, d.customer, d.owner, d.project, d.pr].join(' ').toLowerCase().includes(searchQ);
@@ -4452,9 +4483,8 @@
     /* ════════ FILTERS ════════ */
     function setStatusFilter(v) {
       filterStatus = v;
-      document.querySelectorAll('#statusPills .pill').forEach(p => {
-        p.classList.toggle('active', p.dataset.val === v);
-      });
+      const statusFilterEl = document.getElementById('statusFilter');
+      if (statusFilterEl) statusFilterEl.value = v;
       document.getElementById('ownerFilter').value = '';
       filterOwner = '';
       currentTablePage = 1;
@@ -4462,9 +4492,8 @@
     }
     function setTLStatusFilter(v) {
       tlStatusFilter = v;
-      document.querySelectorAll('#tlStatusPills .pill').forEach(p => {
-        p.classList.toggle('active', p.dataset.val === v);
-      });
+      const tlStatusFilterEl = document.getElementById('tlStatusFilter');
+      if (tlStatusFilterEl) tlStatusFilterEl.value = v;
       applyTLSearch();
     }
 
@@ -4539,8 +4568,8 @@
     function setOwnerFilter(v) {
       filterOwner = v;
       filterStatus = '';
-      document.querySelectorAll('#statusPills .pill').forEach(p => p.classList.remove('active'));
-      document.querySelector('#statusPills .pill').classList.add('active');
+      const statusFilterEl = document.getElementById('statusFilter');
+      if (statusFilterEl) statusFilterEl.value = '';
       document.getElementById('ownerFilter').value = v;
       applyFilters();
     }
@@ -6018,22 +6047,11 @@
       }
 
       // Filter for TL tasks
-      filtered = filtered.filter(d => {
-        const s = (d.status || '').toLowerCase();
-        const matchesStatus = ['tl', 'on process', 'done', 'clo'].includes(s) ||
-          d.complete_tl === 'On Process' ||
-          d.pdf_tl_work;
-        return matchesStatus;
-      });
+      filtered = filtered.filter(d => isTLWorkflowItem(d));
 
       // Apply status filter
       if (tlStatusFilter) {
-        filtered = filtered.filter(d => {
-          if (tlStatusFilter === 'tl') return d.status === 'tl' && d.complete_tl !== 'On Process';
-          if (tlStatusFilter === 'On Process') return d.complete_tl === 'On Process';
-          if (tlStatusFilter === 'Done') return d.status === 'Done' || d.status === 'done';
-          return true;
-        });
+        filtered = filtered.filter(d => matchesStatusFilter(d, tlStatusFilter));
       }
 
       // Apply month/year filter
@@ -6054,7 +6072,15 @@
       const csv = [headers, ...rows].map(r => r.map(v => `"${v || ''}"`).join(',')).join('\n');
       const a = document.createElement('a');
       a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
-      const statusLabel = tlStatusFilter ? `_${tlStatusFilter}` : '';
+      const tlStatusLabelMap = {
+        'tl_wait': 'รอ TL รับงาน',
+        'tl_process': 'อยู่ระหว่างตรวจรับ',
+        'ret': 'รอ User ตรวจรับ',
+        'clo': 'รอแนบหลักฐานปิดงาน',
+        'done': 'เสร็จแล้ว',
+        'on_service': 'On Service'
+      };
+      const statusLabel = tlStatusFilter ? `_${tlStatusLabelMap[tlStatusFilter] || tlStatusFilter}` : '';
       const filterLabel = (month !== '' ? `_M${parseInt(month) + 1}` : '') + (year !== '' ? `_${year}` : '') + statusLabel;
       a.download = 'tl_tasks_report' + filterLabel + '_' + new Date().toISOString().split('T')[0] + '.csv';
       a.click();
@@ -6180,9 +6206,9 @@
       const labelEl = document.getElementById('tlKpiLabel');
       if (!el) return;
 
-      const waiting    = tlData.filter(d => d.status === 'tl' && d.complete_tl !== 'On Process').length;
-      const inProgress = tlData.filter(d => d.complete_tl === 'On Process').length;
-      const done       = tlData.filter(d => (d.status || '').toLowerCase() === 'done').length;
+      const waiting    = tlData.filter(d => getWorkflowStatusKey(d) === 'tl_wait').length;
+      const inProgress = tlData.filter(d => getWorkflowStatusKey(d) === 'tl_process').length;
+      const done       = tlData.filter(d => ['done', 'on_service'].includes(getWorkflowStatusKey(d))).length;
       const totalDemo  = tlData.reduce((s, d) => s + parseFixed(d.demolish), 0);
       const returned   = tlData.filter(d => (d.demoReturn || '').toLowerCase() === 'yes').length;
 
@@ -6274,15 +6300,10 @@
         filteredData = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
       }
 
-      // Show all tasks that are at the TL step, processed by TL, OR are marked as "Done" (ปิดงาน)
+      // Show only tasks that belong to the TL workflow
       let tlData = filteredData.filter(d => {
-        const s = (d.status || '').toLowerCase();
-        const matchesStatus = ['tl', 'on process', 'done', 'clo'].includes(s) ||
-          d.complete_tl === 'On Process' ||
-          d.pdf_tl_work;
-
         const mq = !tlSearchQ || [d.place, d.customer, d.cid, d.pr].join(' ').toLowerCase().includes(tlSearchQ);
-        return matchesStatus && mq;
+        return isTLWorkflowItem(d) && mq;
       });
 
       // Populate area dropdown (based on pre-area-filter data)
@@ -6298,12 +6319,7 @@
 
       // Apply status filter (table only)
       if (tlStatusFilter) {
-        tlData = tlData.filter(d => {
-          if (tlStatusFilter === 'tl') return d.status === 'tl' && d.complete_tl !== 'On Process';
-          if (tlStatusFilter === 'On Process') return d.complete_tl === 'On Process';
-          if (tlStatusFilter === 'Done') return d.status === 'Done' || d.status === 'done';
-          return true;
-        });
+        tlData = tlData.filter(d => matchesStatusFilter(d, tlStatusFilter));
       }
 
       document.getElementById('tlTaskCount').textContent = tlData.length + ' รายการ';
