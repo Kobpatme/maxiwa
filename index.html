@@ -5127,16 +5127,21 @@
 
         // Step 3: ต้องมีหลักฐานการจ่ายและแบบ Drawing เมื่อมีเงินประกัน (ก่อนกดยืนยันขั้นตอนแนบหลักฐาน)
         const depositValForCheck = +document.getElementById('f-deposit').value || 0;
+        const demolishValForCheck = +document.getElementById('f-demolish').value || 0;
+        const feeValForCheck = +document.getElementById('f-fee').value || 0;
+        const otherValForCheck = +document.getElementById('f-other').value || 0;
+        const hasInsuranceAmount = depositValForCheck > 0 || demolishValForCheck > 0;
+        const hasFinancialAmount = hasInsuranceAmount || feeValForCheck > 0 || otherValForCheck > 0;
         const hasPayment = !!(fileUrls.pdf_payment || (oldData && oldData.pdf_payment));
         const hasLayout = !!(fileUrls.pdf_layout || (oldData && oldData.pdf_layout));
-        if (currentStep === 3 && depositValForCheck > 0) {
+        if (currentStep === 3 && hasFinancialAmount) {
           if (!hasPayment) {
             btn.disabled = false;
             btn.textContent = originalText;
             toast('กรุณาแนบหลักฐานการจ่ายเงิน (PDF) ก่อนยืนยัน', 'error');
             return;
           }
-          if (!hasLayout) {
+          if (hasInsuranceAmount && !hasLayout) {
             btn.disabled = false;
             btn.textContent = originalText;
             toast('กรุณาแนบแบบ Drawing (PDF) ก่อนยืนยัน', 'error');
@@ -5160,6 +5165,10 @@
 
         // Explicit Status Determination Logic
         const depositVal = +document.getElementById('f-deposit').value || 0;
+        const demolishVal = +document.getElementById('f-demolish').value || 0;
+        const feeVal = +document.getElementById('f-fee').value || 0;
+        const otherVal = +document.getElementById('f-other').value || 0;
+        const hasAnyFinancialAmount = depositVal > 0 || demolishVal > 0 || feeVal > 0 || otherVal > 0;
         let finalStatus = oldData ? oldData.status : 'new';
         let autoReturnStatus = getVal('f-return-status');
 
@@ -5175,8 +5184,8 @@
           finalStatus = 'tl';
         }
 
-        // Data-aware completion logic (Auto-complete to 'done' only if NO deposit)
-        if (depositVal === 0 && (finalStatus || '').toLowerCase() !== 'cancel' && (finalStatus || '').toLowerCase() !== 'done') {
+        // Data-aware completion logic (Auto-complete to 'done' only if there is no financial amount)
+        if (!hasAnyFinancialAmount && (finalStatus || '').toLowerCase() !== 'cancel' && (finalStatus || '').toLowerCase() !== 'done') {
           if (getStepIndex({ status: finalStatus }) >= 2) {
             finalStatus = 'done';
           }
@@ -5305,7 +5314,7 @@
         } else {
           const inserted = await insertDeposit(obj);
           mergeDepositIntoDB(inserted.id, inserted);
-          toast('เพิ่มรายการใหม่สำเร็จ ✓' + (depositVal === 0 ? ' (ระบบปิดงานอัตโนมัติเนื่องจากไม่มีเงินประกันติดตั้ง)' : ''), 'success');
+          toast('เพิ่มรายการใหม่สำเร็จ ✓' + (!hasAnyFinancialAmount ? ' (ระบบปิดงานอัตโนมัติเนื่องจากไม่มีรายการการเงิน)' : ''), 'success');
           if (inserted && inserted.id) editingId = inserted.id; // Fix: Track the new ID for workflow continuity
         }
 
