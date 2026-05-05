@@ -2508,7 +2508,7 @@
               <input type="text" placeholder="ค้นหาอาคาร, ลูกค้า, เจ้าของงาน..." id="searchInput"
                 oninput="applyFilters()">
             </div>
-            <select class="select-filter" id="statusFilter" onchange="setStatusFilter(this.value)" style="min-width:190px">
+            <select class="select-filter" id="statusFilter" onchange="setStatusFilter(this.value)" style="min-width:190px; display:none">
               <option value="">สถานะงานทั้งหมด</option>
               <option value="new">ใหม่</option>
               <option value="fin">รอทีมการเงิน</option>
@@ -2522,6 +2522,13 @@
               <option value="on_service">On Service</option>
               <option value="cancel">ยกเลิก</option>
             </select>
+            <div class="multi-select-wrap" id="statusFilterWrap" data-label-prefix="สถานะงาน">
+              <button class="multi-select-btn" id="statusFilterBtn" onclick="toggleStatusDropdown(event)" type="button">
+                <span id="statusFilterLabel">สถานะงานทั้งหมด</span>
+                <span class="multi-select-arrow">▾</span>
+              </button>
+              <div class="multi-select-dropdown" id="statusFilterContainer" style="display:none;"></div>
+            </div>
             <select class="select-filter" id="ownerFilter" onchange="applyFilters()">
               <option value="">เจ้าของงานทั้งหมด</option>
               <option>เจษฎาภรณ์</option>
@@ -2851,7 +2858,7 @@
                   <span class="search-icon">🔍</span>
                   <input type="text" placeholder="ค้นหา CID, อาคาร, ลูกค้า..." id="tlSearchInput" oninput="applyTLSearch()">
                 </div>
-                <select class="select-filter" id="tlStatusFilter" onchange="setTLStatusFilter(this.value)" style="min-width:200px">
+                <select class="select-filter" id="tlStatusFilter" onchange="setTLStatusFilter(this.value)" style="min-width:200px; display:none">
                   <option value="">สถานะงานทั้งหมด</option>
                   <option value="tl_wait">รอ TL รับงาน</option>
                   <option value="tl_process">อยู่ระหว่างตรวจรับ</option>
@@ -2860,6 +2867,13 @@
                   <option value="done">เสร็จแล้ว</option>
                   <option value="on_service">On Service</option>
                 </select>
+                <div class="multi-select-wrap" id="tlStatusFilterWrap" data-label-prefix="สถานะงาน">
+                  <button class="multi-select-btn" id="tlStatusFilterBtn" onclick="toggleTLStatusDropdown(event)" type="button">
+                    <span id="tlStatusFilterLabel">สถานะงานทั้งหมด</span>
+                    <span class="multi-select-arrow">▾</span>
+                  </button>
+                  <div class="multi-select-dropdown" id="tlStatusFilterContainer" style="display:none;"></div>
+                </div>
                 <div class="multi-select-wrap" id="tlAreaFilterWrap">
                   <button class="multi-select-btn" id="tlAreaFilterBtn" onclick="toggleTLAreaDropdown(event)" type="button">
                     <span id="tlAreaFilterLabel">พื้นที่ทั้งหมด</span>
@@ -3574,7 +3588,7 @@
     let USER_LIST = []; // Cached user list for role-based filtering
     let nextId = 1;
     let editingId = null;
-    let filterStatus = '';
+    let filterStatus = [];
     let filterOwner = '';
     let filterAreas = [];
     let searchQ = '';
@@ -3616,7 +3630,7 @@
       return DB[idx];
     }
     let tlSearchQ = '';
-    let tlStatusFilter = '';
+    let tlStatusFilter = [];
     let tlFilterAreas = [];
     let isDirty = false;
     let currentTablePage = 1;
@@ -3674,8 +3688,14 @@
       return 'new';
     }
 
+    function normalizeStatusFilterValue(filterValue) {
+      if (Array.isArray(filterValue)) return filterValue;
+      return filterValue ? [filterValue] : [];
+    }
+
     function matchesStatusFilter(d, filterValue) {
-      return !filterValue || getWorkflowStatusKey(d) === filterValue;
+      const values = normalizeStatusFilterValue(filterValue);
+      return values.length === 0 || values.includes(getWorkflowStatusKey(d));
     }
 
     function isTLWorkflowItem(d) {
@@ -4205,6 +4225,84 @@
         owners.map(o => `<option value="${o}" ${o === currentVal ? 'selected' : ''}>${o}</option>`).join('');
     }
 
+    function getStatusFilterOptions(selectId) {
+      const select = document.getElementById(selectId);
+      if (!select) return [];
+      return Array.from(select.options).map(option => ({
+        value: option.value,
+        label: option.textContent.trim()
+      }));
+    }
+
+    function populateStatusMultiSelect(config) {
+      const { selectId, containerId, btnId, labelId, wrapId, selected, toggleFn } = config;
+      const select = document.getElementById(selectId);
+      const container = document.getElementById(containerId);
+      const btn = document.getElementById(btnId);
+      const label = document.getElementById(labelId);
+      const wrap = document.getElementById(wrapId);
+      if (!select || !container || !btn || !label || !wrap) return;
+
+      const options = getStatusFilterOptions(selectId);
+      const allOption = options.find(option => option.value === '') || options[0];
+      const statusOptions = options.filter(option => option.value !== '');
+      const selectedValues = normalizeStatusFilterValue(selected).filter(value =>
+        statusOptions.some(option => option.value === value)
+      );
+
+      let html = `<div class="multi-select-option ${selectedValues.length === 0 ? 'checked' : ''}" onclick='${toggleFn}("")'>
+        <input type="checkbox" ${selectedValues.length === 0 ? 'checked' : ''} onclick='event.stopPropagation();${toggleFn}("")'> ${esc(allOption?.label || '')}
+      </div>`;
+      if (statusOptions.length > 0) html += '<hr class="multi-select-divider">';
+      html += statusOptions.map(option => {
+        const checked = selectedValues.includes(option.value);
+        return `
+          <div class="multi-select-option ${checked ? 'checked' : ''}" onclick='${toggleFn}(${JSON.stringify(option.value)})'>
+            <input type="checkbox" ${checked ? 'checked' : ''} onclick='event.stopPropagation();${toggleFn}(${JSON.stringify(option.value)})'> ${esc(option.label)}
+          </div>
+        `;
+      }).join('');
+      container.innerHTML = html;
+
+      if (selectedValues.length === 0) {
+        label.textContent = allOption?.label || '';
+        btn.classList.remove('has-selection');
+      } else if (selectedValues.length === 1) {
+        const selectedOption = statusOptions.find(option => option.value === selectedValues[0]);
+        label.textContent = selectedOption?.label || selectedValues[0];
+        btn.classList.add('has-selection');
+      } else {
+        label.textContent = `${wrap.dataset.labelPrefix || allOption?.label || 'Status'} (${selectedValues.length})`;
+        btn.classList.add('has-selection');
+      }
+
+      select.value = selectedValues[0] || '';
+    }
+
+    function populateStatusFilter() {
+      populateStatusMultiSelect({
+        selectId: 'statusFilter',
+        containerId: 'statusFilterContainer',
+        btnId: 'statusFilterBtn',
+        labelId: 'statusFilterLabel',
+        wrapId: 'statusFilterWrap',
+        selected: filterStatus,
+        toggleFn: 'toggleStatusFilter'
+      });
+    }
+
+    function populateTLStatusFilter() {
+      populateStatusMultiSelect({
+        selectId: 'tlStatusFilter',
+        containerId: 'tlStatusFilterContainer',
+        btnId: 'tlStatusFilterBtn',
+        labelId: 'tlStatusFilterLabel',
+        wrapId: 'tlStatusFilterWrap',
+        selected: tlStatusFilter,
+        toggleFn: 'toggleTLStatusFilter'
+      });
+    }
+
     function populateAreaFilter() {
       const container = document.getElementById('areaFilterContainer');
       if (!container) return;
@@ -4316,6 +4414,7 @@
 
     function renderTable() {
       populateOwnerFilter();
+      populateStatusFilter();
       populateAreaFilter();
       
       const data = getFilteredData();
@@ -4552,20 +4651,82 @@
 
     /* ════════ FILTERS ════════ */
     function setStatusFilter(v) {
-      filterStatus = v;
+      filterStatus = normalizeStatusFilterValue(v);
       const statusFilterEl = document.getElementById('statusFilter');
-      if (statusFilterEl) statusFilterEl.value = v;
+      if (statusFilterEl) statusFilterEl.value = filterStatus[0] || '';
       document.getElementById('ownerFilter').value = '';
       filterOwner = '';
       currentTablePage = 1;
+      populateStatusFilter();
       applyFilters();
     }
+    function toggleStatusFilter(v) {
+      if (v === '') {
+        filterStatus = [];
+      } else {
+        const idx = filterStatus.indexOf(v);
+        if (idx > -1) filterStatus.splice(idx, 1);
+        else filterStatus.push(v);
+      }
+      const ownerFilterEl = document.getElementById('ownerFilter');
+      if (ownerFilterEl) ownerFilterEl.value = '';
+      filterOwner = '';
+      currentTablePage = 1;
+      populateStatusFilter();
+      applyFilters();
+    }
+    function toggleStatusDropdown(e) {
+      e.stopPropagation();
+      const dropdown = document.getElementById('statusFilterContainer');
+      const btn = document.getElementById('statusFilterBtn');
+      const isOpen = dropdown.style.display !== 'none';
+      dropdown.style.display = isOpen ? 'none' : 'block';
+      btn.classList.toggle('open', !isOpen);
+    }
+    document.addEventListener('click', function(e) {
+      const wrap = document.getElementById('statusFilterWrap');
+      if (wrap && !wrap.contains(e.target)) {
+        const dropdown = document.getElementById('statusFilterContainer');
+        const btn = document.getElementById('statusFilterBtn');
+        if (dropdown) dropdown.style.display = 'none';
+        if (btn) btn.classList.remove('open');
+      }
+    });
     function setTLStatusFilter(v) {
-      tlStatusFilter = v;
+      tlStatusFilter = normalizeStatusFilterValue(v);
       const tlStatusFilterEl = document.getElementById('tlStatusFilter');
-      if (tlStatusFilterEl) tlStatusFilterEl.value = v;
+      if (tlStatusFilterEl) tlStatusFilterEl.value = tlStatusFilter[0] || '';
+      populateTLStatusFilter();
       applyTLSearch();
     }
+    function toggleTLStatusFilter(v) {
+      if (v === '') {
+        tlStatusFilter = [];
+      } else {
+        const idx = tlStatusFilter.indexOf(v);
+        if (idx > -1) tlStatusFilter.splice(idx, 1);
+        else tlStatusFilter.push(v);
+      }
+      populateTLStatusFilter();
+      applyTLSearch();
+    }
+    function toggleTLStatusDropdown(e) {
+      e.stopPropagation();
+      const dropdown = document.getElementById('tlStatusFilterContainer');
+      const btn = document.getElementById('tlStatusFilterBtn');
+      const isOpen = dropdown.style.display !== 'none';
+      dropdown.style.display = isOpen ? 'none' : 'block';
+      btn.classList.toggle('open', !isOpen);
+    }
+    document.addEventListener('click', function(e) {
+      const wrap = document.getElementById('tlStatusFilterWrap');
+      if (wrap && !wrap.contains(e.target)) {
+        const dropdown = document.getElementById('tlStatusFilterContainer');
+        const btn = document.getElementById('tlStatusFilterBtn');
+        if (dropdown) dropdown.style.display = 'none';
+        if (btn) btn.classList.remove('open');
+      }
+    });
 
     function populateTLAreaFilter(sourceData) {
       const container = document.getElementById('tlAreaFilterContainer');
@@ -4637,9 +4798,10 @@
     });
     function setOwnerFilter(v) {
       filterOwner = v;
-      filterStatus = '';
+      filterStatus = [];
       const statusFilterEl = document.getElementById('statusFilter');
       if (statusFilterEl) statusFilterEl.value = '';
+      populateStatusFilter();
       document.getElementById('ownerFilter').value = v;
       applyFilters();
     }
@@ -6178,9 +6340,7 @@
       filtered = filtered.filter(d => isTLWorkflowItem(d));
 
       // Apply status filter
-      if (tlStatusFilter) {
-        filtered = filtered.filter(d => matchesStatusFilter(d, tlStatusFilter));
-      }
+      filtered = filtered.filter(d => matchesStatusFilter(d, tlStatusFilter));
 
       // Apply month/year filter
       if (month !== '') {
@@ -6208,7 +6368,10 @@
         'done': 'เสร็จแล้ว',
         'on_service': 'On Service'
       };
-      const statusLabel = tlStatusFilter ? `_${tlStatusLabelMap[tlStatusFilter] || tlStatusFilter}` : '';
+      const tlStatusValues = normalizeStatusFilterValue(tlStatusFilter);
+      const statusLabel = tlStatusValues.length
+        ? `_${tlStatusValues.map(value => tlStatusLabelMap[value] || value).join('_')}`
+        : '';
       const filterLabel = (month !== '' ? `_M${parseInt(month) + 1}` : '') + (year !== '' ? `_${year}` : '') + statusLabel;
       a.download = 'tl_tasks_report' + filterLabel + '_' + new Date().toISOString().split('T')[0] + '.csv';
       a.click();
@@ -6435,6 +6598,7 @@
       });
 
       // Populate area dropdown (based on pre-area-filter data)
+      populateTLStatusFilter();
       populateTLAreaFilter(tlData);
 
       // Apply area filter
@@ -6446,9 +6610,7 @@
       renderTLKPIs(tlData);
 
       // Apply status filter (table only)
-      if (tlStatusFilter) {
-        tlData = tlData.filter(d => matchesStatusFilter(d, tlStatusFilter));
-      }
+      tlData = tlData.filter(d => matchesStatusFilter(d, tlStatusFilter));
 
       document.getElementById('tlTaskCount').textContent = tlData.length + ' รายการ';
       const empty = document.getElementById('tlEmptyState');
