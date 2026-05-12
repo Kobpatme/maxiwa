@@ -3611,6 +3611,86 @@
         return (u.protocol === 'https:' || u.protocol === 'http:') ? url : '#';
       } catch { return '#'; }
     }
+
+    const JOB_FILE_LABELS = {
+      pdf_payment: 'หลักฐานการจ่าย',
+      pdf_layout: 'แบบ / Drawing',
+      pdf_additional: 'เอกสารเพิ่มเติม',
+      pdf_tl_work: 'หลักฐานงาน TL',
+      pdf_tl_extra: 'เอกสารเพิ่มเติม TL',
+      pdf_user_final: 'เอกสารปิดงาน',
+      pdf_demo_off: 'หลักฐาน Off Service'
+    };
+
+    const JOB_FILE_ORDER = [
+      'pdf_payment',
+      'pdf_layout',
+      'pdf_additional',
+      'pdf_tl_work',
+      'pdf_tl_extra',
+      'pdf_user_final',
+      'pdf_demo_off'
+    ];
+
+    function getJobFileLabel(key) {
+      return JOB_FILE_LABELS[key] || key.replace(/^pdf_/, '').replace(/_/g, ' ').toUpperCase();
+    }
+
+    function getJobFileEntries(d) {
+      if (!d || typeof d !== 'object') return [];
+      const orderedKeys = [
+        ...JOB_FILE_ORDER,
+        ...Object.keys(d)
+          .filter(key => key.startsWith('pdf_') && !JOB_FILE_ORDER.includes(key))
+          .sort()
+      ];
+
+      return orderedKeys.flatMap(key => {
+        const value = d[key];
+        if (!value) return [];
+        const urls = Array.isArray(value) ? value : [value];
+        return urls
+          .filter(url => typeof url === 'string' && url.trim())
+          .map((url, idx) => ({
+            key,
+            url,
+            label: getJobFileLabel(key),
+            index: idx + 1,
+            total: urls.length
+          }));
+      });
+    }
+
+    function renderJobFilesHTML(d, options = {}) {
+      const entries = getJobFileEntries(d);
+      if (!entries.length) return '';
+
+      const {
+        title = '📁 ไฟล์แนบทั้งหมดของงาน',
+        margin = 'margin-top:20px',
+        background = 'var(--blue-l)',
+        border = 'var(--border)',
+        labelColor = 'var(--blue)',
+        textColor = 'var(--txt)'
+      } = options;
+
+      const fileRows = entries.map(file => `
+        <a href="${safeUrl(file.url)}" target="_blank" rel="noopener" class="detail-row" style="text-decoration:none; display:flex; align-items:center; gap:8px; background:${background}; border:1px solid ${border}; padding:8px 12px; border-radius:var(--r-sm)">
+          <span style="font-size:18px">📄</span>
+          <div style="flex:1">
+            <div style="font-size:11px; color:${labelColor}; font-weight:700; text-transform:uppercase">${esc(file.label)} ${file.total > 1 ? '#' + file.index : ''}</div>
+            <div style="font-size:12px; color:${textColor}">คลิกเพื่อดูไฟล์</div>
+          </div>
+        </a>
+      `).join('');
+
+      return `
+      <div style="${margin}">
+        <div class="money-title" style="margin-bottom:10px">${title}</div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px">${fileRows}</div>
+      </div>
+      `;
+    }
     function sameId(a, b) {
       return String(a ?? '') === String(b ?? '');
     }
@@ -5598,33 +5678,14 @@
         </div>
       `;
 
-      const fileRows = [
-        { label: 'หลักฐานการจ่าย', key: 'pdf_payment' },
-        { label: 'แบบ / Drawing', key: 'pdf_layout' },
-        { label: 'เอกสารเพิ่มเติม', key: 'pdf_additional' },
-        { label: 'หลักฐานงาน TL', key: 'pdf_tl_work' },
-        { label: 'เอกสารปิดงาน', key: 'pdf_user_final' },
-        { label: 'หลักฐาน Off Service', key: 'pdf_demo_off' }
-      ].filter(f => d[f.key]).map(f => {
-        const val = d[f.key];
-        const urls = Array.isArray(val) ? val : [val];
-        return urls.map((url, idx) => `
-          <a href="${safeUrl(url)}" target="_blank" class="detail-row" style="text-decoration:none; display:flex; align-items:center; gap:8px; background:var(--blue-l); border:1px solid var(--blue-m); padding:8px 12px; border-radius:var(--r-sm)">
-            <span style="font-size:18px">📄</span>
-            <div style="flex:1">
-              <div style="font-size:11px; color:var(--blue); font-weight:700; text-transform:uppercase">${f.label} ${urls.length > 1 ? '#' + (idx + 1) : ''}</div>
-              <div style="font-size:12px; color:var(--txt)">คลิกเพื่อดู PDF</div>
-            </div>
-          </a>
-        `).join('');
-      }).join('');
-
-      const filesHTML = fileRows ? `
-      <div style="margin-top:20px">
-        <div class="money-title" style="margin-bottom:10px">📁 ไฟล์แนบ (PDF)</div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">${fileRows}</div>
-      </div>
-    ` : '';
+      const filesHTML = renderJobFilesHTML(d, {
+        title: '📁 ไฟล์แนบทั้งหมดของงาน',
+        margin: 'margin-top:20px',
+        background: 'var(--blue-l)',
+        border: 'var(--blue-m)',
+        labelColor: 'var(--blue)',
+        textColor: 'var(--txt)'
+      });
 
       const remarkHTML = d.remark ? `<div style="margin-top:12px;padding:10px 12px;background:var(--orange-l);border-radius:var(--r-sm);font-size:12.5px;color:#92400e">📝 ${esc(d.remark)}</div>` : '';
 
@@ -5808,33 +5869,14 @@
         </div>
       `;
 
-      // Native Style Files list
-      const fileRows = [
-        { label: 'หลักฐานการจ่าย', key: 'pdf_payment' },
-        { label: 'แบบ / Drawing', key: 'pdf_layout' },
-        { label: 'เอกสารเพิ่มเติม', key: 'pdf_additional' },
-        { label: 'หลักฐานงาน TL', key: 'pdf_tl_work' },
-        { label: 'เอกสารเพิ่มเติม TL', key: 'pdf_tl_extra' }
-      ].filter(f => d[f.key]).map(f => {
-        const val = d[f.key];
-        const urls = Array.isArray(val) ? val : [val];
-        return urls.map((url, idx) => `
-        <a href="${safeUrl(url)}" target="_blank" class="detail-row" style="text-decoration:none; display:flex; align-items:center; gap:8px; background:var(--bg-f); border:1px solid var(--border); padding:8px 12px; border-radius:var(--r-sm)">
-          <span style="font-size:18px">📄</span>
-          <div style="flex:1">
-            <div style="font-size:11px; color:var(--txt2); font-weight:700; text-transform:uppercase">${f.label} ${urls.length > 1 ? '#' + (idx + 1) : ''}</div>
-            <div style="font-size:12px; color:var(--blue)">คลิกเพื่อดู PDF</div>
-          </div>
-        </a>
-        `).join('');
-      }).join('');
-
-      const filesHTML = fileRows ? `
-      <div style="margin-top:0px; margin-bottom:24px;">
-        <div class="money-title" style="margin-bottom:10px">📁 ไฟล์อ้างอิงของงานประจำรอบ (PDF)</div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">${fileRows}</div>
-      </div>
-      ` : '';
+      const filesHTML = renderJobFilesHTML(d, {
+        title: '📁 ไฟล์อ้างอิงทั้งหมดของงาน',
+        margin: 'margin-top:0px; margin-bottom:24px',
+        background: 'var(--bg-f)',
+        border: 'var(--border)',
+        labelColor: 'var(--txt2)',
+        textColor: 'var(--blue)'
+      });
 
       // Operation Info Fields (Relocated as requested)
       const isBuilding = (d.inspected_by === 'Building Dept');
