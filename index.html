@@ -206,16 +206,54 @@
     }
 
     .logo-box {
-      width: 36px;
-      height: 36px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, #4361ee, #7c3aed);
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: #fff;
+      border: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 17px;
       flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(67, 97, 238, .3);
+      box-shadow: 0 4px 12px rgba(15, 23, 42, .08);
+      overflow: hidden;
+    }
+
+    .system-logo {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 4px;
+      display: block;
+    }
+
+    .svg-icon {
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      color: currentColor;
+      line-height: 0;
+      vertical-align: middle;
+    }
+
+    .svg-icon svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+      stroke: currentColor;
+    }
+
+    .svg-icon.lg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .svg-icon.sm {
+      width: 14px;
+      height: 14px;
     }
 
     .brand-name {
@@ -2263,7 +2301,16 @@
     }
 
     .login-logo {
-      font-size: 40px;
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      margin: 0 auto;
       margin-bottom: 20px;
     }
 
@@ -2371,7 +2418,7 @@
   <!-- Login Overlay -->
   <div id="loginOverlay">
     <div class="login-box">
-      <div class="login-logo">🏢</div>
+      <div class="login-logo"><img class="system-logo" src="https://img1.pic.in.th/images/NewLogo.png" alt="Deposit Manager"></div>
       <h2>เข้าสู่ระบบ</h2>
       <p>กรุณากรอกรหัสพนักงานและรหัสผ่านเพื่อใช้งานระบบ</p>
       <form class="login-form" onsubmit="handleLogin(event)">
@@ -2384,7 +2431,7 @@
           <span class="login-forgot" onclick="openForgotPassword()">ลืมรหัสผ่าน?</span>
         </div>
         <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:14px">
-          เข้าสู่ระบบ ➔
+          เข้าสู่ระบบ <span data-svg-icon="arrowRight" data-svg-class="sm"></span>
         </button>
       </form>
       <div id="login-error" style="color:var(--red); font-size:12px; margin-top:15px; display:none">
@@ -2398,7 +2445,7 @@
     <div class="modal">
       <div class="modal-head">
         <div class="modal-title">รีเซ็ตรหัสผ่านอัตโนมัติ</div>
-        <button class="modal-close" onclick="closeForgotPassword()">✕</button>
+        <button class="modal-close" onclick="closeForgotPassword()"><span data-svg-icon="close"></span></button>
       </div>
       <div class="modal-body">
         <p style="font-size:13px; color:var(--txt3); margin-bottom:16px">
@@ -2419,7 +2466,7 @@
           </div>
           <div id="fp-status" style="display:none; padding:12px; border-radius:8px; font-size:13px; margin-bottom:12px; text-align:center"></div>
           <button type="submit" id="fp-submit-btn" class="btn btn-primary" style="width:100%; justify-content:center; padding:12px; margin-top:10px">
-            💾 ยืนยันและเปลี่ยนรหัสผ่าน
+            <span data-svg-icon="save" data-svg-class="sm"></span> ยืนยันและเปลี่ยนรหัสผ่าน
           </button>
         </form>
       </div>
@@ -2432,7 +2479,7 @@
     <aside class="sidebar">
       <div class="sidebar-logo">
         <div class="brand">
-          <div class="logo-box">🏢</div>
+          <div class="logo-box"><img class="system-logo" src="https://img1.pic.in.th/images/NewLogo.png" alt="Deposit Manager"></div>
           <div>
             <div class="brand-name">ประกันอาคาร</div>
             <div class="brand-sub">Deposit Manager 2026</div>
@@ -2441,19 +2488,19 @@
       </div>
       <nav class="sidebar-nav">
         <div class="nav-item" id="nav-my-dashboard" onclick="showPage('my-dashboard')">
-          <span class="icon">👤</span> My Dashboard
+          <span class="icon" data-svg-icon="user"></span> My Dashboard
         </div>
         <div class="nav-item" id="nav-db" onclick="showPage('dashboard')">
-          <span class="icon">📊</span> Executive Dashboard
+          <span class="icon" data-svg-icon="dashboard"></span> Executive Dashboard
         </div>
         <div class="nav-item" id="nav-list" onclick="showPage('list'); setStatusFilter('')">
-          <span class="icon">💼</span> เงินประกันอาคาร
+          <span class="icon" data-svg-icon="wallet"></span> เงินประกันอาคาร
         </div>
         <div class="nav-item" id="nav-active-demo" onclick="showPage('active-demo')">
-          <span class="icon">🚧</span> มีประกันรื้อถอน (On Service)
+          <span class="icon" data-svg-icon="barrier"></span> มีประกันรื้อถอน (On Service)
         </div>
         <div class="nav-item" id="nav-done-list" onclick="showPage('done-list')">
-          <span class="icon">✅</span> งานสำเร็จ
+          <span class="icon" data-svg-icon="check"></span> งานสำเร็จ
         </div>
 
 
@@ -2461,7 +2508,7 @@
         <div id="tl-nav" style="display:none">
           <div class="nav-label" style="margin-top:8px">ดำเนินการโดย TL</div>
           <div class="nav-item" id="nav-tl-tasks" onclick="showPage('tl-tasks')">
-            <span class="icon">🛠️</span> งานหน้างาน TL
+            <span class="icon" data-svg-icon="tool"></span> งานหน้างาน TL
           </div>
         </div>
 
@@ -2469,7 +2516,7 @@
         <div id="admin-nav" style="display:none">
           <div class="nav-label" style="margin-top:8px">ผู้ดูแลระบบ</div>
           <div class="nav-item" id="nav-users" onclick="showPage('users')">
-            <span class="icon">👥</span> จัดการผู้ใช้งาน
+            <span class="icon" data-svg-icon="users"></span> จัดการผู้ใช้งาน
           </div>
         </div>
       </nav>
@@ -2494,10 +2541,10 @@
           </div>
         </div>
         <div class="topbar-right">
-          <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="เปลี่ยน Dark/Light Mode">🌙</button>
+          <button class="theme-toggle" id="theme-toggle-btn" onclick="toggleTheme()" title="เปลี่ยน Dark/Light Mode"><span data-svg-icon="moon"></span></button>
           <div class="notif-wrapper" id="notif-root">
             <button class="notif-btn" id="notif-btn" onclick="toggleNotif(event)">
-              🔔
+              <span data-svg-icon="bell"></span>
               <span class="notif-badge" id="notif-count" style="display:none">0</span>
             </button>
             <div class="notif-dropdown" id="notif-dropdown">
@@ -2534,11 +2581,11 @@
               <option selected>2026</option>
               <option>2027</option>
             </select>
-            <button class="btn btn-ghost btn-sm" id="export-btn" onclick="exportCSV()" style="height:32px">⬇ Export
+            <button class="btn btn-ghost btn-sm" id="export-btn" onclick="exportCSV()" style="height:32px"><span data-svg-icon="download" data-svg-class="sm"></span> Export
               CSV</button>
           </div>
-          <button class="btn btn-primary" id="add-btn" onclick="openAddModal()">＋ เพิ่มรายการใหม่</button>
-          <button class="btn btn-ghost btn-sm" onclick="logout()" style="padding:8px">🚪</button>
+          <button class="btn btn-primary" id="add-btn" onclick="openAddModal()"><span data-svg-icon="plus" data-svg-class="sm"></span> เพิ่มรายการใหม่</button>
+          <button class="btn btn-ghost btn-sm" onclick="logout()" style="padding:8px" title="ออกจากระบบ"><span data-svg-icon="logout"></span></button>
         </div>
       </div>
 
@@ -2552,7 +2599,7 @@
           <!-- Filter bar -->
           <div class="filter-bar">
             <div class="search-wrap">
-              <span class="search-icon">🔍</span>
+              <span class="search-icon" data-svg-icon="search"></span>
               <input type="text" placeholder="ค้นหาอาคาร, ลูกค้า, เจ้าของงาน..." id="searchInput"
                 oninput="applyFilters()">
             </div>
@@ -2621,7 +2668,7 @@
                 <tbody id="tbody"></tbody>
               </table>
               <div class="empty" id="emptyState" style="display:none">
-                <div class="ei">🔍</div>
+                <div class="ei"><span data-svg-icon="search" data-svg-class="lg"></span></div>
                 <p>ไม่พบรายการที่ตรงกัน</p>
               </div>
             </div>
@@ -2662,7 +2709,7 @@
             <div class="db-hero-stat-card install-theme">
               <div
                 style="font-size:12px; font-weight:800; color:#1e40af; text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
-                <span style="font-size:18px">🛡️</span> เงินประกันติดตั้ง (ของฉัน)
+                <span data-svg-icon="shield" data-svg-class="lg"></span> เงินประกันติดตั้ง (ของฉัน)
               </div>
               <div class="card-group-grid">
                 <div class="db-hero-stat-item">
@@ -2686,7 +2733,7 @@
             <div class="db-hero-stat-card demo-theme">
               <div
                 style="font-size:12px; font-weight:800; color:#92400e; text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
-                <span style="font-size:18px">🚧</span> เงินประกันรื้อถอน (ของฉัน)
+                <span data-svg-icon="barrier" data-svg-class="lg"></span> เงินประกันรื้อถอน (ของฉัน)
               </div>
               <div class="card-group-grid">
                 <div class="db-hero-stat-item">
@@ -2729,7 +2776,7 @@
           <div class="db-grid">
             <div class="db-card">
               <h3>
-                <div class="card-icon-box">📊</div> สถานะงานของฉัน
+                <div class="card-icon-box" data-svg-icon="chart"></div> สถานะงานของฉัน
               </h3>
               <div class="chart-container" style="height:250px">
                 <canvas id="myStatusChart"></canvas>
@@ -2737,7 +2784,7 @@
             </div>
             <div class="db-card">
               <h3>
-                <div class="card-icon-box">📈</div> สถิติการได้รับเงินคืนรายเดือน
+                <div class="card-icon-box" data-svg-icon="chart"></div> สถิติการได้รับเงินคืนรายเดือน
               </h3>
               <div class="chart-container">
                 <canvas id="myTrendChart"></canvas>
@@ -2780,7 +2827,7 @@
             <div class="db-hero-stat-card install-theme">
               <div
                 style="font-size:20px; font-weight:800; color:#1e40af; text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
-                <span style="font-size:24px">🛡️</span> การขอคืนเงินประกันติดตั้ง
+                <span data-svg-icon="shield" data-svg-class="lg"></span> การขอคืนเงินประกันติดตั้ง
               </div>
 
               <div class="card-group-grid">
@@ -2807,7 +2854,7 @@
             <div class="db-hero-stat-card demo-theme">
               <div
                 style="font-size:20px; font-weight:800; color:#92400e; text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
-                <span style="font-size:24px">🚧</span> เงินประกันรื้อถอน
+                <span data-svg-icon="barrier" data-svg-class="lg"></span> เงินประกันรื้อถอน
               </div>
 
               <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:32px">
@@ -2835,7 +2882,7 @@
             <div class="db-card" style="grid-column: span 2; min-height:auto;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
                 <h3 style="margin-bottom:0">
-                  <div class="card-icon-box">🧭</div> รายละเอียดยอดคงค้างประกันติดตั้งตามสถานะ
+                  <div class="card-icon-box" data-svg-icon="compass"></div> รายละเอียดยอดคงค้างประกันติดตั้งตามสถานะ
                 </h3>
                 <div class="badge b-wait" id="db-install-pending-detail-count">0 งาน</div>
               </div>
@@ -2846,7 +2893,7 @@
 
             <div class="db-card">
               <h3>
-                <div class="card-icon-box">📊</div> แนวโน้มกระแสเงินสดรายเดือน
+                <div class="card-icon-box" data-svg-icon="chart"></div> แนวโน้มกระแสเงินสดรายเดือน
               </h3>
               <div class="chart-container">
                 <canvas id="trendChart"></canvas>
@@ -2854,7 +2901,7 @@
             </div>
             <div class="db-card">
               <h3>
-                <div class="card-icon-box">🎯</div> สัดส่วนการจัดสรรงบประมาณ
+                <div class="card-icon-box" data-svg-icon="target"></div> สัดส่วนการจัดสรรงบประมาณ
               </h3>
               <div class="chart-container">
                 <canvas id="financeAllocationChart"></canvas>
@@ -2862,7 +2909,7 @@
             </div>
             <div class="db-card" style="grid-column: span 2;">
               <h3>
-                <div class="card-icon-box">📍</div> ยอดเงินประกันคงค้างแยกตามพื้นที่ (Area)
+                <div class="card-icon-box" data-svg-icon="pin"></div> ยอดเงินประกันคงค้างแยกตามพื้นที่ (Area)
               </h3>
               <div class="chart-container">
                 <canvas id="areaOutstandingChart"></canvas>
@@ -2873,7 +2920,7 @@
             <div class="db-card" style="grid-column: span 2; min-height: auto;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
                 <h3 style="margin-bottom:0">
-                  <div class="card-icon-box">🏆</div> 5 อันดับอาคารที่มียอดเงินประกันคงค้างสูงสุด
+                  <div class="card-icon-box" data-svg-icon="trophy"></div> 5 อันดับอาคารที่มียอดเงินประกันคงค้างสูงสุด
                 </h3>
                 <div class="badge b-wait">Action Required</div>
               </div>
@@ -2909,14 +2956,14 @@
 
           <div class="card">
             <div class="card-header">
-              <span class="card-title">🛠️ งานหน้างาน TL ทั้งหมด</span>
+              <span class="card-title"><span data-svg-icon="tool" data-svg-class="sm"></span> งานหน้างาน TL ทั้งหมด</span>
               <span id="tlTaskCount" style="font-size:13px; color:var(--txt3)"></span>
             </div>
             <div style="padding:0 20px 15px">
               <!-- TL Filter Bar -->
               <div class="filter-bar" style="margin-bottom:15px">
                 <div class="search-wrap">
-                  <span class="search-icon">🔍</span>
+                  <span class="search-icon" data-svg-icon="search"></span>
                   <input type="text" placeholder="ค้นหา CID, อาคาร, ลูกค้า..." id="tlSearchInput" oninput="applyTLSearch()">
                 </div>
                 <select class="select-filter" id="tlStatusFilter" onchange="setTLStatusFilter(this.value)" style="min-width:200px; display:none">
@@ -2965,7 +3012,7 @@
                     <option selected>2026</option>
                     <option>2027</option>
                   </select>
-                  <button class="btn btn-ghost btn-sm" id="tl-export-btn" onclick="exportTLCSV()" style="height:32px">⬇ Export CSV</button>
+                  <button class="btn btn-ghost btn-sm" id="tl-export-btn" onclick="exportTLCSV()" style="height:32px"><span data-svg-icon="download" data-svg-class="sm"></span> Export CSV</button>
                 </div>
               </div>
             </div>
@@ -2989,7 +3036,7 @@
                 <tbody id="tl-task-tbody"></tbody>
               </table>
               <div class="empty" id="tlEmptyState" style="display:none">
-                <div class="ei">🔍</div>
+                <div class="ei"><span data-svg-icon="search" data-svg-class="lg"></span></div>
                 <p>ไม่พบงาน TL ที่ตรงกับตัวกรอง</p>
               </div>
             </div>
@@ -3002,7 +3049,7 @@
         <div style="padding:24px 28px 0">
           <div class="card">
             <div class="card-header" style="justify-content:space-between">
-              <span class="card-title">🚧 รายการ On Service (ประกันรื้อถอน)</span>
+              <span class="card-title"><span data-svg-icon="barrier" data-svg-class="sm"></span> รายการ On Service (ประกันรื้อถอน)</span>
               <span style="font-size:13px; color:var(--txt3)">รายการที่ปิดงานติดตั้งแล้ว
                 แต่ยังมีเงินประกันรื้อถอนคงค้าง</span>
             </div>
@@ -3032,7 +3079,7 @@
         <div style="padding:24px 28px 0">
           <div class="card">
             <div class="card-header" style="justify-content:space-between">
-              <span class="card-title">✅ งานสำเร็จ (เสร็จสมบูรณ์)</span>
+              <span class="card-title"><span data-svg-icon="check" data-svg-class="sm"></span> งานสำเร็จ (เสร็จสมบูรณ์)</span>
               <span style="font-size:13px; color:var(--txt3)">รายการที่ดำเนินการเสร็จสมบูรณ์แล้ว</span>
             </div>
             <div class="table-wrap">
@@ -3062,7 +3109,7 @@
           <div class="card">
             <div class="card-header">
               <span class="card-title">รายชื่อผู้ใช้งานระบบ</span>
-              <button class="btn btn-primary btn-sm" onclick="openAddUserModal()">＋ เพิ่มผู้ใช้</button>
+              <button class="btn btn-primary btn-sm" onclick="openAddUserModal()"><span data-svg-icon="plus" data-svg-class="sm"></span> เพิ่มผู้ใช้</button>
             </div>
             <div class="table-wrap">
               <table>
@@ -3095,7 +3142,7 @@
           <div class="modal-title" id="userModalTitle">เพิ่มผู้ใช้งานใหม่</div>
           <div class="modal-sub">กำหนดสิทธิ์และพื้นที่ดูแลรับผิดชอบ</div>
         </div>
-        <button type="button" class="modal-close" onclick="closeModal('userOverlay')">✕</button>
+        <button type="button" class="modal-close" onclick="closeModal('userOverlay')"><span data-svg-icon="close"></span></button>
       </div>
       <form onsubmit="handleUserSubmit(event)">
         <div class="modal-body">
@@ -3130,19 +3177,19 @@
           <div class="form-group" style="margin-top:14px">
             <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px;">
               <input type="checkbox" id="u-can-see-tl" style="width:16px; height:16px; accent-color:var(--blue);">
-              🛠️ เข้าถึงหน้า "ดำเนินการโดย TL" ใน Sidebar
+              เข้าถึงหน้า "ดำเนินการโดย TL" ใน Sidebar
             </label>
           </div>
           <div class="form-group" style="margin-top:14px">
             <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px;">
               <input type="checkbox" id="u-can-see-db" style="width:16px; height:16px; accent-color:var(--blue);">
-              📈 เข้าถึงหน้า "Executive Dashboard" ใน Sidebar
+              เข้าถึงหน้า "Executive Dashboard" ใน Sidebar
             </label>
           </div>
         </div>
         <div class="modal-foot">
           <button type="button" class="btn btn-ghost" onclick="closeModal('userOverlay')">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary" id="userSubmitBtn">💾 บันทึกผู้ใช้</button>
+          <button type="submit" class="btn btn-primary" id="userSubmitBtn">บันทึกผู้ใช้</button>
         </div>
       </form>
     </div>
@@ -3154,7 +3201,7 @@
           <div class="modal-title" id="formTitle">เพิ่มรายการใหม่</div>
           <div class="modal-sub" id="formSub">กรอกข้อมูลการขอคืนเงินประกันอาคาร</div>
         </div>
-        <button class="modal-close" onclick="closeModal('formOverlay')">✕</button>
+        <button class="modal-close" onclick="closeModal('formOverlay')"><span data-svg-icon="close"></span></button>
       </div>
       <div class="modal-body">
         <!-- Progress Tracker (DEMO Style) -->
@@ -3167,7 +3214,7 @@
         <form id="mainForm" onsubmit="submitForm(event)">
           <!-- STEP 1: General Info -->
           <div class="form-step active" id="step-1">
-            <div class="form-section">📍 Step 1: ข้อมูลทั่วไป & ผู้ประสานงาน</div>
+            <div class="form-section"><span data-svg-icon="pin" data-svg-class="sm"></span> Step 1: ข้อมูลทั่วไป & ผู้ประสานงาน</div>
             <div class="form-grid">
               <div class="form-group">
                 <label>ชื่ออาคาร / สถานที่ <span class="required">*</span></label>
@@ -3186,9 +3233,9 @@
               </div>
               <div class="form-group">
                 <label>พื้นที่ (Area)</label>
-                <select class="form-control" id="f-area" onchange="const tl = AREA_TL_MAP[this.value] || '-'; 
+                <select class="form-control" id="f-area" onchange="const tl = AREA_TL_MAP[this.value] || '-';
                             const teamTxt = (tl === 'BKK' ? 'BKK Team' : tl === 'UPC' ? 'UPC Team' : 'ยังไม่ได้ระบุ');
-                            document.getElementById('tl-hint').textContent = 'Auto-Route → TL: ' + teamTxt;
+                            document.getElementById('tl-hint').textContent = 'Auto-Route to TL: ' + teamTxt;
                             const tlDisp = document.getElementById('f-tl-team-display');
                             if (tlDisp) tlDisp.textContent = teamTxt;
                             const tlInput = document.getElementById('f-tl-team');
@@ -3212,7 +3259,7 @@
                   <option>UBN</option>
                   <option>UDN</option>
                 </select>
-                <div id="tl-hint" style="font-size:11px; color:var(--txt3); margin-top:4px;">Auto-Route → TL:
+                <div id="tl-hint" style="font-size:11px; color:var(--txt3); margin-top:4px;">Auto-Route to TL:
                   ยังไม่ได้ระบุ</div>
               </div>
             </div>
@@ -3264,7 +3311,7 @@
 
           <!-- STEP 2: Financials -->
           <div class="form-step" id="step-2">
-            <div class="form-section">💰 Step 2: ข้อมูลการเบิกจ่าย & จำนวนเงิน</div>
+            <div class="form-section"><span data-svg-icon="money" data-svg-class="sm"></span> Step 2: ข้อมูลการเบิกจ่าย & จำนวนเงิน</div>
             <div class="form-grid cols3">
               <div class="form-group"><label>PR No.</label><input class="form-control" id="f-pr"></div>
               <div class="form-group"><label>วันที่ตั้งเบิก</label><input type="date" class="form-control"
@@ -3302,7 +3349,7 @@
 
           <!-- STEP 3: PDF Evidence 1 -->
           <div class="form-step" id="step-3">
-            <div class="form-section">📄 Step 3: แนบหลักฐานการจ่าย & แบบ</div>
+            <div class="form-section"><span data-svg-icon="file" data-svg-class="sm"></span> Step 3: แนบหลักฐานการจ่าย & แบบ</div>
             <div class="form-grid cols3">
               <div class="form-group"><label>วันที่รับ</label><input type="date" class="form-control" id="f-date-check">
               </div>
@@ -3313,7 +3360,7 @@
               <div class="form-group">
                 <label>หลักฐานการจ่ายเงิน (PDF)</label>
                 <div class="file-upload-box">
-                  <div class="file-upload-icon">📄</div>
+                  <div class="file-upload-icon" data-svg-icon="file"></div>
                   <div class="file-upload-text">คลิกหรือลากไฟล์ PDF มาวางที่นี่</div>
                   <input type="file" id="f-pdf-payment" accept=".pdf" onchange="handleFileSelect(this)" multiple>
                   <div class="file-upload-name" id="f-pdf-payment-name"></div>
@@ -3323,7 +3370,7 @@
               <div class="form-group">
                 <label>แบบ/Drawing (PDF)</label>
                 <div class="file-upload-box">
-                  <div class="file-upload-icon">📐</div>
+                  <div class="file-upload-icon" data-svg-icon="file"></div>
                   <div class="file-upload-text">คลิกหรือลากไฟล์ PDF มาวางที่นี่</div>
                   <input type="file" id="f-pdf-layout" accept=".pdf" onchange="handleFileSelect(this)" multiple>
                   <div class="file-upload-name" id="f-pdf-layout-name"></div>
@@ -3333,7 +3380,7 @@
               <div class="form-group">
                 <label>เอกสารเพิ่มเติม (PDF)</label>
                 <div class="file-upload-box">
-                  <div class="file-upload-icon">📁</div>
+                  <div class="file-upload-icon" data-svg-icon="file"></div>
                   <div class="file-upload-text">คลิกหรือลากไฟล์ PDF มาวางที่นี่</div>
                   <input type="file" id="f-pdf-additional" accept=".pdf" onchange="handleFileSelect(this)" multiple>
                   <div class="file-upload-name" id="f-pdf-additional-name"></div>
@@ -3351,7 +3398,7 @@
 
           <!-- STEP 4: TL Process -->
           <div class="form-step" id="step-4">
-            <div class="form-section">🛠️ Step 4: ทีม TL ดำเนินการงานหน้างาน</div>
+            <div class="form-section"><span data-svg-icon="tool" data-svg-class="sm"></span> Step 4: ทีม TL ดำเนินการงานหน้างาน</div>
             <div class="form-grid">
               <div class="form-group">
                 <label>ทีมที่รับผิดชอบ</label>
@@ -3364,7 +3411,7 @@
                 <label>สถานะ TL</label>
                 <div id="step4-tl-status"
                   style="padding:14px; background:var(--bg-f); border-radius:var(--r-sm); border:1px solid var(--border); font-size:14px; font-weight:600; text-align:center; color:var(--txt2);">
-                  ⏳ Pending (รอ TL กดรับงาน)
+                   Pending (รอ TL กดรับงาน)
                 </div>
                 <input type="hidden" id="f-complete-tl">
               </div>
@@ -3387,14 +3434,14 @@
 
           <!-- STEP 5: TL Evidence & Accept -->
           <div class="form-step" id="step-5">
-            <div class="form-section">📝 Step 5: หลักฐานจาก TL & ยืนยันรับงาน</div>
+            <div class="form-section"><span data-svg-icon="note" data-svg-class="sm"></span> Step 5: หลักฐานจาก TL & ยืนยันรับงาน</div>
 
             <!-- TL Evidence Display -->
             <div class="form-group">
               <label>หลักฐานงาน TL (ไฟล์จากทีม TL)</label>
               <div id="step5-tl-evidence"
                 style="padding:16px; background:var(--bg-f); border-radius:var(--r-md); border:1px solid var(--border); text-align:center; color:var(--txt3);">
-                ⏳ ยังไม่มีหลักฐานจาก TL
+                 ยังไม่มีหลักฐานจาก TL
               </div>
             </div>
 
@@ -3404,20 +3451,20 @@
             <!-- Accept note -->
             <div id="step5-accept-note"
               style="margin-top:15px; padding:14px; background:#ecfdf5; border:1px solid #10b981; border-radius:var(--r-md); color:#065f46; font-size:13px; font-weight:600; display:none;">
-              ✅ เมื่อกด "ยืนยัน" ระบบจะบันทึกและไป Step ถัดไปโดยอัตโนมัติ
+              เมื่อกด "ยืนยัน" ระบบจะบันทึกและไป Step ถัดไปโดยอัตโนมัติ
             </div>
 
             <!-- Send Back Button -->
             <div id="step5-sendback-ui" style="margin-top:20px; text-align:center;">
               <button type="button" class="btn btn-ghost" style="color:var(--red); border-color:var(--red-l)"
-                onclick="sendBackToTL(editingId)">🔙 ส่งกลับแก้ไข (Send Back to TL)</button>
+                onclick="sendBackToTL(editingId)">ส่งกลับแก้ไข (Send Back to TL)</button>
               <p style="font-size:11px; color:var(--txt3); margin-top:6px">ใช้กรณีหลักฐานการตรวจรับไม่ถูกต้อง</p>
             </div>
           </div>
 
           <!-- STEP 6: User Final -->
           <div class="form-step" id="step-6">
-            <div class="form-section">🏁 Step 6: ปิดงาน (User) & แนบหลักฐานสุดท้าย</div>
+            <div class="form-section"><span data-svg-icon="check" data-svg-class="sm"></span> Step 6: ปิดงาน (User) & แนบหลักฐานสุดท้าย</div>
             <div class="form-grid cols4">
               <div class="form-group">
                 <label>ตรวจรับโดย</label>
@@ -3452,7 +3499,7 @@
             <div class="form-group" style="margin-top:15px">
               <label>หลักฐานการปิดจบงาน (PDF)</label>
               <div class="file-upload-box">
-                <div class="file-upload-icon">🏁</div>
+                <div class="file-upload-icon" data-svg-icon="check"></div>
                 <div class="file-upload-text" id="final-upload-label">แนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF) <span
                     class="required">*</span></div>
                   <input type="file" id="f-pdf-user-final" accept=".pdf" onchange="handleFileSelect(this)" multiple>
@@ -3464,7 +3511,7 @@
 
           <!-- Activity Log Section -->
           <div id="wfActivityLog" class="activity-list" style="display:none">
-            <div class="form-section">🕒 ประวัติการดำเนินการ</div>
+            <div class="form-section"><span data-svg-icon="clock" data-svg-class="sm"></span> ประวัติการดำเนินการ</div>
             <div id="activityItems">
               <!-- Will be rendered by JavaScript -->
             </div>
@@ -3475,9 +3522,9 @@
         <div style="display:flex; gap:10px; width:100%">
           <button class="btn btn-ghost" onclick="closeModal('formOverlay')">ยกเลิก</button>
           <div style="flex:1"></div>
-          <button class="btn btn-ghost" id="btnPrev" onclick="prevStep()" style="display:none">← ย้อนกลับ</button>
-          <button class="btn btn-primary" id="btnNext" onclick="nextStep()">ถัดไป →</button>
-          <button class="btn btn-primary" onclick="submitForm(event)" id="formSubmitBtn">💾
+          <button class="btn btn-ghost" id="btnPrev" onclick="prevStep()" style="display:none"><span data-svg-icon="arrowLeft" data-svg-class="sm"></span> ย้อนกลับ</button>
+          <button class="btn btn-primary" id="btnNext" onclick="nextStep()">ถัดไป <span data-svg-icon="arrowRight" data-svg-class="sm"></span></button>
+          <button class="btn btn-primary" onclick="submitForm(event)" id="formSubmitBtn">
             ยืนยัน / บันทึกข้อมูล</button>
         </div>
       </div>
@@ -3492,15 +3539,14 @@
           <div class="modal-title" id="detailTitle">รายละเอียดงาน</div>
           <div class="modal-sub" id="detailSub">ข้อมูลสรุปการดำเนินงาน</div>
         </div>
-        <button class="modal-close" onclick="closeModal('detailOverlay')">✕</button>
+        <button class="modal-close" onclick="closeModal('detailOverlay')"><span data-svg-icon="close"></span></button>
       </div>
       <div class="modal-body" id="detailBody" style="padding:20px 25px">
         <!-- JS Render -->
       </div>
       <div class="modal-foot">
         <button type="button" class="btn btn-ghost" onclick="closeModal('detailOverlay')">ปิด</button>
-        <button type="button" class="btn btn-primary" id="detailEditBtn" style="display:none">✏️
-          แก้ไขข้อมูล</button>
+        <button type="button" class="btn btn-primary" id="detailEditBtn" style="display:none">แก้ไขข้อมูล</button>
       </div>
     </div>
   </div>
@@ -3513,7 +3559,7 @@
           <div class="modal-title" id="tlWorkTitle">งานทีม TL (On-site Work)</div>
           <div class="modal-sub" id="tlWorkSub">จัดการงานหน้างานและส่งหลักฐาน</div>
         </div>
-        <button class="modal-close" onclick="closeModal('tlWorkOverlay')">✕</button>
+        <button class="modal-close" onclick="closeModal('tlWorkOverlay')"><span data-svg-icon="close"></span></button>
       </div>
       <div class="modal-body" id="tlWorkBody" style="padding: 20px 25px;">
         <!-- Specialized content will be rendered here by JS -->
@@ -3533,10 +3579,10 @@
     <div class="modal sm">
       <div class="modal-head">
         <div class="modal-title">ยกเลิกรายการ</div>
-        <button class="modal-close" onclick="closeModal('cancelOverlay')">✕</button>
+        <button class="modal-close" onclick="closeModal('cancelOverlay')"><span data-svg-icon="close"></span></button>
       </div>
       <div class="modal-body">
-        <div class="confirm-icon warn">🚫</div>
+        <div class="confirm-icon warn" data-svg-icon="warning"></div>
         <div style="font-size:15px;font-weight:600;margin-bottom:12px;text-align:center" id="cancelTitle">
           ยกเลิกรายการนี้?</div>
         <div class="form-group">
@@ -3556,10 +3602,10 @@
     <div class="modal sm">
       <div class="modal-head">
         <div class="modal-title">ยืนยันการลบ</div>
-        <button class="modal-close" onclick="closeModal('confirmOverlay')">✕</button>
+        <button class="modal-close" onclick="closeModal('confirmOverlay')"><span data-svg-icon="close"></span></button>
       </div>
       <div class="modal-body" style="text-align:center">
-        <div class="confirm-icon danger">🗑️</div>
+        <div class="confirm-icon danger" data-svg-icon="trash"></div>
         <div style="font-size:15px;font-weight:600;margin-bottom:6px" id="confirmTitle">ลบรายการนี้?</div>
         <div style="font-size:13px;color:var(--txt3)" id="confirmDesc">การดำเนินการนี้ไม่สามารถย้อนกลับได้เฉพาะ Admin
           เท่านั้น</div>
@@ -3576,11 +3622,11 @@
     <div class="modal sm">
       <div class="modal-head">
         <div class="modal-title">Off Service / คืนประกันรื้อถอน</div>
-        <button class="modal-close" onclick="closeModal('offServiceOverlay')">✕</button>
+        <button class="modal-close" onclick="closeModal('offServiceOverlay')"><span data-svg-icon="close"></span></button>
       </div>
       <div class="modal-body">
         <div style="text-align:center; margin-bottom:20px">
-          <div style="font-size:40px">🏃</div>
+          <div><span data-svg-icon="service" data-svg-class="lg"></span></div>
           <div style="font-weight:700; margin-top:10px" id="offServiceTitle">—</div>
         </div>
         <div class="form-group">
@@ -3608,6 +3654,56 @@
   </div>
 
   <script>
+    const SVG_PATHS = {
+      dashboard: '<rect x="3" y="3" width="7" height="8" rx="1.5"></rect><rect x="14" y="3" width="7" height="5" rx="1.5"></rect><rect x="14" y="12" width="7" height="9" rx="1.5"></rect><rect x="3" y="15" width="7" height="6" rx="1.5"></rect>',
+      user: '<path d="M20 21a8 8 0 0 0-16 0"></path><circle cx="12" cy="7" r="4"></circle>',
+      wallet: '<path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H20v14H6.5A2.5 2.5 0 0 1 4 16.5v-9Z"></path><path d="M16 12h4"></path>',
+      service: '<path d="M4 17h16"></path><path d="M7 17V8l5-3 5 3v9"></path><path d="M10 17v-5h4v5"></path>',
+      check: '<path d="m5 12 4 4L19 6"></path>',
+      tool: '<path d="M14.7 6.3a4 4 0 0 0-5 5L4 17v3h3l5.7-5.7a4 4 0 0 0 5-5l-2.8 2.8-3-3 2.8-2.8Z"></path>',
+      users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>',
+      moon: '<path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.5 6.5 0 0 0 21 12.8Z"></path>',
+      sun: '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path>',
+      bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"></path><path d="M13.7 21a2 2 0 0 1-3.4 0"></path>',
+      search: '<circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path>',
+      download: '<path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path>',
+      plus: '<path d="M12 5v14"></path><path d="M5 12h14"></path>',
+      logout: '<path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path><path d="M21 3v18"></path>',
+      shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path>',
+      barrier: '<path d="M4 17h16"></path><path d="M6 17V7h12v10"></path><path d="m8 7 8 10"></path><path d="m16 7-8 10"></path>',
+      chart: '<path d="M4 19V5"></path><path d="M4 19h16"></path><rect x="7" y="11" width="3" height="5"></rect><rect x="12" y="7" width="3" height="9"></rect><rect x="17" y="9" width="3" height="7"></rect>',
+      target: '<circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="4"></circle><circle cx="12" cy="12" r="1"></circle>',
+      pin: '<path d="M12 21s6-5.2 6-11a6 6 0 0 0-12 0c0 5.8 6 11 6 11Z"></path><circle cx="12" cy="10" r="2"></circle>',
+      trophy: '<path d="M8 21h8"></path><path d="M12 17v4"></path><path d="M7 4h10v4a5 5 0 0 1-10 0V4Z"></path><path d="M5 6H3a3 3 0 0 0 3 3"></path><path d="M19 6h2a3 3 0 0 1-3 3"></path>',
+      compass: '<circle cx="12" cy="12" r="9"></circle><path d="m15 9-2 5-5 2 2-5 5-2Z"></path>',
+      file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"></path><path d="M14 2v6h6"></path>',
+      money: '<rect x="3" y="6" width="18" height="12" rx="2"></rect><circle cx="12" cy="12" r="3"></circle><path d="M6 9h1"></path><path d="M17 15h1"></path>',
+      clock: '<circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path>',
+      edit: '<path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"></path>',
+      trash: '<path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 15H6L5 6"></path>',
+      eye: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12Z"></path><circle cx="12" cy="12" r="3"></circle>',
+      refresh: '<path d="M20 12a8 8 0 0 1-14 5"></path><path d="M4 12a8 8 0 0 1 14-5"></path><path d="M18 3v4h-4"></path><path d="M6 21v-4h4"></path>',
+      save: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"></path><path d="M7 3v6h8"></path><path d="M7 21v-8h10v8"></path>',
+      close: '<path d="M18 6 6 18"></path><path d="m6 6 12 12"></path>',
+      warning: '<path d="M12 3 2 21h20L12 3Z"></path><path d="M12 9v5"></path><path d="M12 17h.01"></path>',
+      arrowRight: '<path d="M5 12h14"></path><path d="m13 6 6 6-6 6"></path>',
+      arrowLeft: '<path d="M19 12H5"></path><path d="m11 6-6 6 6 6"></path>',
+      note: '<path d="M4 4h16v16H4Z"></path><path d="M8 8h8"></path><path d="M8 12h8"></path><path d="M8 16h5"></path>'
+    };
+
+    function svgIcon(name, extraClass = '') {
+      const path = SVG_PATHS[name] || SVG_PATHS.note;
+      return `<span class="svg-icon ${extraClass}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg></span>`;
+    }
+
+    function hydrateSvgIcons(root = document) {
+      root.querySelectorAll('[data-svg-icon]').forEach(el => {
+        const name = el.getAttribute('data-svg-icon') || 'note';
+        const extra = el.getAttribute('data-svg-class') || '';
+        el.innerHTML = svgIcon(name, extra);
+      });
+    }
+
     /* ════════════════════════════════════════════════════════
        THEME MANAGEMENT (Dark / Light Mode)
     ════════════════════════════════════════════════════════ */
@@ -3623,14 +3719,15 @@
       html.setAttribute('data-theme', next);
       localStorage.setItem('theme', next);
       const btn = document.getElementById('theme-toggle-btn');
-      if (btn) btn.textContent = next === 'dark' ? '☀️' : '🌙';
+      if (btn) btn.innerHTML = svgIcon(next === 'dark' ? 'sun' : 'moon');
     }
 
     // sync icon on page load
     document.addEventListener('DOMContentLoaded', function () {
+      hydrateSvgIcons();
       const theme = document.documentElement.getAttribute('data-theme') || 'light';
       const btn = document.getElementById('theme-toggle-btn');
-      if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+      if (btn) btn.innerHTML = svgIcon(theme === 'dark' ? 'sun' : 'moon');
     });
 
     /* ════════════════════════════════════════════════════════
@@ -3727,7 +3824,7 @@
       if (!entries.length) return '';
 
       const {
-        title = '📁 ไฟล์แนบทั้งหมดของงาน',
+        title = 'ไฟล์แนบทั้งหมดของงาน',
         margin = 'margin-top:20px',
         background = 'var(--blue-l)',
         border = 'var(--border)',
@@ -3737,7 +3834,7 @@
 
       const fileRows = entries.map(file => `
         <a href="${safeUrl(file.url)}" target="_blank" rel="noopener" class="detail-row" style="text-decoration:none; display:flex; align-items:center; gap:8px; background:${background}; border:1px solid ${border}; padding:8px 12px; border-radius:var(--r-sm)">
-          <span style="font-size:18px">📄</span>
+          <span style="font-size:18px"></span>
           <div style="flex:1">
             <div style="font-size:11px; color:${labelColor}; font-weight:700; text-transform:uppercase">${esc(file.label)} ${file.total > 1 ? '#' + file.index : ''}</div>
             <div style="font-size:12px; color:${textColor}">คลิกเพื่อดูไฟล์</div>
@@ -3904,16 +4001,16 @@
 
     function getStatusLabel(d) {
       switch (getWorkflowStatusKey(d)) {
-        case 'fin': return '💳 รอทีมการเงิน';
-        case 'att': return '📎 รอแนบเอกสาร';
-        case 'tl_wait': return '🔴 รอ TL รับงาน';
-        case 'tl_process': return '⏳ อยู่ระหว่างตรวจรับ';
-        case 'ret': return '📄 รอ User ตรวจรับ';
-        case 'clo': return '🏁 รอแนบหลักฐานปิดงาน';
-        case 'refund_process': return '⏳ อยู่ระหว่างขอคืนเงิน';
-        case 'done': return '✅ เสร็จสมบูรณ์';
-        case 'on_service': return '🚧 On Service';
-        case 'cancel': return '✕ ยกเลิก';
+        case 'fin': return 'รอทีมการเงิน';
+        case 'att': return 'รอแนบเอกสาร';
+        case 'tl_wait': return 'รอ TL รับงาน';
+        case 'tl_process': return 'อยู่ระหว่างตรวจรับ';
+        case 'ret': return 'รอ User ตรวจรับ';
+        case 'clo': return 'รอแนบหลักฐานปิดงาน';
+        case 'refund_process': return 'อยู่ระหว่างขอคืนเงิน';
+        case 'done': return 'เสร็จสมบูรณ์';
+        case 'on_service': return 'On Service';
+        case 'cancel': return 'ยกเลิก';
         default: return 'ใหม่';
       }
     }
@@ -3948,9 +4045,9 @@
     function fmt(n) { return n > 0 ? '฿' + n.toLocaleString() : `<span style="color:var(--txt3)">—</span>` }
 
     function stepLabel(d) {
-      if (d.status === 'Cancel') return `<span style="color:var(--red);font-size:11.5px;font-weight:600">✕ ยกเลิกแล้ว</span>`;
+      if (d.status === 'Cancel') return `<span style="color:var(--red);font-size:11.5px;font-weight:600">ยกเลิกแล้ว</span>`;
       const idx = getStepIndex(d);
-      if (d.status === 'done' || idx >= 6) return `<span style="color:var(--green);font-size:11.5px;font-weight:600">✓ ปิดงาน</span>`;
+      if (d.status === 'done' || idx >= 6) return `<span style="color:var(--green);font-size:11.5px;font-weight:600">ปิดงาน</span>`;
       return `<span style="color:var(--orange);font-size:11.5px;font-weight:600">${STEPS[idx]?.label || '—'}</span>`;
     }
 
@@ -3976,7 +4073,7 @@
         // Update circle text
         const circle = el.querySelector('.step-circle-new');
         if (circle) {
-          circle.textContent = (i + 1 < s) ? '✓' : (i + 1);
+          circle.innerHTML = (i + 1 < s) ? svgIcon('check', 'sm') : (i + 1);
         }
       });
 
@@ -3990,9 +4087,9 @@
       if (btnSave) {
         btnSave.style.display = 'block';
         if (s === 5) {
-          btnSave.innerHTML = '✅ รับงาน';
+          btnSave.innerHTML = 'รับงาน';
         } else {
-          btnSave.innerHTML = '💾 ยืนยัน / บันทึกข้อมูล';
+          btnSave.innerHTML = 'ยืนยัน / บันทึกข้อมูล';
         }
       }
 
@@ -4019,7 +4116,7 @@
 
         return `
           <div class="progress-step-new ${status}">
-            <div class="step-circle-new">${i < currentIdx ? '✓' : i + 1}</div>
+            <div class="step-circle-new">${i < currentIdx ? svgIcon('check', 'sm') : i + 1}</div>
             <div class="step-label-new">${step.label.replace('Step ' + (i + 1) + ': ', '')}</div>
           </div>
         `;
@@ -4039,7 +4136,7 @@
       logContainer.style.display = 'block';
       itemsContainer.innerHTML = log.map(item => `
         <div class="activity-item">
-          <div class="activity-icon">${item.icon || '📝'}</div>
+          <div class="activity-icon">${svgIcon(item.icon || 'note')}</div>
           <div class="activity-item-content">
             <div class="activity-item-title">${esc(item.title)}</div>
             <div class="activity-item-meta">${item.user || 'System'} · ${item.time}</div>
@@ -4048,7 +4145,7 @@
       `).reverse().join('');
     }
 
-    function addLogEntry(d, title, icon = '📝') {
+    function addLogEntry(d, title, icon = '') {
       if (!d.log) d.log = [];
       const now = new Date().toLocaleString('th-TH');
       d.log.push({
@@ -4147,9 +4244,9 @@
       const nameEl = document.getElementById(input.id + '-name');
       if (files.length > 0 && nameEl) {
         if (files.length === 1) {
-          nameEl.textContent = '📄 ' + files[0].name + ' (รออัปโหลด)';
+          nameEl.textContent = '' + files[0].name + ' (รออัปโหลด)';
         } else {
-          nameEl.textContent = '📄 เลือกแล้ว ' + files.length + ' ไฟล์ (รออัปโหลด)';
+          nameEl.textContent = 'เลือกแล้ว ' + files.length + ' ไฟล์ (รออัปโหลด)';
         }
         nameEl.style.color = 'var(--blue)';
       }
@@ -4166,7 +4263,7 @@
         const s = (d.status || '').trim().toLowerCase();
         return s === 'done';
       }).length;
-      const proc = filteredData.filter(d => getStatusLabel(d) === '⏳ อยู่ระหว่างขอคืนเงิน').length;
+      const proc = filteredData.filter(d => getStatusLabel(d) === 'อยู่ระหว่างขอคืนเงิน').length;
 
       const buildingFee = filteredData.reduce((s, d) => s + parseFixed(d.fee) + parseFixed(d.other), 0);
       const installDep = filteredData.reduce((s, d) => s + parseFixed(d.deposit), 0);
@@ -4176,27 +4273,27 @@
 
       document.getElementById('kpiRow').innerHTML = `
     <div class="kpi" style="border-left: 4px solid var(--blue)">
-      <div class="kpi-icon2 blue">📁</div>
+      <div class="kpi-icon2 blue">${svgIcon('file')}</div>
       <div><div class="kpi-val">${total}</div><div class="kpi-lbl">รายการทั้งหมด</div></div>
     </div>
     <div class="kpi" style="border-left: 4px solid var(--orange)">
-      <div class="kpi-icon2 orange">⏳</div>
+      <div class="kpi-icon2 orange">${svgIcon('clock')}</div>
       <div><div class="kpi-val" style="color:var(--orange)">${proc}</div><div class="kpi-lbl">${onProcLabel}</div></div>
     </div>
     <div class="kpi" style="border-left: 4px solid var(--green)">
-      <div class="kpi-icon2 green">✅</div>
+      <div class="kpi-icon2 green">${svgIcon('check')}</div>
       <div><div class="kpi-val" style="color:var(--green)">${done}</div><div class="kpi-lbl">เสร็จสิ้นแล้ว</div></div>
     </div>
     <div class="kpi" style="border-left: 4px solid var(--violet)">
-      <div class="kpi-icon2 violet">🏛️</div>
+      <div class="kpi-icon2 violet">${svgIcon('service')}</div>
       <div><div class="kpi-val" style="color:var(--violet);font-size:16px">฿${buildingFee.toLocaleString()}</div><div class="kpi-lbl">ค่าใช้จ่ายสุทธิ (Sunk Cost)</div></div>
     </div>
     <div class="kpi" style="border-left: 4px solid var(--blue)">
-      <div class="kpi-icon2 blue">🛡️</div>
+      <div class="kpi-icon2 blue">${svgIcon('shield')}</div>
       <div><div class="kpi-val" style="color:var(--blue);font-size:16px">฿${installDep.toLocaleString()}</div><div class="kpi-lbl">ประกันติดตั้ง (Refundable)</div></div>
     </div>
     <div class="kpi" style="border-left: 4px solid var(--red)">
-      <div class="kpi-icon2 red">🚧</div>
+      <div class="kpi-icon2 red">${svgIcon('barrier')}</div>
       <div><div class="kpi-val" style="color:var(--red);font-size:16px">฿${demoDep.toLocaleString()}</div><div class="kpi-lbl">ประกันรื้อถอน (Conditional)</div></div>
     </div>
   `;
@@ -4252,14 +4349,14 @@
         toast('บันทึก Off Service เรียบร้อยแล้ว', 'success');
         closeModal('offServiceOverlay');
         closeModal('detailOverlay');
-        
+
         // Refresh data
         if (typeof fetchData === 'function') {
           await fetchData();
         } else {
           await initApp();
         }
-        
+
         if (typeof showPage === 'function') showPage('active-demo');
       } catch (err) {
         console.error(err);
@@ -4312,7 +4409,7 @@
           <td style="text-align:right">
             <div style="display:flex; justify-content:flex-end; gap:6px">
               <button class="btn btn-primary btn-sm" onclick="openOffServiceModal('${d.id}')">Off Service</button>
-              <button class="icon-btn" onclick="openDetail('${d.id}')">👁️</button>
+              <button class="icon-btn" onclick="openDetail('${d.id}')">${svgIcon('eye')}</button>
             </div>
           </td>
         </tr>
@@ -4356,10 +4453,10 @@
             ${parseFixed(d.demolish) > 0 ? '฿' + parseFixed(d.demolish).toLocaleString() : '-'}
           </td>
           <td style="text-align:center">
-            <span class="badge" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600">✅ เสร็จสมบูรณ์</span>
+            <span class="badge" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600">เสร็จสมบูรณ์</span>
           </td>
           <td style="text-align:right">
-            <button class="icon-btn" onclick="openDetail('${d.id}')">👁️</button>
+            <button class="icon-btn" onclick="openDetail('${d.id}')">${svgIcon('eye')}</button>
           </td>
         </tr>
       `).join('');
@@ -4371,7 +4468,7 @@
       if (!ownerFilter) return;
       const currentVal = ownerFilter.value;
       const owners = [...new Set(DB.map(d => d.owner).filter(Boolean))].sort();
-      ownerFilter.innerHTML = '<option value="">เจ้าของงานทั้งหมด</option>' + 
+      ownerFilter.innerHTML = '<option value="">เจ้าของงานทั้งหมด</option>' +
         owners.map(o => `<option value="${o}" ${o === currentVal ? 'selected' : ''}>${o}</option>`).join('');
     }
 
@@ -4555,7 +4652,7 @@
     function toggleSortNo() {
       sortNoDir = sortNoDir === '' ? 'asc' : sortNoDir === 'asc' ? 'desc' : '';
       const icon = document.getElementById('sort-no-icon');
-      if (icon) icon.textContent = sortNoDir === 'asc' ? '▲' : sortNoDir === 'desc' ? '▼' : '';
+      if (icon) icon.textContent = sortNoDir === 'asc' ? 'ASC' : sortNoDir === 'desc' ? 'DESC' : '';
       const th = document.getElementById('th-no');
       if (th) th.style.color = sortNoDir ? 'var(--blue, #3b82f6)' : '';
       currentTablePage = 1;
@@ -4566,7 +4663,7 @@
       populateOwnerFilter();
       populateStatusFilter();
       populateAreaFilter();
-      
+
       const data = getFilteredData();
       const totalFiltered = data.length;
       document.getElementById('tableCount').textContent = totalFiltered + ' รายการ';
@@ -4620,10 +4717,10 @@
       ${isTL ? '' : `
       <td class="nowrap">
         <div class="actions">
-            <button class="act-btn view" title="ดูรายละเอียด" onclick="openDetail('${d.id}')">👁</button>
-            <button class="act-btn edit" title="แก้ไข" onclick="openEdit('${d.id}')">✏️</button>
-            <button class="act-btn" title="อัปเดตสถานะ" onclick="openEdit('${d.id}', 'auto')" style="font-size:13px" onmouseover="this.style.background='var(--orange-l)'" onmouseout="this.style.background='var(--white)'">🔄</button>
-            <button class="act-btn" title="ลบรายการ" onclick="confirmDelete('${d.id}')" style="font-size:13px" onmouseover="this.style.background='var(--red-l);border-color:#fecdca'" onmouseout="this.style.background='var(--white);border-color:var(--border)'">🗑</button>
+            <button class="act-btn view" title="ดูรายละเอียด" onclick="openDetail('${d.id}')">${svgIcon('eye')}</button>
+            <button class="act-btn edit" title="แก้ไข" onclick="openEdit('${d.id}')">${svgIcon('edit')}</button>
+            <button class="act-btn" title="อัปเดตสถานะ" onclick="openEdit('${d.id}', 'auto')" style="font-size:13px" onmouseover="this.style.background='var(--orange-l)'" onmouseout="this.style.background='var(--white)'">${svgIcon('refresh')}</button>
+            <button class="act-btn" title="ลบรายการ" onclick="confirmDelete('${d.id}')" style="font-size:13px" onmouseover="this.style.background='var(--red-l);border-color:#fecdca'" onmouseout="this.style.background='var(--white);border-color:var(--border)'">${svgIcon('trash')}</button>
         </div>
       </td>
       `}
@@ -4642,10 +4739,10 @@
             const data = change.doc.data();
             const old = findDepositById(data.id);
             if (data.pdf_payment && (!old || !old.pdf_payment)) {
-              toast(`🔔 ใหม่: ${data.place} แนบหลักฐานการชำระเงินแล้ว`, 'info');
+              toast(`ใหม่: ${data.place} แนบหลักฐานการชำระเงินแล้ว`, 'info');
             }
             if (data.pdf_layout && (!old || !old.pdf_layout)) {
-              toast(`🔔 ใหม่: ${data.place} แนบแบบ Drawing แล้ว`, 'info');
+              toast(`ใหม่: ${data.place} แนบแบบ Drawing แล้ว`, 'info');
             }
           }
         });
@@ -4676,7 +4773,7 @@
       today.setHours(0, 0, 0, 0);
       const overdue = [];
       if (overdue.length > 0) {
-        toast(`⚠️ คุณมีงานค้างกำหนด ${overdue.length} รายการ`, 'error');
+        toast(`คุณมีงานค้างกำหนด ${overdue.length} รายการ`, 'error');
       }
       updateNotifs();
     }
@@ -4712,12 +4809,12 @@
           type: 'overdue',
           title: `งานค้างกำหนด: ${d.place}`,
           time: `กำหนด: ${d.dateDue}`,
-          icon: '⚠️',
+          icon: '',
           color: 'var(--red-l)'
         });
       });
 
-      // 2. Recent uploads (simulated for now based on if they exist, 
+      // 2. Recent uploads (simulated for now based on if they exist,
       // in real use we'd track timestamp of upload)
       filteredData.filter(d => d.pdf_payment || d.pdf_layout).sort((a, b) => b.id - a.id).slice(0, 5).forEach(d => {
         if (d.pdf_payment) {
@@ -4727,7 +4824,7 @@
             type: 'upload',
             title: `แนบหลักฐานชำระเงิน: ${d.place}`,
             time: `PR: ${d.pr || '-'}`,
-            icon: '📄',
+            icon: '',
             color: 'var(--blue-l)'
           });
         }
@@ -4757,7 +4854,7 @@
 
       list.innerHTML = NOTIFS.map(n => `
         <div class="notif-item" onclick="openEdit('${esc(n.taskId)}', getStepIndex(findDepositById('${esc(n.taskId)}')) + 1); document.getElementById('notif-dropdown').classList.remove('open')">
-          <div class="notif-icon" style="background:${n.color}">${n.icon}</div>
+          <div class="notif-icon" style="background:${n.color}">${svgIcon(n.icon || 'bell')}</div>
           <div class="notif-info">
             <div class="notif-title">${n.title}</div>
             <div class="notif-time">${n.time}</div>
@@ -4794,7 +4891,7 @@
         const updated = await updateDeposit(id, { status: val, complete: (val === 'Done' && !d.complete) ? 'Complete' : d.complete });
         mergeDepositIntoDB(id, updated);
         renderTable(); renderKPI();
-        toast(`อัปเดตสถานะ "${d.place}" → ${val || 'ใหม่'}`, 'success');
+        toast(`อัปเดตสถานะ "${d.place}" เป็น ${val || 'ใหม่'}`, 'success');
       } catch (err) {
         toast('เกิดข้อผิดพลาดในการอัปเดตสถานะ', 'error');
       }
@@ -5051,7 +5148,7 @@
       editingId = null;
       document.getElementById('formTitle').textContent = 'เพิ่มรายการใหม่';
       document.getElementById('formSub').textContent = 'กรอกข้อมูลการขอคืนเงินประกันอาคาร';
-      document.getElementById('formSubmitBtn').textContent = '✅ ยืนยัน';
+      document.getElementById('formSubmitBtn').textContent = 'ยืนยัน';
       clearForm();
       const ownerEl = document.getElementById('f-owner');
       const ownerDisp = document.getElementById('f-owner-display');
@@ -5077,7 +5174,7 @@
       editingId = id;
       document.getElementById('formTitle').textContent = 'แก้ไขรายการ #' + id;
       document.getElementById('formSub').textContent = d.place;
-      document.getElementById('formSubmitBtn').textContent = '✅ ยืนยัน';
+      document.getElementById('formSubmitBtn').textContent = 'ยืนยัน';
       fillForm(d, targetStep);
       openModal('formOverlay');
       setDirty(false);
@@ -5160,7 +5257,7 @@
           input.value = '';
           const nameEl = document.getElementById(id + '-name');
           if (nameEl) nameEl.textContent = '';
-          
+
           const linksId = id.replace(/-link$/, '') + '-links';
           const container = document.getElementById(linksId);
           if (container) {
@@ -5174,9 +5271,9 @@
       const depMsgEl = document.getElementById('dep-info-msg');
       if (depMsgEl) {
         let msgs = [];
-        if ((+d.deposit || 0) > 0) msgs.push('✅ มีเงินประกันติดตั้ง');
-        if ((+d.demolish || 0) > 0) msgs.push('✅ มีเงินประกันรื้อถอน');
-        depMsgEl.innerHTML = msgs.length > 0 ? msgs.join('<br>') : 'ℹ️ ไม่มีเงินประกัน';
+        if ((+d.deposit || 0) > 0) msgs.push('มีเงินประกันติดตั้ง');
+        if ((+d.demolish || 0) > 0) msgs.push('มีเงินประกันรื้อถอน');
+        depMsgEl.innerHTML = msgs.length > 0 ? msgs.join('<br>') : 'ไม่มีเงินประกัน';
       }
 
       setVal('f-dep-return', d.depReturn || 'No');
@@ -5200,15 +5297,15 @@
       const step4StatusEl = document.getElementById('step4-tl-status');
       if (step4StatusEl) {
         if (d.complete_tl === 'On Process') {
-          step4StatusEl.innerHTML = '<span style="color:var(--orange)">⏳ กำลังดำเนินการ</span>';
+          step4StatusEl.innerHTML = '<span style="color:var(--orange)"> กำลังดำเนินการ</span>';
           step4StatusEl.style.borderColor = 'var(--orange)';
           step4StatusEl.style.background = 'var(--orange-l)';
         } else if (d.pdf_tl_work) {
-          step4StatusEl.innerHTML = '<span style="color:var(--green)">✅ TL ดำเนินการเสร็จสิ้น</span>';
+          step4StatusEl.innerHTML = '<span style="color:var(--green)">TL ดำเนินการเสร็จสิ้น</span>';
           step4StatusEl.style.borderColor = 'var(--green)';
           step4StatusEl.style.background = '#f0fdf4';
         } else {
-          step4StatusEl.innerHTML = '<span style="color:var(--txt3)">⏳ Pending (รอ TL กดรับงาน)</span>';
+          step4StatusEl.innerHTML = '<span style="color:var(--txt3)"> Pending (รอ TL กดรับงาน)</span>';
           step4StatusEl.style.borderColor = 'var(--border)';
           step4StatusEl.style.background = 'var(--bg-f)';
         }
@@ -5221,7 +5318,7 @@
         if (d.pdf_tl_work) {
           step5EvidenceEl.innerHTML = `
             <a href="${safeUrl(d.pdf_tl_work)}" target="_blank" style="display:flex; align-items:center; gap:10px; text-decoration:none; padding:12px; background:var(--blue-l); border:1px solid var(--blue); border-radius:var(--r-sm);">
-              <span style="font-size:24px">📄</span>
+              <span style="font-size:24px"></span>
               <div style="flex:1; text-align:left;">
                 <div style="font-size:12px; color:var(--blue); font-weight:700; text-transform:uppercase;">หลักฐานงาน TL</div>
                 <div style="font-size:13px; color:var(--txt2);">คลิกเพื่อดูไฟล์ PDF</div>
@@ -5230,7 +5327,7 @@
           `;
           if (step5AcceptNote) step5AcceptNote.style.display = 'block';
         } else {
-          step5EvidenceEl.innerHTML = '⏳ ยังไม่มีหลักฐานจาก TL';
+          step5EvidenceEl.innerHTML = ' ยังไม่มีหลักฐานจาก TL';
           if (step5AcceptNote) step5AcceptNote.style.display = 'none';
         }
       }
@@ -5250,7 +5347,7 @@
       // Update TL Hint
       const tl = AREA_TL_MAP[d.area] || '-';
       const hintEl = document.getElementById('tl-hint');
-      if (hintEl) hintEl.textContent = 'Auto-Route → TL: ' + (tl === 'BKK' ? 'BKK Team' : tl === 'UPC' ? 'UPC Team' : 'ยังไม่ได้ระบุ');
+      if (hintEl) hintEl.textContent = 'Auto-Route to TL: ' + (tl === 'BKK' ? 'BKK Team' : tl === 'UPC' ? 'UPC Team' : 'ยังไม่ได้ระบุ');
       tlDisp = document.getElementById('f-tl-team-display');
       if (tlDisp) tlDisp.textContent = tl === 'BKK' ? 'BKK Team' : tl === 'UPC' ? 'UPC Team' : '—';
       setVal('f-tl-team', tl !== '-' ? tl : '');
@@ -5261,7 +5358,7 @@
         const id = key.replace(/_/g, '-');
         const container = document.getElementById('f-' + id + '-links');
         const nameEl = document.getElementById('f-' + id + '-name');
-        
+
         if (container) {
           container.innerHTML = ''; // Clear previous links
           if (val) {
@@ -5277,9 +5374,9 @@
               container.appendChild(a);
             });
             container.style.display = 'block';
-            if (nameEl) { 
-              nameEl.textContent = '📄 มีไฟล์แนบแล้ว (' + urls.length + ' ไฟล์)'; 
-              nameEl.style.color = 'var(--green)'; 
+            if (nameEl) {
+              nameEl.textContent = 'มีไฟล์แนบแล้ว (' + urls.length + ' ไฟล์)';
+              nameEl.style.color = 'var(--green)';
             }
           } else {
             container.style.display = 'none';
@@ -5293,7 +5390,7 @@
           if (val && linkEl) {
             linkEl.href = val;
             linkEl.style.display = 'block';
-            if (nameEl) { nameEl.textContent = '📄 มีไฟล์แนบแล้ว'; nameEl.style.color = 'var(--green)'; }
+            if (nameEl) { nameEl.textContent = 'มีไฟล์แนบแล้ว'; nameEl.style.color = 'var(--green)'; }
           } else if (linkEl) {
             linkEl.style.display = 'none';
           }
@@ -5339,7 +5436,7 @@
       const btn = document.getElementById('formSubmitBtn');
       const originalText = btn.textContent;
       btn.disabled = true;
-      btn.textContent = '⌛ กำลังดำเนินการ...';
+      btn.textContent = 'กำลังดำเนินการ...';
       toggleUploadOverlay(true, 'กำลังบันทึกและอัปโหลดข้อมูล...');
 
       const getVal = (id) => {
@@ -5463,7 +5560,7 @@
         }
 
         // Step 6: ตรวจสอบหลักฐานการคืนเงินก่อนปิดงาน
-        // ถ้า "ฝ่ายอาคาร" ตรวจรับ → ไฟล์เป็น optional; ถ้า "TL" ตรวจรับ → ไฟล์บังคับ
+        // ถ้า "ฝ่ายอาคาร" ตรวจรับ ไฟล์เป็น optional; ถ้า "TL" ตรวจรับ ไฟล์บังคับ
         const hasFinalDoc = !!(fileUrls.pdf_user_final || (oldData && oldData.pdf_user_final));
         const closingInspector = document.getElementById('f-inspected-by')?.value || 'TL';
         const isFinalDocRequired = (closingInspector !== 'Building Dept');
@@ -5536,8 +5633,8 @@
         if (finalStatus === 'ret' && autoReturnStatus === 'Done') {
           finalStatus = 'clo';
         }
-        // ถ้าฝ่ายอาคารตรวจรับ → ไม่ต้องมีไฟล์ก็ปิดงานได้ (ไฟล์ optional)
-        // ถ้า TL ตรวจรับ → ต้องมีไฟล์จึงจะปิดงานได้
+        // ถ้าฝ่ายอาคารตรวจรับ ไม่ต้องมีไฟล์ก็ปิดงานได้ (ไฟล์ optional)
+        // ถ้า TL ตรวจรับ ต้องมีไฟล์จึงจะปิดงานได้
         const inspectedBy = getVal('f-inspected-by') || 'TL';
         const canCloseWithoutFile = (inspectedBy === 'Building Dept');
         if (finalStatus === 'clo') {
@@ -5606,17 +5703,17 @@
 
         // Add Log entry for major changes
         if (!editingId) {
-          addLogEntry(obj, 'สร้างรายการใหม่', '➕');
+          addLogEntry(obj, 'สร้างรายการใหม่', '');
         } else {
           const oldData = findDepositById(editingId);
           if (oldData && (oldData.status || '').toLowerCase() !== (obj.status || '').toLowerCase()) {
-            addLogEntry(obj, `เปลี่ยนสถานะเป็น: ${obj.status}`, '🔄');
+            addLogEntry(obj, `เปลี่ยนสถานะเป็น: ${obj.status}`, '');
           }
-          if (fileUrls.pdf_payment) addLogEntry(obj, 'อัปโหลดหลักฐานการจ่ายเงิน', '📄');
-          if (fileUrls.pdf_layout) addLogEntry(obj, 'อัปโหลดแบบ Drawing', '📐');
-          if (fileUrls.pdf_tl_work) addLogEntry(obj, 'TL ส่งหลักฐานการทำงาน', '✅');
-          if (fileUrls.pdf_user_final) addLogEntry(obj, 'อัปโหลดเอกสารปิดงาน', '📁');
-          if (fileUrls.pdf_additional) addLogEntry(obj, 'อัปโหลดเอกสารเพิ่มเติม', '📁');
+          if (fileUrls.pdf_payment) addLogEntry(obj, 'อัปโหลดหลักฐานการจ่ายเงิน', '');
+          if (fileUrls.pdf_layout) addLogEntry(obj, 'อัปโหลดแบบ Drawing', '');
+          if (fileUrls.pdf_tl_work) addLogEntry(obj, 'TL ส่งหลักฐานการทำงาน', '');
+          if (fileUrls.pdf_user_final) addLogEntry(obj, 'อัปโหลดเอกสารปิดงาน', '');
+          if (fileUrls.pdf_additional) addLogEntry(obj, 'อัปโหลดเอกสารเพิ่มเติม', '');
         }
 
         if (editingId) {
@@ -5631,7 +5728,7 @@
         } else {
           const inserted = await insertDeposit(obj);
           mergeDepositIntoDB(inserted.id, inserted);
-          toast('เพิ่มรายการใหม่สำเร็จ ✓' + (!hasAnyFinancialAmount ? ' (ระบบปิดงานอัตโนมัติเนื่องจากไม่มีรายการการเงิน)' : ''), 'success');
+          toast('เพิ่มรายการใหม่สำเร็จ ' + (!hasAnyFinancialAmount ? ' (ระบบปิดงานอัตโนมัติเนื่องจากไม่มีรายการการเงิน)' : ''), 'success');
           if (inserted && inserted.id) editingId = inserted.id; // Fix: Track the new ID for workflow continuity
         }
 
@@ -5716,12 +5813,12 @@
 
       if (isTL) {
         let helpMsg = [];
-        if ((+d.deposit || 0) > 0) helpMsg.push('<span style="color:#065f46; font-weight:700;">💰 มีเงินประกันติดตั้ง (฿' + (+d.deposit).toLocaleString() + ')</span>');
-        if ((+d.demolish || 0) > 0) helpMsg.push('<span style="color:#065f46; font-weight:700;">💰 มีเงินประกันรื้อถอน (฿' + (+d.demolish).toLocaleString() + ')</span>');
+        if ((+d.deposit || 0) > 0) helpMsg.push('<span style="color:#065f46; font-weight:700;">มีเงินประกันติดตั้ง (฿' + (+d.deposit).toLocaleString() + ')</span>');
+        if ((+d.demolish || 0) > 0) helpMsg.push('<span style="color:#065f46; font-weight:700;">มีเงินประกันรื้อถอน (฿' + (+d.demolish).toLocaleString() + ')</span>');
         headerHTML += `
           <div style="padding:18px; background:linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border:2px solid #10b981; border-radius:var(--r-lg); margin-bottom:24px; box-shadow:0 4px 15px rgba(16, 185, 129, 0.1);">
-            <div style="font-size:14px; color:#065f46; font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:8px;">💎 ข้อมูลเงินประกันคงค้าง (Insurance Overview)</div>
-            <div style="font-size:15px; line-height:1.7">${helpMsg.length > 0 ? helpMsg.join('<br>') : '<span style="color:#6b7280;">ℹ️ ไม่มีรายการเงินประกันคงค้างสำหรับงานนี้</span>'}</div>
+            <div style="font-size:14px; color:#065f46; font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:8px;">ข้อมูลเงินประกันคงค้าง (Insurance Overview)</div>
+            <div style="font-size:15px; line-height:1.7">${helpMsg.length > 0 ? helpMsg.join('<br>') : '<span style="color:#6b7280;">ไม่มีรายการเงินประกันคงค้างสำหรับงานนี้</span>'}</div>
           </div>
         `;
       }
@@ -5732,7 +5829,7 @@
       const financialHTML = `
         <div style="margin-top:24px; padding:20px; background:var(--bg-f); border:1px solid var(--border); border-radius:var(--r-lg);">
           <div style="font-size:14px; font-weight:800; color:var(--txt); margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:10px; display:flex; align-items:center; gap:8px;">
-            <span style="font-size:18px">📊</span> ข้อมูลสรุปค่าใช้จ่าย (Financial Breakdown)
+            <span style="font-size:18px"></span> ข้อมูลสรุปค่าใช้จ่าย (Financial Breakdown)
           </div>
           <div style="display:flex; flex-direction:column; gap:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -5760,7 +5857,7 @@
       `;
 
       const filesHTML = renderJobFilesHTML(d, {
-        title: '📁 ไฟล์แนบทั้งหมดของงาน',
+        title: 'ไฟล์แนบทั้งหมดของงาน',
         margin: 'margin-top:20px',
         background: 'var(--blue-l)',
         border: 'var(--blue-m)',
@@ -5768,7 +5865,7 @@
         textColor: 'var(--txt)'
       });
 
-      const remarkHTML = d.remark ? `<div style="margin-top:12px;padding:10px 12px;background:var(--orange-l);border-radius:var(--r-sm);font-size:12.5px;color:#92400e">📝 ${esc(d.remark)}</div>` : '';
+      const remarkHTML = d.remark ? `<div style="margin-top:12px;padding:10px 12px;background:var(--orange-l);border-radius:var(--r-sm);font-size:12.5px;color:#92400e">${esc(d.remark)}</div>` : '';
 
       // TL Action Section
       let tlActionHTML = '';
@@ -5776,21 +5873,21 @@
         if (d.complete_tl !== 'On Process') {
           tlActionHTML = `
             <div style="margin-top:25px; border-top:2px solid var(--blue-l); padding-top:20px; text-align:center;">
-              <button class="btn btn-primary" style="width:100%; height:54px; font-size:18px; font-weight:700; box-shadow:0 4px 12px rgba(var(--blue-rgb), 0.2)" onclick="acceptJobTLDetail('${d.id}')">✔️ ยืนยันรับงาน (Start Process)</button>
+              <button class="btn btn-primary" style="width:100%; height:54px; font-size:18px; font-weight:700; box-shadow:0 4px 12px rgba(var(--blue-rgb), 0.2)" onclick="acceptJobTLDetail('${d.id}')">ยืนยันรับงาน (Start Process)</button>
             </div>
           `;
         } else if (!d.pdf_tl_work) {
           tlActionHTML = `
             <div style="margin-top:25px; border-top:2px solid var(--blue-l); padding-top:20px;">
-              <button id="finish-btn-tl" class="btn btn-violet" style="width:100%; height:54px; font-size:18px; font-weight:700;" onclick="showUploadTL()">🏁 งานหน้างานเสร็จสิ้น</button>
+              <button id="finish-btn-tl" class="btn btn-violet" style="width:100%; height:54px; font-size:18px; font-weight:700;" onclick="showUploadTL()">งานหน้างานเสร็จสิ้น</button>
               <div id="tl-upload-ui" style="display:none; margin-top:20px; padding:20px; background:var(--blue-l); border-radius:var(--r-md); border:1px solid var(--blue);">
-                 <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">📤 แนบหลักฐาน PDF (บังคับ)</div>
+                 <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">แนบหลักฐาน PDF (บังคับ)</div>
                  <input type="file" id="f-pdf-tl-work-detail" accept=".pdf" class="form-control" multiple style="margin-bottom:15px; background:var(--white);">
-                 
-                 <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">📎 แนบเอกสารเพิ่มเติม (ถ้ามี)</div>
+
+                 <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">แนบเอกสารเพิ่มเติม (ถ้ามี)</div>
                  <input type="file" id="f-pdf-tl-extra-detail" accept=".pdf" class="form-control" multiple style="margin-bottom:15px; background:var(--white);">
-                 
-                 <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveTLWorkDetail('${d.id}')">✅ บันทึกและส่งต่องาน</button>
+
+                 <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveTLWorkDetail('${d.id}')">บันทึกและส่งต่องาน</button>
               </div>
             </div>
           `;
@@ -5803,7 +5900,7 @@
         userActionHTML = `
           <div style="margin-top:25px; border-top:1px dashed var(--border); padding-top:20px; text-align:center;">
              <p style="font-size:13px; color:var(--txt3); margin-bottom:12px;">หากหลักฐานงานของ TL ไม่ถูกต้อง คุณสามารถส่งกลับให้แก้ไขได้</p>
-             <button class="btn btn-outline" style="width:100%; border-color:var(--red); color:var(--red); font-weight:700;" onclick="sendBackToTL('${d.id}')">🔄 ส่งกลับแก้ไข (Send Back to TL)</button>
+             <button class="btn btn-outline" style="width:100%; border-color:var(--red); color:var(--red); font-weight:700;" onclick="sendBackToTL('${d.id}')"> ส่งกลับแก้ไข (Send Back to TL)</button>
           </div>
         `;
       }
@@ -5816,7 +5913,7 @@
            <div style="margin-top:20px; padding:15px; background:var(--bg-f); border:1px dashed var(--border); border-radius:var(--r-md); text-align:center;">
              <div style="font-size:12px; color:var(--txt2); margin-bottom:10px;">รายการนี้มี "เงินประกันรื้อถอน" คงค้างอยู่ (On Service)</div>
              <button class="btn btn-primary" style="width:100%" onclick="openOffServiceModal('${d.id}')">
-               🏃 Off Service / แจ้งคืนประกันรื้อถอน
+               Off Service / แจ้งคืนประกันรื้อถอน
              </button>
            </div>
         `;
@@ -5866,30 +5963,30 @@
 
       // Prepare Insurance Msg (Original logic kept as an alternative overview)
       let helpMsg = [];
-      if ((+d.deposit || 0) > 0) helpMsg.push('<span style="color:#065f46; font-weight:700;">💰 มีเงินประกันติดตั้ง (฿' + (+d.deposit).toLocaleString() + ')</span>');
-      if ((+d.demolish || 0) > 0) helpMsg.push('<span style="color:#065f46; font-weight:700;">💰 มีเงินประกันรื้อถอน (฿' + (+d.demolish).toLocaleString() + ')</span>');
+      if ((+d.deposit || 0) > 0) helpMsg.push('<span style="color:#065f46; font-weight:700;">มีเงินประกันติดตั้ง (฿' + (+d.deposit).toLocaleString() + ')</span>');
+      if ((+d.demolish || 0) > 0) helpMsg.push('<span style="color:#065f46; font-weight:700;">มีเงินประกันรื้อถอน (฿' + (+d.demolish).toLocaleString() + ')</span>');
 
       const progressHTML = `<div class="progress-track"><div class="progress-steps-new" id="tlProgress"></div></div>`;
 
       const insuranceHTML = `
         <div style="padding:18px; background:linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border:2px solid #10b981; border-radius:var(--r-lg); margin-bottom:24px; box-shadow:0 4px 15px rgba(16, 185, 129, 0.1);">
-          <div style="font-size:14px; color:#065f46; font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:8px;">💎 ข้อมูลเงินประกันเบื้องต้น (Insurance Overview)</div>
-          <div style="font-size:15px; line-height:1.7">${helpMsg.length > 0 ? helpMsg.join('<br>') : '<span style="color:#6b7280;">ℹ️ ไม่มีรายการเงินประกันคงค้างสำหรับงานนี้</span>'}</div>
+          <div style="font-size:14px; color:#065f46; font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:8px;">ข้อมูลเงินประกันเบื้องต้น (Insurance Overview)</div>
+          <div style="font-size:15px; line-height:1.7">${helpMsg.length > 0 ? helpMsg.join('<br>') : '<span style="color:#6b7280;">ไม่มีรายการเงินประกันคงค้างสำหรับงานนี้</span>'}</div>
         </div>
       `;
 
       // Format exactly same as detail-grid for required fields only
       const infoRows = [
         ['วันที่แจ้งงาน', fmtDate(d.dateReq)],
-        ['📍 ชื่อสถานที่/โครงการ', d.place],
-        ['🏠 พื้นที่ (Area)', esc(d.area) || '—'],
-        ['🏢 ชื่อลูกค้า/ผู้เช่า', esc(d.customer) || '—'],
+        ['ชื่อสถานที่/โครงการ', d.place],
+        ['พื้นที่ (Area)', esc(d.area) || '—'],
+        ['ชื่อลูกค้า/ผู้เช่า', esc(d.customer) || '—'],
         ['CID', `<span class="copyable-cid" onclick="copyCID('${esc(d.cid)}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline; color:var(--blue); font-weight:700;">${esc(d.cid) || '—'}</span>`],
-        ['👤 เจ้าของงาน', esc(d.owner) || '—'],
-        ['📞 ผู้ประสานงาน', esc(d.contact) || '—'],
-        ['📱 เบอร์ติดต่อ', esc(d.mobile || d.tel) || '—'],
-        ['📅 กำหนดตรวจรับ (TL)', d.tl_due_date ? `<span style="color:var(--orange); font-weight:700;">${fmtDate(d.tl_due_date)}</span>` : '—'],
-        ['📅 วันที่เสร็จสิ้น (TL)', fmtDate(d.tl_complete_date)]
+        ['เจ้าของงาน', esc(d.owner) || '—'],
+        ['ผู้ประสานงาน', esc(d.contact) || '—'],
+        ['เบอร์ติดต่อ', esc(d.mobile || d.tel) || '—'],
+        ['กำหนดตรวจรับ (TL)', d.tl_due_date ? `<span style="color:var(--orange); font-weight:700;">${fmtDate(d.tl_due_date)}</span>` : '—'],
+        ['วันที่เสร็จสิ้น (TL)', fmtDate(d.tl_complete_date)]
       ];
 
       const infoHTML = `<div class="detail-grid" style="margin-bottom:24px">${infoRows.map(([k, v]) => `<div class="detail-row"><div class="detail-key">${k}</div><div class="detail-val">${v}</div></div>`).join('')}</div>`;
@@ -5908,7 +6005,7 @@
           sendBackAlertHTML = `
             <div style="margin-bottom:20px; padding:16px; background:#fef2f2; border:1px solid #ef4444; border-left:4px solid #dc2626; border-radius:var(--r-md);">
               <div style="color:#b91c1c; font-weight:800; font-size:15px; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
-                <span style="font-size:18px;">⚠️</span> งานถูกส่งกลับมาแก้ไข!
+                <span style="font-size:18px;"></span> งานถูกส่งกลับมาแก้ไข!
               </div>
               <div style="color:#991b1b; font-size:14px; line-height:1.5;">
                 <strong>เหตุผล:</strong> ${reasonText}
@@ -5923,7 +6020,7 @@
       const financialHTML = `
         <div style="margin-bottom:24px; padding:20px; background:var(--bg-f); border:1px solid var(--border); border-radius:var(--r-lg);">
           <div style="font-size:14px; font-weight:800; color:var(--txt); margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:10px; display:flex; align-items:center; gap:8px;">
-            <span style="font-size:18px">📊</span> ข้อมูลสรุปค่าใช้จ่าย (Financial Breakdown)
+            <span style="font-size:18px"></span> ข้อมูลสรุปค่าใช้จ่าย (Financial Breakdown)
           </div>
           <div style="display:flex; flex-direction:column; gap:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -5951,7 +6048,7 @@
       `;
 
       const filesHTML = renderJobFilesHTML(d, {
-        title: '📁 ไฟล์อ้างอิงทั้งหมดของงาน',
+        title: 'ไฟล์อ้างอิงทั้งหมดของงาน',
         margin: 'margin-top:0px; margin-bottom:24px',
         background: 'var(--bg-f)',
         border: 'var(--border)',
@@ -5964,7 +6061,7 @@
       const opInfoHTML = `
         <div style="margin-bottom:24px; padding:20px; background:var(--bg-f); border:1px solid var(--border); border-radius:var(--r-lg);">
           <div style="font-size:14px; font-weight:800; color:var(--txt); margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:10px; display:flex; align-items:center; gap:8px;">
-            <span style="font-size:18px">📝</span> ข้อมูลการดำเนินการ (Operation Info)
+            <span style="font-size:18px"></span> ข้อมูลการดำเนินการ (Operation Info)
           </div>
           <div class="form-grid" style="gap:15px; grid-template-columns: 1fr 1fr;">
             <div class="form-group">
@@ -5988,7 +6085,7 @@
             </div>
           </div>
           <div style="margin-top:15px; text-align:right">
-            <button class="btn btn-secondary" style="height:36px; padding:0 15px; font-size:13px; font-weight:600" onclick="saveTLWorkDetail('${d.id}', true, true)">💾 บันทึกข้อมูลเบื้องต้น</button>
+            <button class="btn btn-secondary" style="height:36px; padding:0 15px; font-size:13px; font-weight:600" onclick="saveTLWorkDetail('${d.id}', true, true)">บันทึกข้อมูลเบื้องต้น</button>
           </div>
         </div>
       `;
@@ -6013,10 +6110,10 @@
         actionsContainer.innerHTML = `
           <div style="display:flex; gap:10px; align-items:center;">
             <span class="badge b-wait" style="padding:10px 15px; font-size:14px;">รอทีมอื่นดำเนินการ</span>
-            <button class="btn btn-outline" style="border-color:var(--blue); color:var(--blue); font-weight:600;" onclick="showUploadExtraOnly()">➕ แนบเอกสารเพิ่มเติม</button>
+            <button class="btn btn-outline" style="border-color:var(--blue); color:var(--blue); font-weight:600;" onclick="showUploadExtraOnly()">แนบเอกสารเพิ่มเติม</button>
           </div>
         `;
-        
+
         // Add the upload UI (hidden by default)
         const extraUploadUI = document.createElement('div');
         extraUploadUI.id = 'tl-modal-extra-only-ui';
@@ -6027,18 +6124,18 @@
         extraUploadUI.style.borderRadius = 'var(--r-md)';
         extraUploadUI.style.border = '1px solid var(--blue)';
         extraUploadUI.innerHTML = `
-             <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">📎 แนบเอกสารเพิ่มเติมภายหลัง (Add more docs)</div>
+             <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">แนบเอกสารเพิ่มเติมภายหลัง (Add more docs)</div>
              <input type="file" id="f-pdf-tl-extra-after" accept=".pdf" class="form-control" multiple style="margin-bottom:15px; background:var(--white);">
-             <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveExtraDocsOnly('${d.id}')">💾 บันทึกเอกสารเพิ่มเติม</button>
+             <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveExtraDocsOnly('${d.id}')">บันทึกเอกสารเพิ่มเติม</button>
         `;
         body.appendChild(extraUploadUI);
       } else if ((d.status || '').toLowerCase() === 'tl' && d.complete_tl !== 'On Process') {
         // "ปุ่มก็เปลี่ยนจาก แก้ไขข้อมูลเป็นรับงาน"
-        actionsContainer.innerHTML = `<button class="btn btn-primary" style="padding:10px 18px; font-size:15px;" onclick="acceptJobTLDetail('${d.id}', true)">✔️ รับงาน</button>`;
+        actionsContainer.innerHTML = `<button class="btn btn-primary" style="padding:10px 18px; font-size:15px;" onclick="acceptJobTLDetail('${d.id}', true)">รับงาน</button>`;
       } else if (((d.status || '').toLowerCase() === 'on process' || d.complete_tl === 'On Process') && !d.pdf_tl_work) {
         // "จากนั้นปุ่มจะเปลี่ยนเป็นเสร็จสิ้น เมื่อคลิก เสร็จสิ้น ให้แสดงส่วนที่ต้องแนบไฟล์หลักฐาน (บังคับ)"
         actionsContainer.innerHTML = `
-          <button id="modal-finish-btn" class="btn btn-violet" style="padding:10px 18px; font-size:15px;" onclick="showUploadTLModal()">🏁 เสร็จสิ้น</button>
+          <button id="modal-finish-btn" class="btn btn-violet" style="padding:10px 18px; font-size:15px;" onclick="showUploadTLModal()">เสร็จสิ้น</button>
         `;
 
         // We render the upload UI inside the body dynamically when clicked
@@ -6051,23 +6148,23 @@
         uploadUI.style.borderRadius = 'var(--r-md)';
         uploadUI.style.border = '1px solid var(--blue)';
         uploadUI.innerHTML = `
-             <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">📤 แนบหลักฐาน PDF (บังคับ)</div>
+             <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">แนบหลักฐาน PDF (บังคับ)</div>
              <input type="file" id="f-pdf-tl-work-modal" accept=".pdf" class="form-control" multiple style="margin-bottom:15px; background:var(--white);">
-             
-             <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">📎 แนบเอกสารเพิ่มเติม (ถ้ามี)</div>
+
+             <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">แนบเอกสารเพิ่มเติม (ถ้ามี)</div>
              <input type="file" id="f-pdf-tl-extra-modal" accept=".pdf" class="form-control" multiple style="margin-bottom:15px; background:var(--white);">
-             
-             <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveTLWorkDetail('${d.id}', true)">✅ บันทึกและส่งต่องาน</button>
+
+             <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveTLWorkDetail('${d.id}', true)">บันทึกและส่งต่องาน</button>
         `;
         body.appendChild(uploadUI);
       } else {
         actionsContainer.innerHTML = `
           <div style="display:flex; gap:10px; align-items:center;">
             <span class="badge b-done" style="padding:10px 15px; font-size:14px;">ดำเนินการเสร็จสิ้นแล้ว</span>
-            <button class="btn btn-outline" style="border-color:var(--blue); color:var(--blue); font-weight:600;" onclick="showUploadExtraOnly()">➕ แนบเอกสารเพิ่มเติม</button>
+            <button class="btn btn-outline" style="border-color:var(--blue); color:var(--blue); font-weight:600;" onclick="showUploadExtraOnly()">แนบเอกสารเพิ่มเติม</button>
           </div>
         `;
-        
+
         // Add the upload UI (hidden by default)
         const extraUploadUI = document.createElement('div');
         extraUploadUI.id = 'tl-modal-extra-only-ui';
@@ -6078,9 +6175,9 @@
         extraUploadUI.style.borderRadius = 'var(--r-md)';
         extraUploadUI.style.border = '1px solid var(--blue)';
         extraUploadUI.innerHTML = `
-             <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">📎 แนบเอกสารเพิ่มเติมภายหลัง (Add more docs)</div>
+             <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">แนบเอกสารเพิ่มเติมภายหลัง (Add more docs)</div>
              <input type="file" id="f-pdf-tl-extra-after" accept=".pdf" class="form-control" multiple style="margin-bottom:15px; background:var(--white);">
-             <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveExtraDocsOnly('${d.id}')">💾 บันทึกเอกสารเพิ่มเติม</button>
+             <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveExtraDocsOnly('${d.id}')">บันทึกเอกสารเพิ่มเติม</button>
         `;
         body.appendChild(extraUploadUI);
       }
@@ -6099,7 +6196,7 @@
       }
 
       toast('กำลังบันทึกการรับงาน...', 'info');
-      addLogEntry(d, 'TL รับงานเข้าดำเนินการ', '✔️');
+      addLogEntry(d, 'TL รับงานเข้าดำเนินการ', '');
 
       try {
         const updateObj = { status: 'On Process', complete_tl: 'On Process', tl_accept_date: new Date().toISOString().split('T')[0], log: d.log };
@@ -6109,7 +6206,7 @@
         else openDetail(id); // Reload view
         renderTable(); renderKPI();
         renderTLTasksPage(); // Fix: Re-render TL View immediately
-        toast('รับงานสำเร็จ ✓', 'success');
+        toast('รับงานสำเร็จ ', 'success');
       } catch (err) {
         toast('ผิดพลาด: ' + err.message, 'error');
       }
@@ -6151,11 +6248,11 @@
         installDate = document.getElementById('f-install-date')?.value || d.install_date;
         inspectedBy = document.getElementById('f-inspected-by')?.value || d.inspected_by;
       }
-      
+
       const tlDueDate = fromModal ? document.getElementById('f-tl-due-date-modal')?.value : (d.tl_due_date || '');
 
       if (saveOnlyInfo) {
-        btn.disabled = true; btn.textContent = '⌛ กำลังบันทึก...';
+        btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
         try {
           const updateObj = {
             tl_complete_date: tlCompleteDate,
@@ -6164,7 +6261,7 @@
             inspected_by: inspectedBy,
             log: d.log
           };
-          addLogEntry(d, 'บันทึกข้อมูลเบื้องต้น (วันที่/ผู้ตรวจรับ)', '📝');
+          addLogEntry(d, 'บันทึกข้อมูลเบื้องต้น (วันที่/ผู้ตรวจรับ)', '');
 
           let updated;
           if (USE_MOCK) {
@@ -6174,7 +6271,7 @@
             updated = await updateDeposit(id, updateObj);
             mergeDepositIntoDB(id, updated);
           }
-          toast('บันทึกข้อมูลสำเร็จ ✓', 'success');
+          toast('บันทึกข้อมูลสำเร็จ ', 'success');
           if (fromModal) openTLModal(id);
         } catch (err) {
           toast('ผิดพลาด: ' + err.message, 'error');
@@ -6189,7 +6286,7 @@
       const extraInputId = fromModal ? 'f-pdf-tl-extra-modal' : 'f-pdf-tl-extra-detail';
       const workInput = document.getElementById(workInputId);
       const extraInput = document.getElementById(extraInputId);
-      
+
       const workFiles = (workInput && workInput.files) ? Array.from(workInput.files) : [];
       const extraFiles = (extraInput && extraInput.files) ? Array.from(extraInput.files) : [];
 
@@ -6197,7 +6294,7 @@
       if (!isBuilding && workFiles.length === 0 && !d.pdf_tl_work) {
         toast('กรุณาเลือกไฟล์ PDF หลักฐานงาน TL', 'error'); return;
       }
-      
+
       // Only check dates if inspected by TL
       if (!isBuilding) {
         if (!tlCompleteDate) { toast('กรุณาระบุวันที่ตรวจรับเสร็จสิ้น', 'error'); return; }
@@ -6212,7 +6309,7 @@
         if (!TL_ALLOWED.includes(file.type)) { toast(`ไฟล์ "${file.name}" ไม่รองรับ (รองรับเฉพาะ PDF, JPG, PNG)`, 'error'); return; }
       }
 
-      btn.disabled = true; btn.textContent = '⌛ กำลังบันทึก...';
+      btn.disabled = true; btn.textContent = 'กำลังบันทึก...';
       toggleUploadOverlay(true, 'กำลังบันทึกและอัปโหลดหลักฐาน...');
 
       try {
@@ -6244,8 +6341,8 @@
         let extraValue = finalExtraUrls.length === 0 ? '' : (finalExtraUrls.length === 1 ? finalExtraUrls[0] : finalExtraUrls);
 
         const logMsg = isBuilding ? 'ฝ่ายอาคารตรวจรับและปิดงาน' : 'TL ดำเนินการเสร็จสิ้นและแนบหลักฐาน';
-        addLogEntry(d, logMsg, '🏁');
-        
+        addLogEntry(d, logMsg, '');
+
         const updateObj = {
           status: 'ret',
           pdf_tl_work: workValue,
@@ -6270,7 +6367,7 @@
         else openDetail(id);
         renderTable(); renderKPI();
         renderTLTasksPage();
-        toast('บันทึกสำเร็จและส่งต่องานแล้ว ✓', 'success');
+        toast('บันทึกสำเร็จและส่งต่องานแล้ว ', 'success');
       } catch (err) {
         console.error(err);
         toast('บันทึกผิดพลาด: ' + err.message, 'error');
@@ -6297,7 +6394,7 @@
 
       const btn = event.currentTarget || event.target;
       const originText = btn.textContent;
-      btn.disabled = true; btn.textContent = '⌛ กำลังอัปโหลด...';
+      btn.disabled = true; btn.textContent = 'กำลังอัปโหลด...';
       toggleUploadOverlay(true, 'กำลังอัปโหลดเอกสารเพิ่มเติม...');
 
       try {
@@ -6318,7 +6415,7 @@
         let finalExtra = [...currentExtra, ...uploadedUrls];
         let extraValue = finalExtra.length === 1 ? finalExtra[0] : finalExtra;
 
-        addLogEntry(d, 'แนบเอกสารเพิ่มเติมภายหลังโดย TL', '📎');
+        addLogEntry(d, 'แนบเอกสารเพิ่มเติมภายหลังโดย TL', '');
 
         const updateObj = {
           pdf_tl_extra: extraValue,
@@ -6334,7 +6431,7 @@
           mergeDepositIntoDB(id, updated);
         }
 
-        toast('บันทึกเอกสารเพิ่มเติมสำเร็จ ✓', 'success');
+        toast('บันทึกเอกสารเพิ่มเติมสำเร็จ ', 'success');
         openTLModal(id); // Refresh modal view
         renderTable();
         renderTLTasksPage();
@@ -6443,7 +6540,7 @@
       const filterLabel = (month !== '' ? `_M${parseInt(month) + 1}` : '') + (year !== '' ? `_${year}` : '');
       a.download = 'deposit_report' + filterLabel + '_' + new Date().toISOString().split('T')[0] + '.csv';
       a.click();
-      toast('Export CSV สำเร็จ ✓' + (filtered.length < DB.length ? ` (กรองข้อมูล ${filtered.length} รายการ)` : ''), 'success');
+      toast('Export CSV สำเร็จ ' + (filtered.length < DB.length ? ` (กรองข้อมูล ${filtered.length} รายการ)` : ''), 'success');
     }
 
     function exportTLCSV() {
@@ -6498,7 +6595,7 @@
       const filterLabel = (month !== '' ? `_M${parseInt(month) + 1}` : '') + (year !== '' ? `_${year}` : '') + statusLabel;
       a.download = 'tl_tasks_report' + filterLabel + '_' + new Date().toISOString().split('T')[0] + '.csv';
       a.click();
-      toast('Export CSV สำเร็จ ✓' + (filtered.length < DB.length ? ` (กรองข้อมูล ${filtered.length} รายการ)` : ''), 'success');
+      toast('Export CSV สำเร็จ ' + (filtered.length < DB.length ? ` (กรองข้อมูล ${filtered.length} รายการ)` : ''), 'success');
     }
 
     async function sendBackToTL(id) {
@@ -6511,7 +6608,7 @@
         const d = findDepositById(id);
         if (!d) return;
 
-        addLogEntry(d, `ส่งกลับแก้ไขโดย User: ${reason}`, '🔙');
+        addLogEntry(d, `ส่งกลับแก้ไขโดย User: ${reason}`, '');
         const updateObj = {
           status: 'tl',
           complete_tl: 'Pending',
@@ -6545,7 +6642,7 @@
         const d = findDepositById(id);
         if (!d) return;
 
-        addLogEntry(d, `ส่งกลับก่อนรับงานโดย TL: ${reason}`, '🔙');
+        addLogEntry(d, `ส่งกลับก่อนรับงานโดย TL: ${reason}`, '');
         const updateObj = {
           status: 'att', // กลับไปขั้นตอนแนบหลักฐาน
           complete_tl: 'Pending',
@@ -6634,35 +6731,35 @@
 
       el.innerHTML = `
         <div class="kpi" style="border-left:4px solid var(--orange)">
-          <div class="kpi-icon2 orange">⏳</div>
+          <div class="kpi-icon2 orange">${svgIcon('clock')}</div>
           <div>
             <div class="kpi-val" style="color:var(--orange)">${waiting}</div>
             <div class="kpi-lbl">รอ TL รับงาน</div>
           </div>
         </div>
         <div class="kpi" style="border-left:4px solid var(--blue)">
-          <div class="kpi-icon2 blue">🚧</div>
+          <div class="kpi-icon2 blue">${svgIcon('barrier')}</div>
           <div>
             <div class="kpi-val" style="color:var(--blue)">${inProgress}</div>
             <div class="kpi-lbl">กำลังดำเนินการ</div>
           </div>
         </div>
         <div class="kpi" style="border-left:4px solid var(--green)">
-          <div class="kpi-icon2 green">✅</div>
+          <div class="kpi-icon2 green">${svgIcon('check')}</div>
           <div>
             <div class="kpi-val" style="color:var(--green)">${done}</div>
             <div class="kpi-lbl">เสร็จแล้ว</div>
           </div>
         </div>
         <div class="kpi" style="border-left:4px solid var(--red)">
-          <div class="kpi-icon2 red">💰</div>
+          <div class="kpi-icon2 red">${svgIcon('money')}</div>
           <div>
             <div class="kpi-val" style="color:var(--red);font-size:${totalDemo >= 1000000 ? '14px' : '18px'}">฿${totalDemo.toLocaleString()}</div>
             <div class="kpi-lbl">มูลค่าประกันรื้อถอน</div>
           </div>
         </div>
         <div class="kpi" style="border-left:4px solid var(--green)">
-          <div class="kpi-icon2 green">🎉</div>
+          <div class="kpi-icon2 green">${svgIcon('check')}</div>
           <div>
             <div class="kpi-val" style="color:var(--green)">${returned}</div>
             <div class="kpi-lbl">คืนเงินประกันแล้ว</div>
@@ -6750,7 +6847,7 @@
             const latestLog = sendBackLogs[sendBackLogs.length - 1];
             const reasonMatch = latestLog.title.match(/ส่งกลับแก้ไขโดย User:\s*(.*)/);
             const reasonText = reasonMatch ? reasonMatch[1] : latestLog.title;
-            sendBackAlertHTML = `<div style="margin-top:6px; padding:6px 10px; background:#fef2f2; border:1px solid #ef4444; border-radius:4px; font-size:11px; color:#b91c1c;">⚠️ งานส่งกลับ: ${reasonText}</div>`;
+            sendBackAlertHTML = `<div style="margin-top:6px; padding:6px 10px; background:#fef2f2; border:1px solid #ef4444; border-radius:4px; font-size:11px; color:#b91c1c;">งานส่งกลับ: ${reasonText}</div>`;
           }
         }
 
@@ -6774,15 +6871,15 @@
           <td class="nowrap">${(() => { const info = getTLAcceptInfo(d); return info ? `<span style="font-size:13px">${info.dateStr}</span>` : '<span style="color:var(--txt3)">—</span>'; })()}</td>
           <td class="nowrap">${d.tl_due_date ? `<span style="color:var(--orange); font-weight:600; font-size:13px">${fmtDate(d.tl_due_date)}</span>` : '<span style="color:var(--txt3)">—</span>'}</td>
           <td class="nowrap">${(() => { const info = getTLAcceptInfo(d); if (!info) return '<span style="color:var(--txt3)">—</span>'; const color = info.stopped ? 'var(--txt3)' : (info.diff >= 19 ? '#ef4444' : info.diff >= 10 ? '#f97316' : '#16a34a'); return `<span style="font-size:13px; font-weight:600; color:${color}">${info.diff} วัน</span>`; })()}</td>
-          <td class="nowrap">${d.pdf_tl_work ? 
-            (Array.isArray(d.pdf_tl_work) 
-              ? d.pdf_tl_work.map((url, i) => `<a href="${safeUrl(url)}" target="_blank" onclick="event.stopPropagation()" class="badge b-done" style="text-decoration:none; margin-right:2px;">📄 ไฟล์ ${i+1}</a>`).join('')
-              : `<a href="${safeUrl(d.pdf_tl_work)}" target="_blank" onclick="event.stopPropagation()" class="badge b-done" style="text-decoration:none">📄 ดู PDF</a>`)
+          <td class="nowrap">${d.pdf_tl_work ?
+            (Array.isArray(d.pdf_tl_work)
+              ? d.pdf_tl_work.map((url, i) => `<a href="${safeUrl(url)}" target="_blank" onclick="event.stopPropagation()" class="badge b-done" style="text-decoration:none; margin-right:2px;">ไฟล์ ${i+1}</a>`).join('')
+              : `<a href="${safeUrl(d.pdf_tl_work)}" target="_blank" onclick="event.stopPropagation()" class="badge b-done" style="text-decoration:none">ดู PDF</a>`)
             : '<span style="color:var(--txt3)">—</span>'}</td>
           <td class="nowrap">${stepLabel(d)}</td>
           <td class="nowrap">
             <div class="actions">
-              ${d.status === 'tl' && d.complete_tl !== 'On Process' ? `<button class="act-btn delete" onclick="event.stopPropagation(); sendBackBeforeAccept('${d.id}')" title="ส่งกลับก่อนรับงาน">↩️</button>` : ''}
+              ${d.status === 'tl' && d.complete_tl !== 'On Process' ? `<button class="act-btn delete" onclick="event.stopPropagation(); sendBackBeforeAccept('${d.id}')" title="ส่งกลับก่อนรับงาน">${svgIcon('arrowLeft')}</button>` : ''}
             </div>
           </td>
         </tr>
@@ -6825,7 +6922,7 @@
 
     function renderMyDashboard() {
       if (!CURRENT_USER) return;
-      // My Dashboard should also probably respect the UI filters if they are set, 
+      // My Dashboard should also probably respect the UI filters if they are set,
       // but primarily it shows "My" stuff. Let's sync with filters for consistency.
       const myData = getFilteredData().filter(d => (d.owner || '').includes(CURRENT_USER.name) || (d.created_by || '').includes(CURRENT_USER.name));
 
@@ -6977,7 +7074,7 @@
       });
       const demoRefunded = demoDoneItems.reduce((s, d) => s + parseFixed(d.demolish), 0);
       const demoPending = totalDemo - demoRefunded;
-      
+
       const demoPendingCount = filteredDB.filter(d => {
         if (parseFixed(d.demolish) <= 0) return false;
         return (d.demoReturn || '').trim() !== 'Yes';
@@ -7189,7 +7286,7 @@
       const wrap = document.getElementById('toastWrap');
       const el = document.createElement('div');
       el.className = `toast ${type}`;
-      el.innerHTML = `<span class="ti">${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span><span class="toast-msg">${msg}</span>`;
+      el.innerHTML = `<span class="ti">${type === 'success' ? '' : type === 'error' ? '' : ''}</span><span class="toast-msg">${msg}</span>`;
       const bar = document.createElement('div');
       bar.style.cssText = 'position:absolute;bottom:0;left:0;right:0';
       wrap.appendChild(el);
@@ -7257,7 +7354,7 @@
       if (!CURRENT_USER) return;
       document.body.style.overflow = 'auto';
       document.getElementById('loginOverlay').style.display = 'none';
-      document.getElementById('user-display').textContent = `👤 ${CURRENT_USER.name} (${CURRENT_USER.role})`;
+      document.getElementById('user-display').textContent = `${CURRENT_USER.name} (${CURRENT_USER.role})`;
 
       // RBAC
       if (CURRENT_USER.role === 'admin') {
@@ -7359,13 +7456,13 @@
         statusEl.style.background = '#fef2f2';
         statusEl.style.color = '#dc2626';
         statusEl.style.border = '1px solid #fecaca';
-        statusEl.innerHTML = '⚠️ กรุณากรอกข้อมูลให้ครบทุกช่อง';
+        statusEl.innerHTML = 'กรุณากรอกข้อมูลให้ครบทุกช่อง';
         return;
       }
 
       // แสดงสถานะกำลังดำเนินการ
       submitBtn.disabled = true;
-      submitBtn.textContent = '⏳ กำลังตรวจสอบ...';
+      submitBtn.textContent = ' กำลังตรวจสอบ...';
 
       try {
         await verifyAndResetPassword(empId, email, newPwd);
@@ -7373,20 +7470,20 @@
         statusEl.style.background = '#f0fdf4';
         statusEl.style.color = '#16a34a';
         statusEl.style.border = '1px solid #bbf7d0';
-        statusEl.innerHTML = '✅ เปลี่ยนรหัสผ่านสำเร็จ! กรุณาปิดหน้าต่างนี้แล้วเข้าสู่ระบบด้วยรหัสผ่านใหม่';
+        statusEl.innerHTML = 'เปลี่ยนรหัสผ่านสำเร็จ! กรุณาปิดหน้าต่างนี้แล้วเข้าสู่ระบบด้วยรหัสผ่านใหม่';
       } catch (err) {
         statusEl.style.display = 'block';
         statusEl.style.background = '#fef2f2';
         statusEl.style.color = '#dc2626';
         statusEl.style.border = '1px solid #fecaca';
         if (err.message && err.message.includes('ไม่พบ')) {
-          statusEl.innerHTML = '❌ ไม่พบข้อมูล: รหัสพนักงานหรืออีเมลไม่ตรงกับในระบบ';
+          statusEl.innerHTML = 'ไม่พบข้อมูล: รหัสพนักงานหรืออีเมลไม่ตรงกับในระบบ';
         } else {
-          statusEl.innerHTML = '❌ เกิดข้อผิดพลาด: ' + (err.message || 'กรุณาลองใหม่อีกครั้ง');
+          statusEl.innerHTML = 'เกิดข้อผิดพลาด: ' + (err.message || 'กรุณาลองใหม่อีกครั้ง');
         }
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = '💾 ยืนยันและเปลี่ยนรหัสผ่าน';
+        submitBtn.textContent = 'ยืนยันและเปลี่ยนรหัสผ่าน';
       }
     }
 
@@ -7446,12 +7543,12 @@
           <td>${u.email || '<span style="color:var(--txt3);font-size:12px">—</span>'}</td>
           <td><span class="badge ${u.role === 'admin' ? 'b-violet' : u.role === 'tl' ? 'b-orange' : 'b-blue'}">${u.role}</span></td>
           <td>${u.area ? u.area : '<span style="color:var(--txt3);font-size:12px">ทุกพื้นที่/ไม่ได้ระบุ</span>'}</td>
-          <td class="nowrap">${u.can_see_tl ? '<span class="badge b-orange" style="font-size:11px">🛠️ TL</span>' : '<span style="color:var(--txt3);font-size:12px">—</span>'}</td>
-          <td class="nowrap">${u.can_see_dashboard ? '<span class="badge b-violet" style="font-size:11px">📈 Dashboard</span>' : '<span style="color:var(--txt3);font-size:12px">—</span>'}</td>
+          <td class="nowrap">${u.can_see_tl ? '<span class="badge b-orange" style="font-size:11px">TL</span>' : '<span style="color:var(--txt3);font-size:12px">—</span>'}</td>
+          <td class="nowrap">${u.can_see_dashboard ? '<span class="badge b-violet" style="font-size:11px">Dashboard</span>' : '<span style="color:var(--txt3);font-size:12px">—</span>'}</td>
           <td class="nowrap">
             <div class="actions">
-              <button class="act-btn edit" onclick="openEditUserModal('${u.id}')" title="แก้ไข">✏️</button>
-              <button class="act-btn delete" onclick="deleteUserPrompt('${u.id}', '${u.name}')" ${u.employee_id === CURRENT_USER.employee_id ? 'disabled' : ''} title="ลบ">🗑</button>
+              <button class="act-btn edit" onclick="openEditUserModal('${u.id}')" title="แก้ไข">${svgIcon('edit')}</button>
+              <button class="act-btn delete" onclick="deleteUserPrompt('${u.id}', '${u.name}')" ${u.employee_id === CURRENT_USER.employee_id ? 'disabled' : ''} title="ลบ">${svgIcon('trash')}</button>
             </div>
           </td>
         </tr>
@@ -7607,11 +7704,11 @@
       if (!label) return;
 
       if (inspectedBy === 'Building Dept') {
-        // ฝ่ายอาคารดูแลเอกสารเอง → ไฟล์เป็น optional
+        // ฝ่ายอาคารดูแลเอกสารเอง ไฟล์เป็น optional
         label.innerHTML = 'แนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF) <span style="color:var(--txt3);font-size:11px">(ไม่บังคับ — ฝ่ายอาคารดูแล)</span>';
         if (input) input.removeAttribute('required');
       } else {
-        // TL ตรวจรับ → ไฟล์บังคับ
+        // TL ตรวจรับ ไฟล์บังคับ
         label.innerHTML = 'แนบหลักฐานการคืนเงิน/ปิดจบงาน (PDF) <span class="required">*</span>';
         if (input) input.setAttribute('required', 'required');
       }
