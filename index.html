@@ -22,6 +22,14 @@
       --surface: #f8fafc;
       --border: #e2e8f0;
       --border-focus: #1e293b;
+      --bg-f: #f8fafc;
+      --surface-strong: #ffffff;
+      --surface-muted: #f1f5f9;
+      --table-hover: #f8f9ff;
+      --hero-a: #1d4ed8;
+      --hero-b: #3b82f6;
+      --chart-grid: rgba(15, 23, 42, 0.08);
+      --tooltip-bg: #1e293b;
 
       --txt: #1e293b;
       --txt2: #475569;
@@ -34,13 +42,23 @@
 
       --blue: #1e293b;
       --blue-l: #f1f5f9;
+      --blue-m: #cbd5e1;
+      --blue-d: #1e40af;
+      --blue-focus: #3b82f6;
+      --blue-rgb: 59, 130, 246;
 
       --green: #059669;
       --green-l: #ecfdf5;
+      --green-d: #166534;
       --orange: #d97706;
       --orange-l: #fffbeb;
+      --orange-d: #92400e;
       --red: #dc2626;
       --red-l: #fef2f2;
+      --violet: #7c3aed;
+      --violet-l: #f5f3ff;
+      --teal: #0f766e;
+      --teal-l: #f0fdfa;
 
       --glass: rgba(255, 255, 255, 0.7);
       --glass-border: rgba(255, 255, 255, 0.4);
@@ -49,7 +67,10 @@
 
       --r: 16px;
       --r-sm: 10px;
+      --r-md: 14px;
+      --r-lg: 18px;
       --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 10px 18px -12px rgba(15, 23, 42, 0.22);
       --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
 
@@ -60,10 +81,18 @@
       --surface: #0f172a;
       --border: #334155;
       --border-focus: #94a3b8;
+      --bg-f: #111827;
+      --surface-strong: #1e293b;
+      --surface-muted: #172033;
+      --table-hover: #263247;
+      --hero-a: #1e40af;
+      --hero-b: #2563eb;
+      --chart-grid: rgba(148, 163, 184, 0.16);
+      --tooltip-bg: #020617;
 
       --txt: #f1f5f9;
       --txt2: #94a3b8;
-      --txt3: #64748b;
+      --txt3: #7c8aa0;
 
       --navy: #1e293b;
       --gold: #d4af37;
@@ -72,13 +101,23 @@
 
       --blue: #3b82f6;
       --blue-l: #1e3a5f;
+      --blue-m: #2563eb;
+      --blue-d: #93c5fd;
+      --blue-focus: #60a5fa;
+      --blue-rgb: 96, 165, 250;
 
       --green: #10b981;
       --green-l: #052e16;
+      --green-d: #86efac;
       --orange: #f59e0b;
       --orange-l: #431407;
+      --orange-d: #fcd34d;
       --red: #f87171;
       --red-l: #3f0e0e;
+      --violet: #a78bfa;
+      --violet-l: #2e1f55;
+      --teal: #2dd4bf;
+      --teal-l: #0f3330;
 
       --glass: rgba(30, 41, 59, 0.9);
       --glass-border: rgba(148, 163, 184, 0.15);
@@ -86,6 +125,7 @@
       --gray-l: #334155;
 
       --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+      --shadow-md: 0 12px 24px -14px rgba(0, 0, 0, 0.7);
       --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
     }
 
@@ -136,6 +176,77 @@
     html[data-theme="dark"] select option {
       background: #1e293b;
       color: #f1f5f9;
+    }
+
+    html[data-theme="dark"] .logo-box,
+    html[data-theme="dark"] .login-logo {
+      background: #ffffff;
+      border-color: rgba(148, 163, 184, 0.35);
+    }
+
+    html[data-theme="dark"] .db-hero-stat-card,
+    html[data-theme="dark"] .db-card,
+    html[data-theme="dark"] .card,
+    html[data-theme="dark"] .filter-bar,
+    html[data-theme="dark"] .modal,
+    html[data-theme="dark"] .kpi,
+    html[data-theme="dark"] .notif-dropdown,
+    html[data-theme="dark"] .multi-select-dropdown {
+      background: var(--white);
+      border-color: var(--border);
+      color: var(--txt);
+    }
+
+    html[data-theme="dark"] .db-hero-stat-lbl,
+    html[data-theme="dark"] .db-card h3 {
+      color: var(--txt2);
+    }
+
+    html[data-theme="dark"] .db-hero-stat-val,
+    html[data-theme="dark"] .page-title,
+    html[data-theme="dark"] .modal-title {
+      color: var(--txt);
+    }
+
+    html[data-theme="dark"] .pending-breakdown-row,
+    html[data-theme="dark"] .detail-row,
+    html[data-theme="dark"] .activity-item,
+    html[data-theme="dark"] .file-upload {
+      background: var(--surface-muted);
+      border-color: var(--border);
+    }
+
+    html[data-theme="dark"] .form-control,
+    html[data-theme="dark"] .select-filter,
+    html[data-theme="dark"] .multi-select-btn,
+    html[data-theme="dark"] .search-wrap input,
+    html[data-theme="dark"] input,
+    html[data-theme="dark"] select,
+    html[data-theme="dark"] textarea {
+      background: var(--surface-muted);
+      color: var(--txt);
+      border-color: var(--border);
+    }
+
+    html[data-theme="dark"] .form-control::placeholder,
+    html[data-theme="dark"] input::placeholder,
+    html[data-theme="dark"] textarea::placeholder {
+      color: var(--txt3);
+    }
+
+    html[data-theme="dark"] .btn-ghost,
+    html[data-theme="dark"] .act-btn,
+    html[data-theme="dark"] .icon-btn {
+      background: var(--surface-muted);
+      color: var(--txt2);
+      border-color: var(--border);
+    }
+
+    html[data-theme="dark"] .btn-ghost:hover,
+    html[data-theme="dark"] .act-btn:hover,
+    html[data-theme="dark"] .icon-btn:hover {
+      background: var(--blue-l);
+      color: var(--txt);
     }
 
     /* ─── THEME TRANSITION ───────────────────────── */
@@ -209,13 +320,13 @@
       width: 40px;
       height: 40px;
       border-radius: 12px;
-      background: #fff;
+      background: var(--surface-strong);
       border: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      box-shadow: 0 4px 12px rgba(15, 23, 42, .08);
+      box-shadow: var(--shadow-md);
       overflow: hidden;
     }
 
@@ -434,7 +545,7 @@
     }
 
     .btn-primary:hover {
-      background: #3451d1;
+      background: var(--blue-focus);
       box-shadow: 0 4px 14px rgba(67, 97, 238, .35);
       transform: translateY(-1px)
     }
@@ -458,11 +569,11 @@
     .btn-danger {
       background: var(--red-l);
       color: var(--red);
-      border: 1px solid #fecdca
+      border: 1px solid var(--red)
     }
 
     .btn-danger:hover {
-      background: #fee4e2
+      background: var(--red-l)
     }
 
     /* ─── PAGE CONTENT ───────────────────────────── */
@@ -708,7 +819,7 @@
     }
 
     tbody tr {
-      border-bottom: 1px solid #f2f4f7;
+      border-bottom: 1px solid var(--border);
       transition: background .1s
     }
 
@@ -717,7 +828,7 @@
     }
 
     tbody tr:hover {
-      background: #f8f9ff
+      background: var(--table-hover)
     }
 
     td {
@@ -776,7 +887,7 @@
 
     .b-process {
       background: var(--orange-l);
-      color: #b45309
+      color: var(--orange-d)
     }
 
     .b-wait {
@@ -844,11 +955,11 @@
     }
 
     .ps.pending .dot {
-      background: #d1d5e3
+      background: var(--border)
     }
 
     .ps-sep {
-      color: #d1d5e3;
+      color: var(--border);
       font-size: 12px;
       padding: 0 3px
     }
@@ -884,12 +995,12 @@
 
     .act-btn.delete:hover {
       background: var(--red-l);
-      border-color: #fecdca
+      border-color: var(--red)
     }
 
     .act-btn.view:hover {
       background: var(--violet-l);
-      border-color: #c4b5fd
+      border-color: var(--violet)
     }
 
     /* ─── DROPDOWN STATUS ────────────────────────── */
@@ -1435,7 +1546,7 @@
     }
 
     .money-box {
-      background: linear-gradient(135deg, var(--blue-l), #f0f2ff);
+      background: linear-gradient(135deg, var(--blue-l), var(--surface-muted));
       border: 1px solid var(--blue-m);
       border-radius: var(--r);
       padding: 14px 16px;
@@ -1487,6 +1598,189 @@
 
     .money-total .mr {
       color: var(--blue)
+    }
+
+    /* Detail popup */
+    #detailModal {
+      max-width: 980px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    #detailModal .modal-head {
+      align-items: flex-start;
+      gap: 16px;
+      padding: 22px 26px;
+      background: linear-gradient(135deg, var(--surface-strong), var(--surface-muted));
+    }
+
+    #detailModal .modal-title {
+      max-width: 760px;
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    #detailModal .modal-sub {
+      margin-top: 6px;
+      color: var(--txt2);
+      font-weight: 600;
+    }
+
+    #detailModal .modal-body {
+      padding: 0;
+      background: var(--surface);
+    }
+
+    .detail-popup-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(280px, .75fr);
+      gap: 18px;
+      padding: 22px;
+    }
+
+    .detail-popup-main,
+    .detail-popup-side {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .detail-status-bar {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-md);
+    }
+
+    .detail-status-bar>div {
+      margin-bottom: 0 !important;
+    }
+
+    .detail-status-bar>div:not(:first-child) {
+      flex-basis: 100%;
+      box-shadow: none !important;
+    }
+
+    .detail-section {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 16px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .detail-section-title,
+    #detailBody .money-title {
+      color: var(--txt);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .detail-section-title {
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    #detailBody .detail-grid {
+      gap: 10px;
+    }
+
+    #detailBody .detail-row {
+      min-width: 0;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 12px 14px;
+    }
+
+    #detailBody .detail-key {
+      font-size: 10.5px;
+      color: var(--txt3);
+    }
+
+    #detailBody .detail-val {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-size: 13.5px;
+      line-height: 1.45;
+      color: var(--txt);
+    }
+
+    .detail-finance-card {
+      margin-top: 0 !important;
+      padding: 16px !important;
+      background: var(--white) !important;
+      border: 1px solid var(--border) !important;
+      border-radius: var(--r-lg) !important;
+      box-shadow: var(--shadow-md);
+    }
+
+    .detail-finance-card>div:first-child {
+      margin-bottom: 14px !important;
+      color: var(--txt) !important;
+    }
+
+    .detail-files-card {
+      margin-top: 0 !important;
+      padding: 16px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      box-shadow: var(--shadow-md);
+    }
+
+    #detailBody .detail-files-card .detail-row {
+      transition: border-color .15s, transform .15s, background .15s;
+    }
+
+    #detailBody .detail-files-card .detail-row:hover {
+      transform: translateY(-1px);
+      border-color: var(--blue-focus) !important;
+      background: var(--surface-strong) !important;
+    }
+
+    .detail-note-card,
+    .detail-action-card {
+      margin-top: 0 !important;
+      padding: 14px 16px !important;
+      border-radius: var(--r-lg) !important;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-md);
+    }
+
+    .detail-action-card {
+      background: var(--white) !important;
+      text-align: left !important;
+      border-top: 1px solid var(--border) !important;
+    }
+
+    .detail-action-card .btn {
+      width: 100% !important;
+    }
+
+    .detail-offservice-card {
+      grid-column: 1 / -1;
+      margin-top: 0 !important;
+      padding: 16px !important;
+      background: var(--orange-l) !important;
+      border: 1px dashed var(--orange) !important;
+      border-radius: var(--r-lg) !important;
+      box-shadow: var(--shadow-md);
+    }
+
+    #detailModal .modal-foot {
+      background: var(--white);
+      padding: 16px 22px;
     }
 
     /* ─── NOTIFICATIONS ─────────────────────────── */
@@ -1829,7 +2123,7 @@
 
     /* ─── DASHBOARD GRID ─────────────────────────── */
     .db-hero {
-      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      background: linear-gradient(135deg, var(--hero-a) 0%, var(--hero-b) 100%);
       border-radius: var(--r);
       padding: 40px;
       margin-bottom: 30px;
@@ -1882,8 +2176,8 @@
     }
 
     .db-hero-stat-card {
-      background: #fff;
-      border: 1px solid #e2e8f0;
+      background: var(--surface-strong);
+      border: 1px solid var(--border);
       border-radius: 16px;
       padding: 28px;
       display: flex;
@@ -1896,20 +2190,20 @@
     .db-hero-stat-card:hover {
       transform: translateY(-4px);
       box-shadow: 0 8px 20px rgba(59, 130, 246, 0.12);
-      border-color: #93c5fd;
+      border-color: var(--blue-focus);
     }
 
     /* Category Theming - Blue Accents */
     .db-hero-stat-card.install-theme {
-      border-left: 5px solid #3b82f6;
+      border-left: 5px solid var(--blue-focus);
     }
 
     .db-hero-stat-card.demo-theme {
-      border-left: 5px solid #f59e0b;
+      border-left: 5px solid var(--orange);
     }
 
     .db-hero-stat-card.fee-theme {
-      border-left: 5px solid #94a3b8;
+      border-left: 5px solid var(--txt3);
     }
 
     .db-hero-stat-card.span-2 {
@@ -1937,13 +2231,13 @@
       text-transform: uppercase;
       letter-spacing: 1px;
       font-weight: 800;
-      color: #334155;
+      color: var(--txt2);
     }
 
     .db-hero-stat-val {
       font-size: 28px;
       font-weight: 900;
-      color: #0f172a;
+      color: var(--txt);
       font-family: 'Figtree';
       display: flex;
       align-items: baseline;
@@ -2038,7 +2332,7 @@
       padding: 14px 16px;
       border: 1px solid var(--border);
       border-radius: 12px;
-      background: #f8fafc;
+      background: var(--surface-muted);
     }
 
     .pending-breakdown-status {
@@ -2055,7 +2349,7 @@
     }
 
     .pending-breakdown-amount {
-      color: #ea580c;
+      color: var(--orange);
       font-size: 17px;
       font-weight: 900;
       text-align: right;
@@ -2244,6 +2538,10 @@
       .kpi-row {
         grid-template-columns: repeat(3, 1fr)
       }
+
+      .detail-popup-shell {
+        grid-template-columns: 1fr;
+      }
     }
 
     @media(max-width:800px) {
@@ -2276,6 +2574,35 @@
       .pending-breakdown-amount {
         text-align: left;
       }
+
+      #detailModal {
+        max-height: 96vh;
+        border-radius: 14px;
+      }
+
+      #detailModal .modal-head {
+        padding: 18px;
+      }
+
+      #detailModal .modal-title {
+        font-size: 17px;
+      }
+
+      .detail-popup-shell {
+        padding: 14px;
+        gap: 12px;
+      }
+
+      .detail-status-bar,
+      .detail-section,
+      .detail-finance-card,
+      .detail-files-card {
+        border-radius: var(--r-md);
+      }
+
+      #detailBody .detail-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     /* ─── LOGIN OVERLAY ─────────────────────────── */
@@ -2305,7 +2632,7 @@
       height: 72px;
       border-radius: 18px;
       border: 1px solid var(--border);
-      background: #fff;
+      background: var(--surface-strong);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -2685,7 +3012,7 @@
 
           <!-- Individual Hero Section -->
           <div class="db-hero"
-            style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding:32px 48px; border-radius:20px; box-shadow:0 4px 16px rgba(124,58,237,0.2); position:relative; overflow:hidden; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+            style="background: linear-gradient(135deg, var(--hero-a) 0%, var(--hero-b) 100%); padding:32px 48px; border-radius:20px; box-shadow:var(--shadow-lg); position:relative; overflow:hidden; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
 
             <div style="position:relative; z-index:2; text-align:left">
               <h1
@@ -2708,7 +3035,7 @@
             <!-- Installation Deposit -->
             <div class="db-hero-stat-card install-theme">
               <div
-                style="font-size:12px; font-weight:800; color:#1e40af; text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
+                style="font-size:12px; font-weight:800; color:var(--blue-d); text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
                 <span data-svg-icon="shield" data-svg-class="lg"></span> เงินประกันติดตั้ง (ของฉัน)
               </div>
               <div class="card-group-grid">
@@ -2718,12 +3045,12 @@
                 </div>
                 <div class="db-hero-stat-item">
                   <div class="db-hero-stat-lbl">ได้คืนแล้ว</div>
-                  <div class="db-hero-stat-val" id="my-install-refunded" style="color:#16a34a"><span
+                  <div class="db-hero-stat-val" id="my-install-refunded" style="color:var(--green)"><span
                       class="currency-symbol">฿</span>0</div>
                 </div>
                 <div class="db-hero-stat-item">
                   <div class="db-hero-stat-lbl">คงค้าง</div>
-                  <div class="db-hero-stat-val" id="my-install-pending" style="color:#ea580c"><span
+                  <div class="db-hero-stat-val" id="my-install-pending" style="color:var(--orange)"><span
                       class="currency-symbol">฿</span>0</div>
                 </div>
               </div>
@@ -2732,7 +3059,7 @@
             <!-- Removal Deposit -->
             <div class="db-hero-stat-card demo-theme">
               <div
-                style="font-size:12px; font-weight:800; color:#92400e; text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
+                style="font-size:12px; font-weight:800; color:var(--orange-d); text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
                 <span data-svg-icon="barrier" data-svg-class="lg"></span> เงินประกันรื้อถอน (ของฉัน)
               </div>
               <div class="card-group-grid">
@@ -2742,12 +3069,12 @@
                 </div>
                 <div class="db-hero-stat-item">
                   <div class="db-hero-stat-lbl">ได้คืนแล้ว</div>
-                  <div class="db-hero-stat-val" id="my-demo-refunded" style="color:#16a34a"><span
+                  <div class="db-hero-stat-val" id="my-demo-refunded" style="color:var(--green)"><span
                       class="currency-symbol">฿</span>0</div>
                 </div>
                 <div class="db-hero-stat-item">
                   <div class="db-hero-stat-lbl">คงค้าง</div>
-                  <div class="db-hero-stat-val" id="my-demo-pending" style="color:#ea580c"><span
+                  <div class="db-hero-stat-val" id="my-demo-pending" style="color:var(--orange)"><span
                       class="currency-symbol">฿</span>0</div>
                 </div>
               </div>
@@ -2756,8 +3083,8 @@
             <!-- Fee & Other -->
             <div class="db-hero-stat-card fee-theme">
               <div
-                style="font-size:12px; font-weight:800; color:#475569; text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
-                <span style="font-size:18px">🧾</span> ค่าธรรมเนียม & อื่นๆ
+                style="font-size:12px; font-weight:800; color:var(--txt2); text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
+                <span data-svg-icon="money" data-svg-class="lg"></span> ค่าธรรมเนียม & อื่นๆ
               </div>
               <div class="card-group-grid">
                 <div class="db-hero-stat-item">
@@ -2801,7 +3128,7 @@
 
           <!-- Financial Hero Section - Blue & White -->
           <div class="db-hero"
-            style="background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%); padding:32px 48px; border-radius:20px; box-shadow:0 4px 16px rgba(59,130,246,0.2); position:relative; overflow:hidden; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+            style="background: linear-gradient(135deg, var(--hero-a) 0%, var(--hero-b) 100%); padding:32px 48px; border-radius:20px; box-shadow:var(--shadow-lg); position:relative; overflow:hidden; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
 
             <!-- Hero Header Row (Left) -->
             <div style="position:relative; z-index:2; text-align:left">
@@ -2826,7 +3153,7 @@
             <!-- Group 1: Installation Lifecycle -->
             <div class="db-hero-stat-card install-theme">
               <div
-                style="font-size:20px; font-weight:800; color:#1e40af; text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
+                style="font-size:20px; font-weight:800; color:var(--blue-d); text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
                 <span data-svg-icon="shield" data-svg-class="lg"></span> การขอคืนเงินประกันติดตั้ง
               </div>
 
@@ -2837,13 +3164,13 @@
                 </div>
                 <div class="db-hero-stat-item">
                   <div class="db-hero-stat-lbl">ได้รับคืนแล้ว</div>
-                  <div class="db-hero-stat-val" id="db-total-refunded" style="color:#16a34a"><span
+                  <div class="db-hero-stat-val" id="db-total-refunded" style="color:var(--green)"><span
                       class="currency-symbol">฿</span>0</div>
                 </div>
                 <div class="db-hero-stat-item">
                   <div class="db-hero-stat-lbl">ยอดคงค้าง</div>
                   <div class="db-hero-stat-val" id="db-total-pending"
-                    style="color:#ea580c; flex-direction:column; align-items:flex-start; gap:0;">
+                    style="color:var(--orange); flex-direction:column; align-items:flex-start; gap:0;">
                     <div><span class="currency-symbol">฿</span>0</div>
                   </div>
                 </div>
@@ -2853,7 +3180,7 @@
             <!-- Group 2: Removal Deposit (Grid Layout) -->
             <div class="db-hero-stat-card demo-theme">
               <div
-                style="font-size:20px; font-weight:800; color:#92400e; text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
+                style="font-size:20px; font-weight:800; color:var(--orange-d); text-transform:uppercase; letter-spacing:2px; margin-bottom:24px; display:flex; align-items:center; gap:10px">
                 <span data-svg-icon="barrier" data-svg-class="lg"></span> เงินประกันรื้อถอน
               </div>
 
@@ -2864,13 +3191,13 @@
                 </div>
                 <div class="db-hero-stat-item">
                   <div class="db-hero-stat-lbl">ได้คืนแล้ว</div>
-                  <div class="db-hero-stat-val" id="db-demo-refunded" style="color:#16a34a"><span
+                  <div class="db-hero-stat-val" id="db-demo-refunded" style="color:var(--green)"><span
                       class="currency-symbol">฿</span>0</div>
                 </div>
                 <div class="db-hero-stat-item">
                   <div class="db-hero-stat-lbl">คงค้าง</div>
                   <div class="db-hero-stat-val" id="db-demo-pending"
-                    style="color:#ea580c; flex-direction:column; align-items:flex-start; gap:0;">
+                    style="color:var(--orange); flex-direction:column; align-items:flex-start; gap:0;">
                     <div><span class="currency-symbol">฿</span>0</div>
                   </div>
                 </div>
@@ -3450,7 +3777,7 @@
 
             <!-- Accept note -->
             <div id="step5-accept-note"
-              style="margin-top:15px; padding:14px; background:#ecfdf5; border:1px solid #10b981; border-radius:var(--r-md); color:#065f46; font-size:13px; font-weight:600; display:none;">
+              style="margin-top:15px; padding:14px; background:var(--green-l); border:1px solid var(--green); border-radius:var(--r-md); color:var(--green-d); font-size:13px; font-weight:600; display:none;">
               เมื่อกด "ยืนยัน" ระบบจะบันทึกและไป Step ถัดไปโดยอัตโนมัติ
             </div>
 
@@ -3533,7 +3860,7 @@
 
   <!-- ═══════ MODAL: DETAIL VIEW ═══════ -->
   <div class="overlay" id="detailOverlay">
-    <div class="modal sm" id="detailModal">
+    <div class="modal lg detail-modal" id="detailModal">
       <div class="modal-head">
         <div>
           <div class="modal-title" id="detailTitle">รายละเอียดงาน</div>
@@ -3720,6 +4047,7 @@
       localStorage.setItem('theme', next);
       const btn = document.getElementById('theme-toggle-btn');
       if (btn) btn.innerHTML = svgIcon(next === 'dark' ? 'sun' : 'moon');
+      refreshActiveThemeViews();
     }
 
     // sync icon on page load
@@ -3729,6 +4057,51 @@
       const btn = document.getElementById('theme-toggle-btn');
       if (btn) btn.innerHTML = svgIcon(theme === 'dark' ? 'sun' : 'moon');
     });
+
+    function cssVar(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function themeChartColors() {
+      return {
+        text: cssVar('--txt2') || '#64748b',
+        grid: cssVar('--chart-grid') || 'rgba(0,0,0,0.08)',
+        tooltip: cssVar('--tooltip-bg') || '#1e293b',
+        blue: cssVar('--blue-focus') || '#3b82f6',
+        navy: cssVar('--blue') || '#1e293b',
+        gold: cssVar('--gold') || '#d4af37',
+        green: cssVar('--green') || '#10b981',
+        orange: cssVar('--orange') || '#f59e0b',
+        red: cssVar('--red') || '#ef4444',
+        violet: cssVar('--violet') || '#8b5cf6',
+        teal: cssVar('--teal') || '#14b8a6',
+        white: '#ffffff'
+      };
+    }
+
+    function colorWithAlpha(color, alpha) {
+      if (!color) return color;
+      const hex = color.trim();
+      if (/^#[0-9a-f]{6}$/i.test(hex)) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+      if (/^rgb\(/i.test(hex)) {
+        return hex.replace(/^rgb\(/i, 'rgba(').replace(/\)$/, `, ${alpha})`);
+      }
+      return hex;
+    }
+
+    function refreshActiveThemeViews() {
+      const activePageId = document.querySelector('.page.active')?.id;
+      if (activePageId === 'page-my-dashboard') {
+        renderMyDashboard();
+      } else if (activePageId === 'page-dashboard') {
+        renderExecutiveDashboard();
+      }
+    }
 
     /* ════════════════════════════════════════════════════════
        CONFIG / FLAGS
@@ -3843,10 +4216,10 @@
       `).join('');
 
       return `
-      <div style="${margin}">
+      <section class="detail-files-card" style="${margin}">
         <div class="money-title" style="margin-bottom:10px">${title}</div>
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px">${fileRows}</div>
-      </div>
+      </section>
       `;
     }
     function sameId(a, b) {
@@ -4453,7 +4826,7 @@
             ${parseFixed(d.demolish) > 0 ? '฿' + parseFixed(d.demolish).toLocaleString() : '-'}
           </td>
           <td style="text-align:center">
-            <span class="badge" style="background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600">เสร็จสมบูรณ์</span>
+            <span class="badge" style="background:var(--green-l); color:var(--green); border:1px solid var(--green); padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600">เสร็จสมบูรณ์</span>
           </td>
           <td style="text-align:right">
             <button class="icon-btn" onclick="openDetail('${d.id}')">${svgIcon('eye')}</button>
@@ -4720,7 +5093,7 @@
             <button class="act-btn view" title="ดูรายละเอียด" onclick="openDetail('${d.id}')">${svgIcon('eye')}</button>
             <button class="act-btn edit" title="แก้ไข" onclick="openEdit('${d.id}')">${svgIcon('edit')}</button>
             <button class="act-btn" title="อัปเดตสถานะ" onclick="openEdit('${d.id}', 'auto')" style="font-size:13px" onmouseover="this.style.background='var(--orange-l)'" onmouseout="this.style.background='var(--white)'">${svgIcon('refresh')}</button>
-            <button class="act-btn" title="ลบรายการ" onclick="confirmDelete('${d.id}')" style="font-size:13px" onmouseover="this.style.background='var(--red-l);border-color:#fecdca'" onmouseout="this.style.background='var(--white);border-color:var(--border)'">${svgIcon('trash')}</button>
+            <button class="act-btn" title="ลบรายการ" onclick="confirmDelete('${d.id}')" style="font-size:13px" onmouseover="this.style.background='var(--red-l);border-color:var(--red)'" onmouseout="this.style.background='var(--white);border-color:var(--border)'">${svgIcon('trash')}</button>
         </div>
       </td>
       `}
@@ -4875,9 +5248,9 @@
     });
 
     function statusSelectStyle(s) {
-      if (s === 'Done') return 'color:var(--green);border-color:#a7f3d0;background:#f0fdf4';
-      if (s === 'On Process') return 'color:#b45309;border-color:#fde68a;background:#fffbeb';
-      if (s === 'Cancel') return 'color:var(--red);border-color:#fecaca;background:#fef2f2';
+      if (s === 'Done') return 'color:var(--green-d);border-color:var(--green);background:var(--green-l)';
+      if (s === 'On Process') return 'color:var(--orange-d);border-color:var(--orange);background:var(--orange-l)';
+      if (s === 'Cancel') return 'color:var(--red);border-color:var(--red);background:var(--red-l)';
       return 'color:var(--txt3)';
     }
 
@@ -5301,9 +5674,9 @@
           step4StatusEl.style.borderColor = 'var(--orange)';
           step4StatusEl.style.background = 'var(--orange-l)';
         } else if (d.pdf_tl_work) {
-          step4StatusEl.innerHTML = '<span style="color:var(--green)">TL ดำเนินการเสร็จสิ้น</span>';
+          step4StatusEl.innerHTML = '<span style="color:var(--green-d)">TL ดำเนินการเสร็จสิ้น</span>';
           step4StatusEl.style.borderColor = 'var(--green)';
-          step4StatusEl.style.background = '#f0fdf4';
+          step4StatusEl.style.background = 'var(--green-l)';
         } else {
           step4StatusEl.innerHTML = '<span style="color:var(--txt3)"> Pending (รอ TL กดรับงาน)</span>';
           step4StatusEl.style.borderColor = 'var(--border)';
@@ -5813,21 +6186,21 @@
 
       if (isTL) {
         let helpMsg = [];
-        if ((+d.deposit || 0) > 0) helpMsg.push('<span style="color:#065f46; font-weight:700;">มีเงินประกันติดตั้ง (฿' + (+d.deposit).toLocaleString() + ')</span>');
-        if ((+d.demolish || 0) > 0) helpMsg.push('<span style="color:#065f46; font-weight:700;">มีเงินประกันรื้อถอน (฿' + (+d.demolish).toLocaleString() + ')</span>');
+        if ((+d.deposit || 0) > 0) helpMsg.push('<span style="color:var(--green-d); font-weight:700;">มีเงินประกันติดตั้ง (฿' + (+d.deposit).toLocaleString() + ')</span>');
+        if ((+d.demolish || 0) > 0) helpMsg.push('<span style="color:var(--green-d); font-weight:700;">มีเงินประกันรื้อถอน (฿' + (+d.demolish).toLocaleString() + ')</span>');
         headerHTML += `
-          <div style="padding:18px; background:linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border:2px solid #10b981; border-radius:var(--r-lg); margin-bottom:24px; box-shadow:0 4px 15px rgba(16, 185, 129, 0.1);">
-            <div style="font-size:14px; color:#065f46; font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:8px;">ข้อมูลเงินประกันคงค้าง (Insurance Overview)</div>
-            <div style="font-size:15px; line-height:1.7">${helpMsg.length > 0 ? helpMsg.join('<br>') : '<span style="color:#6b7280;">ไม่มีรายการเงินประกันคงค้างสำหรับงานนี้</span>'}</div>
+          <div style="padding:18px; background:var(--green-l); border:2px solid var(--green); border-radius:var(--r-lg); margin-bottom:24px; box-shadow:0 4px 15px rgba(16, 185, 129, 0.1);">
+            <div style="font-size:14px; color:var(--green-d); font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:8px;">ข้อมูลเงินประกันคงค้าง (Insurance Overview)</div>
+            <div style="font-size:15px; line-height:1.7">${helpMsg.length > 0 ? helpMsg.join('<br>') : '<span style="color:var(--txt3);">ไม่มีรายการเงินประกันคงค้างสำหรับงานนี้</span>'}</div>
           </div>
         `;
       }
 
-      const detailHTML = `<div class="detail-grid">${rows.map(([k, v], i) => `<div class="detail-row"><div class="detail-key">${k}</div><div class="detail-val">${v}</div></div>`).join('')}</div>`;
+      const detailHTML = `<section class="detail-section"><div class="detail-section-title">ข้อมูลหลัก</div><div class="detail-grid">${rows.map(([k, v], i) => `<div class="detail-row"><div class="detail-key">${k}</div><div class="detail-val">${v}</div></div>`).join('')}</div></section>`;
 
       // Financial Breakdown Section [NEW]
       const financialHTML = `
-        <div style="margin-top:24px; padding:20px; background:var(--bg-f); border:1px solid var(--border); border-radius:var(--r-lg);">
+        <section class="detail-finance-card" style="margin-top:24px; padding:20px; background:var(--bg-f); border:1px solid var(--border); border-radius:var(--r-lg);">
           <div style="font-size:14px; font-weight:800; color:var(--txt); margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:10px; display:flex; align-items:center; gap:8px;">
             <span style="font-size:18px"></span> ข้อมูลสรุปค่าใช้จ่าย (Financial Breakdown)
           </div>
@@ -5853,7 +6226,7 @@
               <span style="font-size:18px; font-weight:900; color:var(--blue-d)">฿${parseFixed(d.total).toLocaleString()}</span>
             </div>
           </div>
-        </div>
+        </section>
       `;
 
       const filesHTML = renderJobFilesHTML(d, {
@@ -5865,20 +6238,20 @@
         textColor: 'var(--txt)'
       });
 
-      const remarkHTML = d.remark ? `<div style="margin-top:12px;padding:10px 12px;background:var(--orange-l);border-radius:var(--r-sm);font-size:12.5px;color:#92400e">${esc(d.remark)}</div>` : '';
+      const remarkHTML = d.remark ? `<section class="detail-note-card" style="margin-top:12px;padding:10px 12px;background:var(--orange-l);border-radius:var(--r-sm);font-size:12.5px;color:var(--orange-d)">${esc(d.remark)}</section>` : '';
 
       // TL Action Section
       let tlActionHTML = '';
       if (isTL) {
         if (d.complete_tl !== 'On Process') {
           tlActionHTML = `
-            <div style="margin-top:25px; border-top:2px solid var(--blue-l); padding-top:20px; text-align:center;">
+            <section class="detail-action-card" style="margin-top:25px; border-top:2px solid var(--blue-l); padding-top:20px; text-align:center;">
               <button class="btn btn-primary" style="width:100%; height:54px; font-size:18px; font-weight:700; box-shadow:0 4px 12px rgba(var(--blue-rgb), 0.2)" onclick="acceptJobTLDetail('${d.id}')">ยืนยันรับงาน (Start Process)</button>
-            </div>
+            </section>
           `;
         } else if (!d.pdf_tl_work) {
           tlActionHTML = `
-            <div style="margin-top:25px; border-top:2px solid var(--blue-l); padding-top:20px;">
+            <section class="detail-action-card" style="margin-top:25px; border-top:2px solid var(--blue-l); padding-top:20px;">
               <button id="finish-btn-tl" class="btn btn-violet" style="width:100%; height:54px; font-size:18px; font-weight:700;" onclick="showUploadTL()">งานหน้างานเสร็จสิ้น</button>
               <div id="tl-upload-ui" style="display:none; margin-top:20px; padding:20px; background:var(--blue-l); border-radius:var(--r-md); border:1px solid var(--blue);">
                  <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">แนบหลักฐาน PDF (บังคับ)</div>
@@ -5889,7 +6262,7 @@
 
                  <button class="btn btn-primary" style="width:100%; height:44px; font-weight:600;" onclick="saveTLWorkDetail('${d.id}')">บันทึกและส่งต่องาน</button>
               </div>
-            </div>
+            </section>
           `;
         }
       }
@@ -5898,26 +6271,32 @@
       let userActionHTML = '';
       if (!isTL && d.pdf_tl_work && (d.status === 'ret' || d.status === 'tl')) {
         userActionHTML = `
-          <div style="margin-top:25px; border-top:1px dashed var(--border); padding-top:20px; text-align:center;">
+          <section class="detail-action-card" style="margin-top:25px; border-top:1px dashed var(--border); padding-top:20px; text-align:center;">
              <p style="font-size:13px; color:var(--txt3); margin-bottom:12px;">หากหลักฐานงานของ TL ไม่ถูกต้อง คุณสามารถส่งกลับให้แก้ไขได้</p>
              <button class="btn btn-outline" style="width:100%; border-color:var(--red); color:var(--red); font-weight:700;" onclick="sendBackToTL('${d.id}')"> ส่งกลับแก้ไข (Send Back to TL)</button>
-          </div>
+          </section>
         `;
       }
 
-      detailBody.innerHTML = headerHTML + detailHTML + financialHTML + filesHTML + remarkHTML + tlActionHTML + userActionHTML;
+      detailBody.innerHTML = `
+        <div class="detail-popup-shell">
+          <div class="detail-status-bar">${headerHTML}</div>
+          <div class="detail-popup-main">${detailHTML}${filesHTML}${remarkHTML}</div>
+          <div class="detail-popup-side">${financialHTML}${tlActionHTML}${userActionHTML}</div>
+        </div>
+      `;
 
       // Special 'Off Service' button for On Service items
       if (isOnServiceItem(d)) {
         const offServiceHTML = `
-           <div style="margin-top:20px; padding:15px; background:var(--bg-f); border:1px dashed var(--border); border-radius:var(--r-md); text-align:center;">
+           <section class="detail-offservice-card" style="margin-top:20px; padding:15px; background:var(--bg-f); border:1px dashed var(--border); border-radius:var(--r-md); text-align:center;">
              <div style="font-size:12px; color:var(--txt2); margin-bottom:10px;">รายการนี้มี "เงินประกันรื้อถอน" คงค้างอยู่ (On Service)</div>
              <button class="btn btn-primary" style="width:100%" onclick="openOffServiceModal('${d.id}')">
                Off Service / แจ้งคืนประกันรื้อถอน
              </button>
-           </div>
+           </section>
         `;
-        detailBody.innerHTML += offServiceHTML;
+        detailBody.querySelector('.detail-popup-shell')?.insertAdjacentHTML('beforeend', offServiceHTML);
       }
 
       // Footer buttons toggle
@@ -5963,15 +6342,15 @@
 
       // Prepare Insurance Msg (Original logic kept as an alternative overview)
       let helpMsg = [];
-      if ((+d.deposit || 0) > 0) helpMsg.push('<span style="color:#065f46; font-weight:700;">มีเงินประกันติดตั้ง (฿' + (+d.deposit).toLocaleString() + ')</span>');
-      if ((+d.demolish || 0) > 0) helpMsg.push('<span style="color:#065f46; font-weight:700;">มีเงินประกันรื้อถอน (฿' + (+d.demolish).toLocaleString() + ')</span>');
+      if ((+d.deposit || 0) > 0) helpMsg.push('<span style="color:var(--green-d); font-weight:700;">มีเงินประกันติดตั้ง (฿' + (+d.deposit).toLocaleString() + ')</span>');
+      if ((+d.demolish || 0) > 0) helpMsg.push('<span style="color:var(--green-d); font-weight:700;">มีเงินประกันรื้อถอน (฿' + (+d.demolish).toLocaleString() + ')</span>');
 
       const progressHTML = `<div class="progress-track"><div class="progress-steps-new" id="tlProgress"></div></div>`;
 
       const insuranceHTML = `
-        <div style="padding:18px; background:linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border:2px solid #10b981; border-radius:var(--r-lg); margin-bottom:24px; box-shadow:0 4px 15px rgba(16, 185, 129, 0.1);">
-          <div style="font-size:14px; color:#065f46; font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:8px;">ข้อมูลเงินประกันเบื้องต้น (Insurance Overview)</div>
-          <div style="font-size:15px; line-height:1.7">${helpMsg.length > 0 ? helpMsg.join('<br>') : '<span style="color:#6b7280;">ไม่มีรายการเงินประกันคงค้างสำหรับงานนี้</span>'}</div>
+        <div style="padding:18px; background:var(--green-l); border:2px solid var(--green); border-radius:var(--r-lg); margin-bottom:24px; box-shadow:0 4px 15px rgba(16, 185, 129, 0.1);">
+          <div style="font-size:14px; color:var(--green-d); font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:8px;">ข้อมูลเงินประกันเบื้องต้น (Insurance Overview)</div>
+          <div style="font-size:15px; line-height:1.7">${helpMsg.length > 0 ? helpMsg.join('<br>') : '<span style="color:var(--txt3);">ไม่มีรายการเงินประกันคงค้างสำหรับงานนี้</span>'}</div>
         </div>
       `;
 
@@ -6003,14 +6382,14 @@
           const reasonText = reasonMatch ? reasonMatch[1] : latestLog.title;
 
           sendBackAlertHTML = `
-            <div style="margin-bottom:20px; padding:16px; background:#fef2f2; border:1px solid #ef4444; border-left:4px solid #dc2626; border-radius:var(--r-md);">
-              <div style="color:#b91c1c; font-weight:800; font-size:15px; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
+            <div style="margin-bottom:20px; padding:16px; background:var(--red-l); border:1px solid var(--red); border-left:4px solid var(--red); border-radius:var(--r-md);">
+              <div style="color:var(--red); font-weight:800; font-size:15px; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
                 <span style="font-size:18px;"></span> งานถูกส่งกลับมาแก้ไข!
               </div>
-              <div style="color:#991b1b; font-size:14px; line-height:1.5;">
+              <div style="color:var(--red); font-size:14px; line-height:1.5;">
                 <strong>เหตุผล:</strong> ${reasonText}
               </div>
-              <div style="color:#ef4444; font-size:12px; margin-top:8px;">เวลาส่งกลับ: ${latestLog.time}</div>
+              <div style="color:var(--red); font-size:12px; margin-top:8px;">เวลาส่งกลับ: ${latestLog.time}</div>
             </div>
           `;
         }
@@ -6847,7 +7226,7 @@
             const latestLog = sendBackLogs[sendBackLogs.length - 1];
             const reasonMatch = latestLog.title.match(/ส่งกลับแก้ไขโดย User:\s*(.*)/);
             const reasonText = reasonMatch ? reasonMatch[1] : latestLog.title;
-            sendBackAlertHTML = `<div style="margin-top:6px; padding:6px 10px; background:#fef2f2; border:1px solid #ef4444; border-radius:4px; font-size:11px; color:#b91c1c;">งานส่งกลับ: ${reasonText}</div>`;
+            sendBackAlertHTML = `<div style="margin-top:6px; padding:6px 10px; background:var(--red-l); border:1px solid var(--red); border-radius:4px; font-size:11px; color:var(--red);">งานส่งกลับ: ${reasonText}</div>`;
           }
         }
 
@@ -6870,7 +7249,7 @@
           <td class="nowrap">${d.complete_tl === 'On Process' ? '<span class="badge b-orange">รับแล้ว</span>' : '<span style="color:var(--txt3)">ยังไม่รับ</span>'}</td>
           <td class="nowrap">${(() => { const info = getTLAcceptInfo(d); return info ? `<span style="font-size:13px">${info.dateStr}</span>` : '<span style="color:var(--txt3)">—</span>'; })()}</td>
           <td class="nowrap">${d.tl_due_date ? `<span style="color:var(--orange); font-weight:600; font-size:13px">${fmtDate(d.tl_due_date)}</span>` : '<span style="color:var(--txt3)">—</span>'}</td>
-          <td class="nowrap">${(() => { const info = getTLAcceptInfo(d); if (!info) return '<span style="color:var(--txt3)">—</span>'; const color = info.stopped ? 'var(--txt3)' : (info.diff >= 19 ? '#ef4444' : info.diff >= 10 ? '#f97316' : '#16a34a'); return `<span style="font-size:13px; font-weight:600; color:${color}">${info.diff} วัน</span>`; })()}</td>
+          <td class="nowrap">${(() => { const info = getTLAcceptInfo(d); if (!info) return '<span style="color:var(--txt3)">—</span>'; const color = info.stopped ? 'var(--txt3)' : (info.diff >= 19 ? 'var(--red)' : info.diff >= 10 ? 'var(--orange)' : 'var(--green)'); return `<span style="font-size:13px; font-weight:600; color:${color}">${info.diff} วัน</span>`; })()}</td>
           <td class="nowrap">${d.pdf_tl_work ?
             (Array.isArray(d.pdf_tl_work)
               ? d.pdf_tl_work.map((url, i) => `<a href="${safeUrl(url)}" target="_blank" onclick="event.stopPropagation()" class="badge b-done" style="text-decoration:none; margin-right:2px;">ไฟล์ ${i+1}</a>`).join('')
@@ -6922,6 +7301,8 @@
 
     function renderMyDashboard() {
       if (!CURRENT_USER) return;
+      const chartColors = themeChartColors();
+      const statusPalette = [chartColors.blue, chartColors.green, chartColors.orange, chartColors.red, chartColors.violet, chartColors.teal];
       // My Dashboard should also probably respect the UI filters if they are set,
       // but primarily it shows "My" stuff. Let's sync with filters for consistency.
       const myData = getFilteredData().filter(d => (d.owner || '').includes(CURRENT_USER.name) || (d.created_by || '').includes(CURRENT_USER.name));
@@ -6985,14 +7366,20 @@
             labels: Object.keys(statusCounts),
             datasets: [{
               data: Object.values(statusCounts),
-              backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#6366f1', '#8b5cf6'],
+              backgroundColor: Object.keys(statusCounts).map((_, i) => statusPalette[i % statusPalette.length]),
               borderWidth: 0
             }]
           },
           options: {
             maintainAspectRatio: false,
             cutout: '60%',
-            plugins: { legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8 } } }
+            plugins: {
+              legend: {
+                position: 'right',
+                labels: { color: chartColors.text, usePointStyle: true, boxWidth: 8 }
+              },
+              tooltip: { backgroundColor: chartColors.tooltip }
+            }
           }
         });
       }
@@ -7025,7 +7412,7 @@
             datasets: [{
               label: 'ยอดเงินคืนที่ได้รับ (฿)',
               data: myRefundData,
-              backgroundColor: '#4f46e5',
+              backgroundColor: chartColors.blue,
               borderRadius: 5
             }]
           },
@@ -7033,8 +7420,8 @@
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-              y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, border: { display: false } },
-              x: { grid: { display: false }, border: { display: false } }
+              y: { beginAtZero: true, grid: { color: chartColors.grid }, border: { display: false }, ticks: { color: chartColors.text } },
+              x: { grid: { display: false }, border: { display: false }, ticks: { color: chartColors.text } }
             }
           }
         });
@@ -7042,6 +7429,7 @@
     }
 
     function renderExecutiveDashboard() {
+      const chartColors = themeChartColors();
       // Executive Dashboard always shows all role-allowed data (not tied to list-page UI filters)
       let filteredDB = DB;
       if (CURRENT_USER && CURRENT_USER.role === 'tl' && CURRENT_USER.area) {
@@ -7096,7 +7484,7 @@
       document.getElementById('db-total-refunded').innerHTML = `<span class="currency-symbol">฿</span>${installRefunded.toLocaleString()}`;
       document.getElementById('db-total-pending').innerHTML = `
         <div><span class="currency-symbol">฿</span>${installPending.toLocaleString()}</div>
-        <div style="font-size:20px; color:#64748b; font-weight:800; margin-top:6px;">(${installPendingCount} งาน)</div>
+        <div style="font-size:20px; color:var(--txt3); font-weight:800; margin-top:6px;">(${installPendingCount} งาน)</div>
       `;
 
       const pendingByStatus = installPendingItems.reduce((acc, d) => {
@@ -7127,10 +7515,8 @@
       document.getElementById('db-demo-refunded').innerHTML = `<span class="currency-symbol">฿</span>${demoRefunded.toLocaleString()}`;
       document.getElementById('db-demo-pending').innerHTML = `
         <div><span class="currency-symbol">฿</span>${demoPending.toLocaleString()}</div>
-        <div style="font-size:20px; color:#64748b; font-weight:800; margin-top:6px;">(${demoPendingCount} งาน)</div>
+        <div style="font-size:20px; color:var(--txt3); font-weight:800; margin-top:6px;">(${demoPendingCount} งาน)</div>
       `;
-
-      const luxuryPalette = ['#1e293b', '#d4af37', '#94a3b8', '#334155', '#b8860b'];
 
       // 1. Monthly Financial Trend — last 12 months rolling
       const monthNames = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
@@ -7163,33 +7549,36 @@
           datasets: [{
             label: 'ค่าธรรมเนียมอาคาร (12 เดือนล่าสุด)',
             data: feeData,
-            borderColor: '#94a3b8',
-            backgroundColor: 'rgba(148, 163, 184, 0.1)',
+            borderColor: chartColors.text,
+            backgroundColor: colorWithAlpha(chartColors.text, 0.12),
             fill: true,
             tension: 0.4,
             borderWidth: 3,
-            pointBackgroundColor: '#fff',
-            pointBorderColor: '#94a3b8',
+            pointBackgroundColor: chartColors.white,
+            pointBorderColor: chartColors.text,
             pointRadius: 4
           }, {
             label: 'เงินประกันอาคาร (12 เดือนล่าสุด)',
             data: depositData,
-            borderColor: '#d4af37',
-            backgroundColor: 'rgba(212, 175, 55, 0.1)',
+            borderColor: chartColors.gold,
+            backgroundColor: colorWithAlpha(chartColors.gold, 0.14),
             fill: true,
             tension: 0.4,
             borderWidth: 3,
-            pointBackgroundColor: '#fff',
-            pointBorderColor: '#d4af37',
+            pointBackgroundColor: chartColors.white,
+            pointBorderColor: chartColors.gold,
             pointRadius: 4
           }]
         },
         options: {
           maintainAspectRatio: false,
-          plugins: { legend: { position: 'top', labels: { usePointStyle: true, padding: 15 } } },
+          plugins: {
+            legend: { position: 'top', labels: { color: chartColors.text, usePointStyle: true, padding: 15 } },
+            tooltip: { backgroundColor: chartColors.tooltip }
+          },
           scales: {
-            y: { grid: { color: 'rgba(0,0,0,0.05)' }, border: { display: false } },
-            x: { grid: { display: false }, border: { display: false } }
+            y: { grid: { color: chartColors.grid }, border: { display: false }, ticks: { color: chartColors.text } },
+            x: { grid: { display: false }, border: { display: false }, ticks: { color: chartColors.text } }
           }
         }
       });
@@ -7202,7 +7591,7 @@
           labels: ['ประกันติดตั้ง (ต้องคืน)', 'ประกันรื้อถอน (คืนเมื่อเลิก)'],
           datasets: [{
             data: [totalInstall, totalDemo],
-            backgroundColor: ['#1e293b', '#d4af37'],
+            backgroundColor: [chartColors.navy, chartColors.gold],
             borderWidth: 0,
             hoverOffset: 15
           }]
@@ -7210,7 +7599,10 @@
         options: {
           maintainAspectRatio: false,
           cutout: '70%',
-          plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } } }
+          plugins: {
+            legend: { position: 'bottom', labels: { color: chartColors.text, usePointStyle: true, padding: 20 } },
+            tooltip: { backgroundColor: chartColors.tooltip }
+          }
         }
       });
 
@@ -7220,7 +7612,7 @@
         if (d.area) areaFin[d.area] = (areaFin[d.area] || 0) + (d.deposit || 0);
       });
 
-      const areaColors = ['#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444', '#06b6d4', '#ec4899', '#f97316', '#14b8a6', '#6366f1'];
+      const areaColors = [chartColors.blue, chartColors.orange, chartColors.green, chartColors.violet, chartColors.red, chartColors.teal, chartColors.gold];
       const areaKeys = Object.keys(areaFin);
       const areaVals = Object.values(areaFin);
 
@@ -7233,7 +7625,7 @@
             label: 'ยอดเงินประกันคงค้าง (฿)',
             data: areaVals,
             backgroundColor: areaKeys.map((_, i) => areaColors[i % areaColors.length]),
-            hoverBackgroundColor: areaKeys.map((_, i) => areaColors[i % areaColors.length] + 'cc'),
+            hoverBackgroundColor: areaKeys.map((_, i) => colorWithAlpha(areaColors[i % areaColors.length], 0.82)),
             borderRadius: 8
           }]
         },
@@ -7242,7 +7634,7 @@
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: '#1e293b',
+              backgroundColor: chartColors.tooltip,
               titleFont: { size: 13 },
               bodyFont: { size: 12 },
               padding: 12,
@@ -7250,8 +7642,8 @@
             }
           },
           scales: {
-            x: { grid: { display: false }, border: { display: false }, ticks: { font: { weight: 'bold' } } },
-            y: { grid: { color: 'rgba(0,0,0,0.05)' }, border: { display: false }, ticks: { font: { size: 10 } } }
+            x: { grid: { display: false }, border: { display: false }, ticks: { color: chartColors.text, font: { weight: 'bold' } } },
+            y: { grid: { color: chartColors.grid }, border: { display: false }, ticks: { color: chartColors.text, font: { size: 10 } } }
           }
         }
       });
@@ -7453,9 +7845,9 @@
 
       if (!empId || !email || !newPwd) {
         statusEl.style.display = 'block';
-        statusEl.style.background = '#fef2f2';
-        statusEl.style.color = '#dc2626';
-        statusEl.style.border = '1px solid #fecaca';
+        statusEl.style.background = 'var(--red-l)';
+        statusEl.style.color = 'var(--red)';
+        statusEl.style.border = '1px solid var(--red)';
         statusEl.innerHTML = 'กรุณากรอกข้อมูลให้ครบทุกช่อง';
         return;
       }
@@ -7467,15 +7859,15 @@
       try {
         await verifyAndResetPassword(empId, email, newPwd);
         statusEl.style.display = 'block';
-        statusEl.style.background = '#f0fdf4';
-        statusEl.style.color = '#16a34a';
-        statusEl.style.border = '1px solid #bbf7d0';
+        statusEl.style.background = 'var(--green-l)';
+        statusEl.style.color = 'var(--green-d)';
+        statusEl.style.border = '1px solid var(--green)';
         statusEl.innerHTML = 'เปลี่ยนรหัสผ่านสำเร็จ! กรุณาปิดหน้าต่างนี้แล้วเข้าสู่ระบบด้วยรหัสผ่านใหม่';
       } catch (err) {
         statusEl.style.display = 'block';
-        statusEl.style.background = '#fef2f2';
-        statusEl.style.color = '#dc2626';
-        statusEl.style.border = '1px solid #fecaca';
+        statusEl.style.background = 'var(--red-l)';
+        statusEl.style.color = 'var(--red)';
+        statusEl.style.border = '1px solid var(--red)';
         if (err.message && err.message.includes('ไม่พบ')) {
           statusEl.innerHTML = 'ไม่พบข้อมูล: รหัสพนักงานหรืออีเมลไม่ตรงกับในระบบ';
         } else {
