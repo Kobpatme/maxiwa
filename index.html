@@ -6240,6 +6240,10 @@
               <span style="font-size:14px; font-weight:800; color:var(--txt)">ยอดรวมสุทธิ (Total Amount)</span>
               <span style="font-size:18px; font-weight:900; color:var(--blue-d)">฿${parseFixed(d.total).toLocaleString()}</span>
             </div>
+            <div style="padding:12px 14px; background:var(--green-l); border:1px solid var(--green); border-radius:var(--r-md); display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:14px; font-weight:800; color:var(--green-d)">เงินประกันที่ต้องได้รับคืน</span>
+              <span style="font-size:18px; font-weight:900; color:var(--green-d)">฿${(parseFixed(d.deposit) + parseFixed(d.demolish)).toLocaleString()}</span>
+            </div>
           </div>
         </section>
       `;
@@ -6436,6 +6440,10 @@
             <div style="margin-top:8px; padding-top:12px; border-top:2px solid var(--blue-l); display:flex; justify-content:space-between; align-items:center;">
               <span style="font-size:14px; font-weight:800; color:var(--txt)">ยอดรวมสุทธิ (Total Amount)</span>
               <span style="font-size:18px; font-weight:900; color:var(--blue-d)">฿${parseFixed(d.total).toLocaleString()}</span>
+            </div>
+            <div style="padding:12px 14px; background:var(--green-l); border:1px solid var(--green); border-radius:var(--r-md); display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:14px; font-weight:800; color:var(--green-d)">เงินประกันที่ต้องได้รับคืน</span>
+              <span style="font-size:18px; font-weight:900; color:var(--green-d)">฿${(parseFixed(d.deposit) + parseFixed(d.demolish)).toLocaleString()}</span>
             </div>
           </div>
         </div>
