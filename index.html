@@ -5426,9 +5426,13 @@
           finalStatus = 'tl';
         }
 
-        // Data-aware completion logic (Auto-complete to 'done' only if there is no financial amount)
-        if (!hasAnyFinancialAmount && (finalStatus || '').toLowerCase() !== 'cancel' && (finalStatus || '').toLowerCase() !== 'done') {
-          if (getStepIndex({ status: finalStatus }) >= 2) {
+        // Auto-close jobs that have no refundable deposit/removal deposit.
+        // If they still have fee/other costs, keep Step 3 so payment evidence can be attached first.
+        if (!hasInsuranceAmount && (finalStatus || '').toLowerCase() !== 'cancel' && (finalStatus || '').toLowerCase() !== 'done') {
+          const hasReachedNoInsuranceClosePoint = hasAnyFinancialAmount
+            ? (currentStep >= 3 && hasPayment)
+            : getStepIndex({ status: finalStatus }) >= 2;
+          if (hasReachedNoInsuranceClosePoint) {
             finalStatus = 'done';
           }
         }
@@ -5577,7 +5581,13 @@
           }
         });
 
-        if (currentStep < 6) {
+        if ((obj.status || '').toLowerCase() === 'done') {
+          closeModal('formOverlay');
+          setDirty(false);
+          renderTable(); renderKPI();
+          renderExecutiveDashboard();
+          renderMyDashboard();
+        } else if (currentStep < 6) {
           setDirty(false);
           goToStep(currentStep + 1);
           renderTable(); renderKPI();

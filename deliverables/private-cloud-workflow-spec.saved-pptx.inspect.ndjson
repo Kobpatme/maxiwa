@@ -1,0 +1,315 @@
+{"kind":"deck","id":"pr/w5rfa0","name":"Deck"}
+{"kind":"slide","id":"sl/2x4nap4r","slide":2,"title":"ระบบขอคืนเงินประกันอาคาร","textShapes":9}
+{"kind":"textbox","id":"sh/nap4r65w","slide":2,"text":"ระบบขอคืนเงินประกันอาคาร","textPreview":"ระบบขอคืนเงินประกันอาคาร","textChars":24,"textLines":1,"bbox":[96,96,1728,80]}
+{"kind":"textbox","id":"sh/cvixczed","slide":2,"text":"Workflow Diagram และ Private Cloud Sizing","textPreview":"Workflow Diagram และ Private Cloud Sizing","textChars":41,"textLines":1,"bbox":[96,210,1728,40]}
+{"kind":"shape","id":"sh/5gbq1ory","slide":2,"bbox":[96,281.6,92.68,44]}
+{"kind":"textbox","id":"sh/udg7adsj","slide":2,"text":"Frontend","textPreview":"Frontend","textChars":8,"textLines":1,"bbox":[114,290,56,36]}
+{"kind":"shape","id":"sh/nyd0z610","slide":2,"bbox":[204.68,281.6,90.93,44]}
+{"kind":"textbox","id":"sh/cj6tovah","slide":2,"text":"Firestore","textPreview":"Firestore","textChars":9,"textLines":1,"bbox":[222,290,54,36]}
+{"kind":"shape","id":"sh/54zidony","slide":2,"bbox":[311.61,281.6,83.13,44]}
+{"kind":"textbox","id":"sh/u9knih4b","slide":2,"text":"Storage","textPreview":"Storage","textChars":7,"textLines":1,"bbox":[330,290,48,36]}
+{"kind":"shape","id":"sh/judg7ads","slide":2,"bbox":[410.74,281.6,103.61,44]}
+{"kind":"textbox","id":"sh/nyd0z610","slide":2,"text":"Dashboard","textPreview":"Dashboard","textChars":9,"textLines":1,"bbox":[428,290,68,36]}
+{"kind":"shape","id":"sh/udg7adsj","slide":2,"bbox":[530.35,281.6,114.28,44]}
+{"kind":"textbox","id":"sh/54zidony","slide":2,"text":"TL Workflow","textPreview":"TL Workflow","textChars":11,"textLines":1,"bbox":[548,290,78,18]}
+{"kind":"textbox","id":"sh/cj6tovah","slide":2,"text":"สรุปภาพรวมสำหรับผู้บริหาร: ระบบปัจจุบัน, เส้นทางข้อมูล, ทรัพยากรที่ใช้ และ Spec แนะนำสำหรับย้ายขึ้น Private Cloud","textPreview":"สรุปภาพรวมสำหรับผู้บริหาร: ระบบปัจจุบัน, เส้นทางข้อมูล, ทรัพยากรที่ใช้ และ Spec แนะนำสำหรับย้ายขึ้น Private Cloud","textChars":113,"textLines":1,"bbox":[96,360,1728,30]}
+{"kind":"textbox","id":"sh/nap4r65w","slide":2,"text":"Prepared for Executive Review • 15 พฤษภาคม 2026","textPreview":"Prepared for Executive Review • 15 พฤษภาคม 2026","textChars":47,"textLines":1,"bbox":[96,424,1728,24]}
+{"kind":"notes","id":"nt/2x4nap4r","slide":2,"text":""}
+{"kind":"slide","id":"sl/pg3ex0nu","slide":3,"title":"Executive Summary","textShapes":13}
+{"kind":"textbox","id":"sh/yxobm58z","slide":3,"name":"slide-title","text":"Executive Summary","textPreview":"Executive Summary","textChars":17,"textLines":1,"bbox":[80,58,1760,54]}
+{"kind":"textbox","id":"sh/5o7qpg3e","slide":3,"name":"slide-subtitle","text":"ระบบเป็นเว็บแอปหน้าเดียวที่ใช้ Firebase เป็น backend โดยตรง เหมาะกับการย้ายเป็น Private Cloud แบบ container + managed data services","textPreview":"ระบบเป็นเว็บแอปหน้าเดียวที่ใช้ Firebase เป็น backend โดยตรง เหมาะกับการย้ายเป็น Private Cloud แบบ container + managed data services","textChars":131,"textLines":1,"bbox":[80,126,1760,24]}
+{"kind":"shape","id":"sh/g3ex0nux","slide":3,"name":"title-rule","bbox":[80,166,1760,2]}
+{"kind":"shape","id":"sh/r65wjudg","slide":3,"bbox":[80,202.8,568,190]}
+{"kind":"textbox","id":"sh/ylc7u54z","slide":3,"text":"รูปแบบปัจจุบัน","textPreview":"รูปแบบปัจจุบัน","textChars":14,"textLines":1,"bbox":[108,226,512,30]}
+{"kind":"textbox","id":"sh/9cvixcze","slide":3,"text":"Static HTML/JS + Firebase SDK\nไม่มี application server ใน repo","textPreview":"Static HTML/JS + Firebase SDK | ไม่มี application server ใน repo","textChars":62,"textLines":2,"bbox":[108,268,512,42]}
+{"kind":"shape","id":"sh/gr2p8nqx","slide":3,"bbox":[676,202.8,568,190]}
+{"kind":"textbox","id":"sh/rytsvu9k","slide":3,"text":"ข้อมูลหลัก","textPreview":"ข้อมูลหลัก","textChars":10,"textLines":1,"bbox":[704,226,512,30]}
+{"kind":"textbox","id":"sh/yd0z6103","slide":3,"text":"Firestore collections: deposits, users,\npassword_reset_requests","textPreview":"Firestore collections: deposits, users, | password_reset_requests","textChars":63,"textLines":2,"bbox":[704,268,512,42]}
+{"kind":"shape","id":"sh/wb2hwfyx","slide":3,"bbox":[1272,202.8,568,190]}
+{"kind":"textbox","id":"sh/lwval87e","slide":3,"text":"เอกสารแนบ","textPreview":"เอกสารแนบ","textChars":9,"textLines":1,"bbox":[1300,226,512,30]}
+{"kind":"textbox","id":"sh/e9cvixcz","slide":3,"text":"PDF/JPG/PNG อัปโหลดไป Storage\nจำกัดขนาดไฟล์ 20 MB ต่อไฟล์","textPreview":"PDF/JPG/PNG อัปโหลดไป Storage | จำกัดขนาดไฟล์ 20 MB ต่อไฟล์","textChars":57,"textLines":2,"bbox":[1300,268,512,42]}
+{"kind":"shape","id":"sh/3q5o7qpg","slide":3,"bbox":[80,601.6,568,190]}
+{"kind":"textbox","id":"sh/w3m94fu1","slide":3,"text":"การใช้งาน","textPreview":"การใช้งาน","textChars":9,"textLines":1,"bbox":[108,626,512,30]}
+{"kind":"textbox","id":"sh/loj2t83i","slide":3,"text":"role admin / user / tl\nมี dashboard และ real-time update","textPreview":"role admin / user / tl | มี dashboard และ real-time update","textChars":56,"textLines":2,"bbox":[108,666,512,42]}
+{"kind":"shape","id":"sh/ex0nuxc3","slide":3,"bbox":[676,601.6,568,190]}
+{"kind":"textbox","id":"sh/3itgfmlk","slide":3,"text":"Private Cloud Target","textPreview":"Private Cloud Target","textChars":20,"textLines":1,"bbox":[704,626,512,30]}
+{"kind":"textbox","id":"sh/szqtcj6t","slide":3,"text":"Web + API + DB + Object Storage\nเพิ่ม IAM, audit, backup และ monitoring","textPreview":"Web + API + DB + Object Storage | เพิ่ม IAM, audit, backup และ monitoring","textChars":71,"textLines":2,"bbox":[704,666,512,42]}
+{"kind":"textbox","id":"sh/lkjm1cfa","slide":3,"name":"footer-2","text":"ประเมินจากโค้ดระบบ ณ 15 พ.ค. 2026 • 2","textPreview":"ประเมินจากโค้ดระบบ ณ 15 พ.ค. 2026 • 2","textChars":37,"textLines":1,"bbox":[80,1006,1760,16]}
+{"kind":"notes","id":"nt/pg3ex0nu","slide":3,"text":""}
+{"kind":"slide","id":"sl/s72x4nap","slide":4,"title":"Current Architecture","textShapes":21}
+{"kind":"textbox","id":"sh/vmtwra5g","slide":4,"name":"slide-title","text":"Current Architecture","textPreview":"Current Architecture","textChars":20,"textLines":1,"bbox":[80,58,1760,54]}
+{"kind":"textbox","id":"sh/o7qpg3ex","slide":4,"name":"slide-subtitle","text":"ภาพรวมจากไฟล์ index.html, firebase-client.js และ firebase-config.js","textPreview":"ภาพรวมจากไฟล์ index.html, firebase-client.js และ firebase-config.js","textChars":67,"textLines":1,"bbox":[80,126,1760,24]}
+{"kind":"shape","id":"sh/dsji5sne","slide":4,"name":"title-rule","bbox":[80,166,1760,2]}
+{"kind":"shape","id":"sh/6dcbulwv","slide":4,"bbox":[80,430,245,210]}
+{"kind":"textbox","id":"sh/vy90je9c","slide":4,"text":"ผู้ใช้งาน","textPreview":"ผู้ใช้งาน","textChars":9,"textLines":1,"bbox":[108,454,190,30]}
+{"kind":"textbox","id":"sh/oj2t83it","slide":4,"text":"Admin / User / TL\nBrowser session","textPreview":"Admin / User / TL | Browser session","textChars":33,"textLines":2,"bbox":[108,494,190,44]}
+{"kind":"textbox","id":"sh/d4vmtwra","slide":4,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[348,508,48,52]}
+{"kind":"shape","id":"sh/6hcrmhk3","slide":4,"bbox":[417,406,290,118]}
+{"kind":"textbox","id":"sh/z25kb6xk","slide":4,"text":"Static Web","textPreview":"Static Web","textChars":10,"textLines":1,"bbox":[446,430,234,30]}
+{"kind":"textbox","id":"sh/vy90je9c","slide":4,"text":"index.html","textPreview":"index.html","textChars":10,"textLines":1,"bbox":[446,470,234,22]}
+{"kind":"shape","id":"sh/6dcbulwv","slide":4,"bbox":[417,542,290,118]}
+{"kind":"textbox","id":"sh/d4vmtwra","slide":4,"text":"Firebase SDK","textPreview":"Firebase SDK","textChars":12,"textLines":1,"bbox":[446,566,234,30]}
+{"kind":"textbox","id":"sh/oj2t83it","slide":4,"text":"compat v10.7.1","textPreview":"compat v10.7.1","textChars":14,"textLines":1,"bbox":[446,606,234,22]}
+{"kind":"textbox","id":"sh/vmtwra5g","slide":4,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[730,508,48,52]}
+{"kind":"shape","id":"sh/61032lsz","slide":4,"bbox":[799,348,320,112]}
+{"kind":"textbox","id":"sh/dsji5sne","slide":4,"text":"Firestore","textPreview":"Firestore","textChars":9,"textLines":1,"bbox":[828,372,264,30]}
+{"kind":"textbox","id":"sh/o7qpg3ex","slide":4,"text":"business data","textPreview":"business data","textChars":13,"textLines":1,"bbox":[828,412,264,22]}
+{"kind":"shape","id":"sh/vahoza1g","slide":4,"bbox":[799,478,320,112]}
+{"kind":"textbox","id":"sh/6tovahoz","slide":4,"text":"Cloud Storage","textPreview":"Cloud Storage","textChars":13,"textLines":1,"bbox":[828,502,264,30]}
+{"kind":"textbox","id":"sh/epkzupwb","slide":4,"text":"PDF / image files","textPreview":"PDF / image files","textChars":17,"textLines":1,"bbox":[828,542,264,22]}
+{"kind":"shape","id":"sh/7adsji5s","slide":4,"bbox":[799,608,320,112]}
+{"kind":"textbox","id":"sh/wval87ed","slide":4,"text":"Session state","textPreview":"Session state","textChars":13,"textLines":1,"bbox":[828,632,264,30]}
+{"kind":"textbox","id":"sh/pg3ex0nu","slide":4,"text":"sessionStorage","textPreview":"sessionStorage","textChars":14,"textLines":1,"bbox":[828,672,264,22]}
+{"kind":"textbox","id":"sh/e1w7mp0b","slide":4,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[1142,508,48,52]}
+{"kind":"shape","id":"sh/7mp0bi9s","slide":4,"bbox":[1211,430,250,210]}
+{"kind":"textbox","id":"sh/w7mp0bi9","slide":4,"text":"Outputs","textPreview":"Outputs","textChars":7,"textLines":1,"bbox":[1240,454,194,30]}
+{"kind":"textbox","id":"sh/psfil0rq","slide":4,"text":"Dashboard\nCSV Export\nNotifications","textPreview":"Dashboard | CSV Export | Notifications","textChars":34,"textLines":3,"bbox":[1240,494,194,66]}
+{"kind":"shape","id":"sh/ed8bat47","slide":4,"bbox":[80,900.4,1760,72]}
+{"kind":"textbox","id":"sh/7u54zido","slide":4,"text":"หมายเหตุ: โค้ด client เรียกฐานข้อมูลและ storage โดยตรง จึงควรเพิ่ม backend/API layer เมื่อย้ายเข้า Private Cloud เพื่อควบคุมสิทธิ์และ audit ได้แน่นขึ้น","textPreview":"หมายเหตุ: โค้ด client เรียกฐานข้อมูลและ storage โดยตรง จึงควรเพิ่ม backend/API layer เมื่อย้ายเข้า Private Cloud เพื่อควบคุมสิทธิ์และ aud...","textChars":151,"textLines":1,"bbox":[98,918,1724,22]}
+{"kind":"textbox","id":"sh/twra5gbq","slide":4,"name":"footer-3","text":"ประเมินจากโค้ดระบบ ณ 15 พ.ค. 2026 • 3","textPreview":"ประเมินจากโค้ดระบบ ณ 15 พ.ค. 2026 • 3","textChars":37,"textLines":1,"bbox":[80,1006,1760,16]}
+{"kind":"notes","id":"nt/s72x4nap","slide":4,"text":""}
+{"kind":"slide","id":"sl/val87ed8","slide":5,"title":"Workflow การขอคืนเงินประกัน","textShapes":32}
+{"kind":"textbox","id":"sh/1gvy90je","slide":5,"name":"slide-title","text":"Workflow การขอคืนเงินประกัน","textPreview":"Workflow การขอคืนเงินประกัน","textChars":27,"textLines":1,"bbox":[80,58,1760,54]}
+{"kind":"textbox","id":"sh/qtcj6tov","slide":5,"name":"slide-subtitle","text":"เส้นทางหลัก 6 ขั้นจาก wizard และ status transition ใน submitForm()","textPreview":"เส้นทางหลัก 6 ขั้นจาก wizard และ status transition ใน submitForm()","textChars":66,"textLines":1,"bbox":[80,126,1760,24]}
+{"kind":"shape","id":"sh/je9cvixc","slide":5,"name":"title-rule","bbox":[80,166,1760,2]}
+{"kind":"shape","id":"sh/87ed8bat","slide":5,"bbox":[80,222,235,225]}
+{"kind":"textbox","id":"sh/xs72x4na","slide":5,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[98,240,200,36]}
+{"kind":"textbox","id":"sh/q1orytsv","slide":5,"text":"ข้อมูลทั่วไป","textPreview":"ข้อมูลทั่วไป","textChars":12,"textLines":1,"bbox":[98,288,200,24]}
+{"kind":"textbox","id":"sh/fmlkjm1c","slide":5,"text":"อาคาร ลูกค้า เจ้าของงาน พื้นที่","textPreview":"อาคาร ลูกค้า เจ้าของงาน พื้นที่","textChars":31,"textLines":1,"bbox":[98,324,200,18]}
+{"kind":"textbox","id":"sh/8jqh0fep","slide":5,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[326,320,28,32]}
+{"kind":"shape","id":"sh/x4nap4r6","slide":5,"bbox":[363,222,235,225]}
+{"kind":"textbox","id":"sh/1w7mp0bi","slide":5,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[382,240,200,36]}
+{"kind":"textbox","id":"sh/8bat47y1","slide":5,"text":"การเงิน","textPreview":"การเงิน","textChars":7,"textLines":1,"bbox":[382,288,200,24]}
+{"kind":"textbox","id":"sh/jqh0fepk","slide":5,"text":"PR วันที่ตั้งเบิก งบประมาณ","textPreview":"PR วันที่ตั้งเบิก งบประมาณ","textChars":26,"textLines":1,"bbox":[382,324,200,18]}
+{"kind":"textbox","id":"sh/q5o7qpg3","slide":5,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[608,320,28,32]}
+{"kind":"shape","id":"sh/18jqh0fe","slide":5,"bbox":[646,222,235,225]}
+{"kind":"textbox","id":"sh/8nqxs72x","slide":5,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[664,240,200,36]}
+{"kind":"textbox","id":"sh/j2t83itg","slide":5,"text":"แนบหลักฐาน","textPreview":"แนบหลักฐาน","textChars":10,"textLines":1,"bbox":[664,288,200,24]}
+{"kind":"textbox","id":"sh/qh0fepkz","slide":5,"text":"Payment / Drawing / เอกสารเพิ่ม","textPreview":"Payment / Drawing / เอกสารเพิ่ม","textChars":31,"textLines":1,"bbox":[664,324,200,18]}
+{"kind":"textbox","id":"sh/1cfa9w3m","slide":5,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[892,320,28,32]}
+{"kind":"shape","id":"sh/crmhk3q5","slide":5,"bbox":[929,222,235,225]}
+{"kind":"textbox","id":"sh/sfil0rqd","slide":5,"text":"4","textPreview":"4","textChars":1,"textLines":1,"bbox":[948,240,200,36]}
+{"kind":"textbox","id":"sh/h0fepkzu","slide":5,"text":"TL ดำเนินการ","textPreview":"TL ดำเนินการ","textChars":12,"textLines":1,"bbox":[948,288,200,24]}
+{"kind":"textbox","id":"sh/a9w3m94f","slide":5,"text":"auto route BKK/UPC ตาม area","textPreview":"auto route BKK/UPC ตาม area","textChars":27,"textLines":1,"bbox":[948,324,200,18]}
+{"kind":"textbox","id":"sh/zupwb2hw","slide":5,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[1174,320,28,32]}
+{"kind":"shape","id":"sh/orytsvu9","slide":5,"bbox":[1212,222,235,225]}
+{"kind":"textbox","id":"sh/hcrmhk3q","slide":5,"text":"5","textPreview":"5","textChars":1,"textLines":1,"bbox":[1230,240,200,36]}
+{"kind":"textbox","id":"sh/al87ed8b","slide":5,"text":"ตรวจรับ/ขอคืน","textPreview":"ตรวจรับ/ขอคืน","textChars":13,"textLines":1,"bbox":[1230,288,200,24]}
+{"kind":"textbox","id":"sh/z61032ls","slide":5,"text":"User รับงานหรือส่งกลับ TL","textPreview":"User รับงานหรือส่งกลับ TL","textChars":25,"textLines":1,"bbox":[1230,324,200,18]}
+{"kind":"textbox","id":"sh/oza1gvy9","slide":5,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[1458,320,28,32]}
+{"kind":"shape","id":"sh/hk3q5o7q","slide":5,"bbox":[1495,222,235,225]}
+{"kind":"textbox","id":"sh/7mp0bi9s","slide":5,"text":"6","textPreview":"6","textChars":1,"textLines":1,"bbox":[1514,240,200,36]}
+{"kind":"textbox","id":"sh/e1w7mp0b","slide":5,"text":"ปิดงาน","textPreview":"ปิดงาน","textChars":6,"textLines":1,"bbox":[1514,288,200,24]}
+{"kind":"textbox","id":"sh/psfil0rq","slide":5,"text":"แนบหลักฐานคืนเงิน/ปิดจบ","textPreview":"แนบหลักฐานคืนเงิน/ปิดจบ","textChars":23,"textLines":1,"bbox":[1514,324,200,18]}
+{"kind":"shape","id":"sh/w7mp0bi9","slide":5,"bbox":[80,501.8,572,120]}
+{"kind":"textbox","id":"sh/7adsji5s","slide":5,"text":"ส่งกลับก่อนรับงาน","textPreview":"ส่งกลับก่อนรับงาน","textChars":17,"textLines":1,"bbox":[108,526,516,30]}
+{"kind":"textbox","id":"sh/epkzupwb","slide":5,"text":"TL ส่งกลับเมื่อข้อมูลไม่ครบ → Step 3","textPreview":"TL ส่งกลับเมื่อข้อมูลไม่ครบ → Step 3","textChars":36,"textLines":1,"bbox":[108,566,516,20]}
+{"kind":"shape","id":"sh/pg3ex0nu","slide":5,"bbox":[674,501.8,572,120]}
+{"kind":"textbox","id":"sh/wval87ed","slide":5,"text":"ส่งกลับแก้ไข","textPreview":"ส่งกลับแก้ไข","textChars":12,"textLines":1,"bbox":[702,526,516,30]}
+{"kind":"textbox","id":"sh/36hcrmhk","slide":5,"text":"User ส่งกลับเมื่อหลักฐาน TL ไม่ถูกต้อง → Step 4","textPreview":"User ส่งกลับเมื่อหลักฐาน TL ไม่ถูกต้อง → Step 4","textChars":47,"textLines":1,"bbox":[702,566,516,20]}
+{"kind":"shape","id":"sh/eloj2t83","slide":5,"bbox":[1268,501.8,572,120]}
+{"kind":"textbox","id":"sh/yhgn29gr","slide":5,"text":"ปิดงานอัตโนมัติ","textPreview":"ปิดงานอัตโนมัติ","textChars":15,"textLines":1,"bbox":[1296,526,516,30]}
+{"kind":"textbox","id":"sh/n29gr2p8","slide":5,"text":"หากไม่มียอดการเงิน ระบบปิดงานเองหลังผ่านข้อมูลครบ","textPreview":"หากไม่มียอดการเงิน ระบบปิดงานเองหลังผ่านข้อมูลครบ","textChars":49,"textLines":1,"bbox":[1296,566,516,20]}
+{"kind":"textbox","id":"sh/gn29gr2p","slide":5,"name":"footer-4","text":"ประเมินจากโค้ดระบบ ณ 15 พ.ค. 2026 • 4","textPreview":"ประเมินจากโค้ดระบบ ณ 15 พ.ค. 2026 • 4","textChars":37,"textLines":1,"bbox":[80,656,1760,16]}
+{"kind":"notes","id":"nt/val87ed8","slide":5,"text":""}
+{"kind":"slide","id":"sl/mlkjm1cf","slide":6,"title":"Data & Document Flow","textShapes":18}
+{"kind":"textbox","id":"sh/vahoza1g","slide":6,"name":"slide-title","text":"Data & Document Flow","textPreview":"Data & Document Flow","textChars":20,"textLines":1,"bbox":[80,58,1760,54]}
+{"kind":"textbox","id":"sh/ovahoza1","slide":6,"name":"slide-subtitle","text":"ข้อมูลธุรกรรมอยู่ใน Firestore ส่วนไฟล์แนบอยู่ใน Storage และถูกอ้างอิงผ่าน URL ในรายการงาน","textPreview":"ข้อมูลธุรกรรมอยู่ใน Firestore ส่วนไฟล์แนบอยู่ใน Storage และถูกอ้างอิงผ่าน URL ในรายการงาน","textChars":89,"textLines":1,"bbox":[80,126,1760,24]}
+{"kind":"shape","id":"sh/dg7adsji","slide":6,"name":"title-rule","bbox":[80,166,1760,2]}
+{"kind":"shape","id":"sh/6hcrmhk3","slide":6,"bbox":[80,428,285,320]}
+{"kind":"textbox","id":"sh/z25kb6xk","slide":6,"text":"Client Browser","textPreview":"Client Browser","textChars":14,"textLines":1,"bbox":[108,452,230,30]}
+{"kind":"textbox","id":"sh/onyd0z61","slide":6,"text":"form wizard\ndashboard\nCSV export\nreal-time listener","textPreview":"form wizard | dashboard | CSV export | real-time listener","textChars":51,"textLines":4,"bbox":[108,492,230,88]}
+{"kind":"textbox","id":"sh/d8v6psfi","slide":6,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[390,562,52,52]}
+{"kind":"shape","id":"sh/6dcbulwv","slide":6,"bbox":[465,410,330,108]}
+{"kind":"textbox","id":"sh/vy90je9c","slide":6,"text":"deposits","textPreview":"deposits","textChars":8,"textLines":1,"bbox":[494,434,274,30]}
+{"kind":"textbox","id":"sh/nuxc3ylc","slide":6,"text":"รายการงาน / สถานะ / audit log","textPreview":"รายการงาน / สถานะ / audit log","textChars":29,"textLines":1,"bbox":[494,474,274,20]}
+{"kind":"shape","id":"sh/y90je9cv","slide":6,"bbox":[465,534,330,108]}
+{"kind":"textbox","id":"sh/5wjudg7a","slide":6,"text":"users","textPreview":"users","textChars":5,"textLines":1,"bbox":[494,558,274,30]}
+{"kind":"textbox","id":"sh/gbq1oryt","slide":6,"text":"employee_id / role / area / permissions","textPreview":"employee_id / role / area / permissions","textChars":39,"textLines":1,"bbox":[494,598,274,20]}
+{"kind":"shape","id":"sh/n29gr2p8","slide":6,"bbox":[465,658,330,108]}
+{"kind":"textbox","id":"sh/yhgn29gr","slide":6,"text":"password_reset_requests","textPreview":"password_reset_requests","textChars":23,"textLines":1,"bbox":[494,682,274,30]}
+{"kind":"textbox","id":"sh/58z25kb6","slide":6,"text":"ประวัติคำขอ reset","textPreview":"ประวัติคำขอ reset","textChars":17,"textLines":1,"bbox":[494,722,274,20]}
+{"kind":"textbox","id":"sh/gn29gr2p","slide":6,"text":"+","textPreview":"+","textChars":1,"textLines":1,"bbox":[820,562,44,52]}
+{"kind":"shape","id":"sh/neloj2t8","slide":6,"bbox":[887,428,270,320]}
+{"kind":"textbox","id":"sh/ytsvu9kn","slide":6,"text":"Storage folders","textPreview":"Storage folders","textChars":15,"textLines":1,"bbox":[916,452,214,30]}
+{"kind":"textbox","id":"sh/2x4nap4r","slide":6,"text":"payments\nlayouts\nadditional\ntl_works\ntl_extra\nfinal_docs","textPreview":"payments | layouts | additional | tl_works | tl_extra | final_docs","textChars":56,"textLines":6,"bbox":[916,492,214,130]}
+{"kind":"textbox","id":"sh/vixczed8","slide":6,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[1182,562,52,52]}
+{"kind":"shape","id":"sh/k3q5o7qp","slide":6,"bbox":[1257,428,285,320]}
+{"kind":"textbox","id":"sh/donyd0z6","slide":6,"text":"Business outputs","textPreview":"Business outputs","textChars":16,"textLines":1,"bbox":[1286,452,230,30]}
+{"kind":"textbox","id":"sh/6psfil0r","slide":6,"text":"KPI cards\nExecutive dashboard\nTL task board\nNotifications\nAudit log","textPreview":"KPI cards | Executive dashboard | TL task board | Notifications | Audit log","textChars":67,"textLines":5,"bbox":[1286,492,230,108]}
+{"kind":"textbox","id":"sh/val87ed8","slide":6,"name":"footer-5","text":"ประเมินจากโค้ดระบบ ณ 15 พ.ค. 2026 • 5","textPreview":"ประเมินจากโค้ดระบบ ณ 15 พ.ค. 2026 • 5","textChars":37,"textLines":1,"bbox":[80,1006,1760,16]}
+{"kind":"notes","id":"nt/mlkjm1cf","slide":6,"text":""}
+{"kind":"slide","id":"sl/58z25kb6","slide":7,"title":"Target Private Cloud Architecture","textShapes":25}
+{"kind":"textbox","id":"sh/9cvixcze","slide":7,"name":"slide-title","text":"Target Private Cloud Architecture","textPreview":"Target Private Cloud Architecture","textChars":33,"textLines":1,"bbox":[80,58,1760,54]}
+{"kind":"textbox","id":"sh/ylc7u54z","slide":7,"name":"slide-subtitle","text":"แนะนำเพิ่ม API layer เพื่อย้าย business rules และสิทธิ์ออกจาก browser","textPreview":"แนะนำเพิ่ม API layer เพื่อย้าย business rules และสิทธิ์ออกจาก browser","textChars":69,"textLines":1,"bbox":[80,126,1760,24]}
+{"kind":"shape","id":"sh/r65wjudg","slide":7,"name":"title-rule","bbox":[80,166,1760,2]}
+{"kind":"shape","id":"sh/g3ex0nux","slide":7,"bbox":[80,462,210,145]}
+{"kind":"textbox","id":"sh/5o7qpg3e","slide":7,"text":"Users","textPreview":"Users","textChars":5,"textLines":1,"bbox":[108,486,154,30]}
+{"kind":"textbox","id":"sh/yxobm58z","slide":7,"text":"Web / Mobile browser","textPreview":"Web / Mobile browser","textChars":20,"textLines":1,"bbox":[108,526,154,20]}
+{"kind":"textbox","id":"sh/nih4byhg","slide":7,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[308,512,36,44]}
+{"kind":"shape","id":"sh/g7adsji5","slide":7,"bbox":[362,418,270,108]}
+{"kind":"textbox","id":"sh/9s36hcrm","slide":7,"text":"WAF / Reverse Proxy","textPreview":"WAF / Reverse Proxy","textChars":19,"textLines":1,"bbox":[390,442,214,30]}
+{"kind":"textbox","id":"sh/d8v6psfi","slide":7,"text":"TLS termination","textPreview":"TLS termination","textChars":15,"textLines":1,"bbox":[390,482,214,20]}
+{"kind":"shape","id":"sh/onyd0z61","slide":7,"bbox":[362,542,270,108]}
+{"kind":"textbox","id":"sh/z25kb6xk","slide":7,"text":"Static Web","textPreview":"Static Web","textChars":10,"textLines":1,"bbox":[390,566,214,30]}
+{"kind":"textbox","id":"sh/6hcrmhk3","slide":7,"text":"Nginx / CDN","textPreview":"Nginx / CDN","textChars":11,"textLines":1,"bbox":[390,606,214,20]}
+{"kind":"textbox","id":"sh/dg7adsji","slide":7,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[650,512,36,44]}
+{"kind":"shape","id":"sh/ovahoza1","slide":7,"bbox":[704,418,300,108]}
+{"kind":"textbox","id":"sh/vahoza1g","slide":7,"text":"API Service","textPreview":"API Service","textChars":11,"textLines":1,"bbox":[732,442,244,30]}
+{"kind":"textbox","id":"sh/6tovahoz","slide":7,"text":"Node.js / container","textPreview":"Node.js / container","textChars":19,"textLines":1,"bbox":[732,482,244,20]}
+{"kind":"shape","id":"sh/dsji5sne","slide":7,"bbox":[704,542,300,108]}
+{"kind":"textbox","id":"sh/o7qpg3ex","slide":7,"text":"Auth / RBAC","textPreview":"Auth / RBAC","textChars":11,"textLines":1,"bbox":[732,566,244,30]}
+{"kind":"textbox","id":"sh/kjm1cfa9","slide":7,"text":"SSO or local IAM","textPreview":"SSO or local IAM","textChars":16,"textLines":1,"bbox":[732,606,244,20]}
+{"kind":"textbox","id":"sh/94fu18jq","slide":7,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[1022,512,36,44]}
+{"kind":"shape","id":"sh/2hwfyxob","slide":7,"bbox":[1076,350,300,112]}
+{"kind":"textbox","id":"sh/r2p8nqxs","slide":7,"text":"PostgreSQL HA","textPreview":"PostgreSQL HA","textChars":13,"textLines":1,"bbox":[1104,374,244,30]}
+{"kind":"textbox","id":"sh/gvy90je9","slide":7,"text":"primary / standby","textPreview":"primary / standby","textChars":17,"textLines":1,"bbox":[1104,414,244,18]}
+{"kind":"shape","id":"sh/9gr2p8nq","slide":7,"bbox":[1076,478,300,112]}
+{"kind":"textbox","id":"sh/2p8nqxs7","slide":7,"text":"Object Storage","textPreview":"Object Storage","textChars":14,"textLines":1,"bbox":[1104,502,244,30]}
+{"kind":"textbox","id":"sh/ra5gbq1o","slide":7,"text":"S3-compatible","textPreview":"S3-compatible","textChars":13,"textLines":1,"bbox":[1104,542,244,18]}
+{"kind":"shape","id":"sh/kzupwb2h","slide":7,"bbox":[1076,606,300,112]}
+{"kind":"textbox","id":"sh/9knih4by","slide":7,"text":"Redis / Queue","textPreview":"Redis / Queue","textChars":13,"textLines":1,"bbox":[1104,630,244,30]}
+{"kind":"textbox","id":"sh/fa9w3m94","slide":7,"text":"cache / background jobs","textPreview":"cache / background jobs","textChars":23,"textLines":1,"bbox":[1104,670,244,18]}
+{"kind":"shape","id":"sh/qpg3ex0n","slide":7,"bbox":[1394,442,240,185]}
+{"kind":"textbox","id":"sh/xczed8v6","slide":7,"text":"Monitoring\nBackup\nAudit Logs","textPreview":"Monitoring | Backup | Audit Logs","textChars":28,"textLines":3,"bbox":[1422,466,184,88]}
+{"kind":"textbox","id":"sh/8v6psfil","slide":7,"text":"metrics + alerting","textPreview":"metrics + alerting","textChars":18,"textLines":1,"bbox":[1422,564,184,18]}
+{"kind":"shape","id":"sh/fyxobm58","slide":7,"bbox":[80,898.4,1760,74]}
+{"kind":"textbox","id":"sh/qd4vmtwr","slide":7,"text":"เหตุผล: ลดการเข้าถึงข้อมูลตรงจาก client, บังคับใช้ workflow/validation ฝั่ง server, เก็บ audit ได้ครบ และทำ backup/DR ได้ตามนโยบายองค์กร","textPreview":"เหตุผล: ลดการเข้าถึงข้อมูลตรงจาก client, บังคับใช้ workflow/validation ฝั่ง server, เก็บ audit ได้ครบ และทำ backup/DR ได้ตามนโยบายองค์กร","textChars":136,"textLines":1,"bbox":[98,916,1724,22]}
+{"kind":"textbox","id":"sh/x4nap4r6","slide":7,"name":"footer-6","text":"ประเมินจากโค้ดระบบ ณ 15 พ.ค. 2026 • 6","textPreview":"ประเมินจากโค้ดระบบ ณ 15 พ.ค. 2026 • 6","textChars":37,"textLines":1,"bbox":[80,1006,1760,16]}
+{"kind":"notes","id":"nt/58z25kb6","slide":7,"text":""}
+{"kind":"slide","id":"sl/0z61032l","slide":8,"title":"Sizing Assumptions","textShapes":16}
+{"kind":"textbox","id":"sh/qd4vmtwr","slide":8,"name":"slide-title","text":"Sizing Assumptions","textPreview":"Sizing Assumptions","textChars":18,"textLines":1,"bbox":[80,58,1760,54]}
+{"kind":"textbox","id":"sh/x4nap4r6","slide":8,"name":"slide-subtitle","text":"ไม่มี telemetry จริงใน repo จึงประเมินแบบ conservative สำหรับระบบเอกสารภายใน","textPreview":"ไม่มี telemetry จริงใน repo จึงประเมินแบบ conservative สำหรับระบบเอกสารภายใน","textChars":76,"textLines":1,"bbox":[80,126,1760,24]}
+{"kind":"shape","id":"sh/8jqh0fep","slide":8,"name":"title-rule","bbox":[80,166,1760,2]}
+{"kind":"shape","id":"sh/fa9w3m94","slide":8,"bbox":[80,202.8,1760,74]}
+{"kind":"textbox","id":"sh/qpg3ex0n","slide":8,"text":"ผู้ใช้","textPreview":"ผู้ใช้","textChars":6,"textLines":1,"bbox":[104,218,250,28]}
+{"kind":"textbox","id":"sh/xczed8v6","slide":8,"text":"50-200 named users, 20-50 concurrent sessions","textPreview":"50-200 named users, 20-50 concurrent sessions","textChars":45,"textLines":1,"bbox":[382,218,1434,24]}
+{"kind":"shape","id":"sh/8v6psfil","slide":8,"bbox":[80,289.8,1760,74]}
+{"kind":"textbox","id":"sh/je9cvixc","slide":8,"text":"รายการงาน","textPreview":"รายการงาน","textChars":9,"textLines":1,"bbox":[104,306,250,28]}
+{"kind":"textbox","id":"sh/qtcj6tov","slide":8,"text":"10k-100k records ในช่วง 3-5 ปี","textPreview":"10k-100k records ในช่วง 3-5 ปี","textChars":30,"textLines":1,"bbox":[382,306,1434,24]}
+{"kind":"shape","id":"sh/svu9knih","slide":8,"bbox":[80,376.8,1760,74]}
+{"kind":"textbox","id":"sh/hgn29gr2","slide":8,"text":"ไฟล์แนบ","textPreview":"ไฟล์แนบ","textChars":7,"textLines":1,"bbox":[104,392,250,28]}
+{"kind":"textbox","id":"sh/ap4r65wj","slide":8,"text":"PDF/JPG/PNG สูงสุด 20 MB ต่อไฟล์, เฉลี่ย 3-5 ไฟล์ต่อรายการ","textPreview":"PDF/JPG/PNG สูงสุด 20 MB ต่อไฟล์, เฉลี่ย 3-5 ไฟล์ต่อรายการ","textChars":58,"textLines":1,"bbox":[382,392,1434,24]}
+{"kind":"shape","id":"sh/za1gvy90","slide":8,"bbox":[80,463.8,1760,74]}
+{"kind":"textbox","id":"sh/s36hcrmh","slide":8,"text":"รูปแบบโหลด","textPreview":"รูปแบบโหลด","textChars":10,"textLines":1,"bbox":[104,480,250,28]}
+{"kind":"textbox","id":"sh/hoza1gvy","slide":8,"text":"อ่านรายการ/dashboard บ่อยกว่าเขียน, มี real-time/notification","textPreview":"อ่านรายการ/dashboard บ่อยกว่าเขียน, มี real-time/notification","textChars":61,"textLines":1,"bbox":[382,480,1434,24]}
+{"kind":"shape","id":"sh/a1gvy90j","slide":8,"bbox":[80,550.8,1760,74]}
+{"kind":"textbox","id":"sh/zidonyd0","slide":8,"text":"ความพร้อมใช้","textPreview":"ความพร้อมใช้","textChars":12,"textLines":1,"bbox":[104,566,250,28]}
+{"kind":"textbox","id":"sh/s72x4nap","slide":8,"text":"งานภายในที่ควรมี HA ขั้นพื้นฐานและ backup รายวัน","textPreview":"งานภายในที่ควรมี HA ขั้นพื้นฐานและ backup รายวัน","textChars":48,"textLines":1,"bbox":[382,566,1434,24]}
+{"kind":"shape","id":"sh/lszqtcj6","slide":8,"bbox":[80,637.8,1760,74]}
+{"kind":"textbox","id":"sh/pg3ex0nu","slide":8,"text":"การโต","textPreview":"การโต","textChars":5,"textLines":1,"bbox":[104,654,250,28]}
+{"kind":"textbox","id":"sh/wval87ed","slide":8,"text":"เผื่อพื้นที่ object storage โตเร็วกว่า database","textPreview":"เผื่อพื้นที่ object storage โตเร็วกว่า database","textChars":47,"textLines":1,"bbox":[382,654,1434,24]}
+{"kind":"shape","id":"sh/7adsji5s","slide":8,"bbox":[80,898.4,1760,74]}
+{"kind":"textbox","id":"sh/epkzupwb","slide":8,"text":"ข้อควรยืนยันก่อนจัดซื้อจริง: จำนวนผู้ใช้พร้อมกัน, retention เอกสาร, RPO/RTO, นโยบาย SSO และข้อกำหนด security ขององค์กร","textPreview":"ข้อควรยืนยันก่อนจัดซื้อจริง: จำนวนผู้ใช้พร้อมกัน, retention เอกสาร, RPO/RTO, นโยบาย SSO และข้อกำหนด security ขององค์กร","textChars":118,"textLines":1,"bbox":[98,916,1724,22]}
+{"kind":"textbox","id":"sh/psfil0rq","slide":8,"name":"footer-7","text":"ประเมินจากโค้ดระบบ ณ 15 พ.ค. 2026 • 7","textPreview":"ประเมินจากโค้ดระบบ ณ 15 พ.ค. 2026 • 7","textChars":37,"textLines":1,"bbox":[80,1006,1760,16]}
+{"kind":"notes","id":"nt/0z61032l","slide":8,"text":""}
+{"kind":"slide","id":"sl/fu18jqh0","slide":9,"title":"Recommended Private Cloud Spec","textShapes":32}
+{"kind":"textbox","id":"sh/1032lszq","slide":9,"name":"slide-title","text":"Recommended Private Cloud Spec","textPreview":"Recommended Private Cloud Spec","textChars":30,"textLines":1,"bbox":[80,58,1760,54]}
+{"kind":"textbox","id":"sh/u9knih4b","slide":9,"name":"slide-subtitle","text":"Spec แนะนำสำหรับเริ่ม production พร้อม HA ขั้นพื้นฐาน และเผื่อขยาย","textPreview":"Spec แนะนำสำหรับเริ่ม production พร้อม HA ขั้นพื้นฐาน และเผื่อขยาย","textChars":66,"textLines":1,"bbox":[80,126,1760,24]}
+{"kind":"shape","id":"sh/judg7ads","slide":9,"name":"title-rule","bbox":[80,166,1760,2]}
+{"kind":"shape","id":"sh/c7u54zid","slide":9,"bbox":[80,192.8,1760,54]}
+{"kind":"textbox","id":"sh/1orytsvu","slide":9,"text":"Layer","textPreview":"Layer","textChars":5,"textLines":1,"bbox":[98,204,285,22]}
+{"kind":"textbox","id":"sh/u18jqh0f","slide":9,"text":"จำนวน","textPreview":"จำนวน","textChars":5,"textLines":1,"bbox":[398,204,145,22]}
+{"kind":"textbox","id":"sh/jm1cfa9w","slide":9,"text":"Spec ต่อ node","textPreview":"Spec ต่อ node","textChars":13,"textLines":1,"bbox":[556,204,430,22]}
+{"kind":"textbox","id":"sh/cvixczed","slide":9,"text":"เหตุผล","textPreview":"เหตุผล","textChars":6,"textLines":1,"bbox":[1000,204,822,22]}
+{"kind":"shape","id":"sh/5gbq1ory","slide":9,"bbox":[80,246.8,1760,78]}
+{"kind":"textbox","id":"sh/18jqh0fe","slide":9,"text":"Load Balancer / WAF","textPreview":"Load Balancer / WAF","textChars":19,"textLines":1,"bbox":[98,260,285,20]}
+{"kind":"textbox","id":"sh/8nqxs72x","slide":9,"text":"2 VM","textPreview":"2 VM","textChars":4,"textLines":1,"bbox":[398,260,145,20]}
+{"kind":"textbox","id":"sh/j2t83itg","slide":9,"text":"2 vCPU / 4 GB RAM / 40 GB","textPreview":"2 vCPU / 4 GB RAM / 40 GB","textChars":25,"textLines":1,"bbox":[556,260,430,18]}
+{"kind":"textbox","id":"sh/qh0fepkz","slide":9,"text":"HA, TLS termination, reverse proxy","textPreview":"HA, TLS termination, reverse proxy","textChars":34,"textLines":1,"bbox":[1000,260,822,18]}
+{"kind":"shape","id":"sh/1w7mp0bi","slide":9,"bbox":[80,324.8,1760,78]}
+{"kind":"textbox","id":"sh/8bat47y1","slide":9,"text":"Web + API","textPreview":"Web + API","textChars":9,"textLines":1,"bbox":[98,338,285,20]}
+{"kind":"textbox","id":"sh/jqh0fepk","slide":9,"text":"2 VM","textPreview":"2 VM","textChars":4,"textLines":1,"bbox":[398,338,145,20]}
+{"kind":"textbox","id":"sh/q5o7qpg3","slide":9,"text":"4 vCPU / 8 GB RAM / 80 GB","textPreview":"4 vCPU / 8 GB RAM / 80 GB","textChars":25,"textLines":1,"bbox":[556,338,430,18]}
+{"kind":"textbox","id":"sh/1kre1w7m","slide":9,"text":"รองรับ UI/API, validation, RBAC, background tasks เบา","textPreview":"รองรับ UI/API, validation, RBAC, background tasks เบา","textChars":53,"textLines":1,"bbox":[1000,338,822,18]}
+{"kind":"shape","id":"sh/c3ylc7u5","slide":9,"bbox":[80,402.8,1760,78]}
+{"kind":"textbox","id":"sh/orytsvu9","slide":9,"text":"Database","textPreview":"Database","textChars":8,"textLines":1,"bbox":[98,416,285,20]}
+{"kind":"textbox","id":"sh/hcrmhk3q","slide":9,"text":"2 VM","textPreview":"2 VM","textChars":4,"textLines":1,"bbox":[398,416,145,20]}
+{"kind":"textbox","id":"sh/al87ed8b","slide":9,"text":"4-8 vCPU / 16-32 GB RAM / 300 GB SSD","textPreview":"4-8 vCPU / 16-32 GB RAM / 300 GB SSD","textChars":36,"textLines":1,"bbox":[556,416,430,18]}
+{"kind":"textbox","id":"sh/z61032ls","slide":9,"text":"PostgreSQL primary/standby, audit และ dashboard queries","textPreview":"PostgreSQL primary/standby, audit และ dashboard queries","textChars":55,"textLines":1,"bbox":[1000,416,822,18]}
+{"kind":"shape","id":"sh/sfil0rqd","slide":9,"bbox":[80,480.8,1760,78]}
+{"kind":"textbox","id":"sh/h0fepkzu","slide":9,"text":"Object Storage","textPreview":"Object Storage","textChars":14,"textLines":1,"bbox":[98,494,285,20]}
+{"kind":"textbox","id":"sh/a9w3m94f","slide":9,"text":"3 node","textPreview":"3 node","textChars":6,"textLines":1,"bbox":[398,494,145,20]}
+{"kind":"textbox","id":"sh/zupwb2hw","slide":9,"text":"4 vCPU / 16 GB RAM / 2 TB usable+","textPreview":"4 vCPU / 16 GB RAM / 2 TB usable+","textChars":33,"textLines":1,"bbox":[556,494,430,18]}
+{"kind":"textbox","id":"sh/obm58z25","slide":9,"text":"เก็บ PDF/JPG/PNG, replication, lifecycle policy","textPreview":"เก็บ PDF/JPG/PNG, replication, lifecycle policy","textChars":47,"textLines":1,"bbox":[1000,494,822,18]}
+{"kind":"shape","id":"sh/hwfyxobm","slide":9,"bbox":[80,558.8,1760,78]}
+{"kind":"textbox","id":"sh/7u54zido","slide":9,"text":"Monitoring / Log","textPreview":"Monitoring / Log","textChars":16,"textLines":1,"bbox":[98,572,285,20]}
+{"kind":"textbox","id":"sh/ed8bat47","slide":9,"text":"1 VM","textPreview":"1 VM","textChars":4,"textLines":1,"bbox":[398,572,145,20]}
+{"kind":"textbox","id":"sh/l0rqd4vm","slide":9,"text":"4 vCPU / 8 GB RAM / 300 GB","textPreview":"4 vCPU / 8 GB RAM / 300 GB","textChars":26,"textLines":1,"bbox":[556,572,430,18]}
+{"kind":"textbox","id":"sh/wfyxobm5","slide":9,"text":"metrics, centralized logs, alerting","textPreview":"metrics, centralized logs, alerting","textChars":35,"textLines":1,"bbox":[1000,572,822,18]}
+{"kind":"shape","id":"sh/36hcrmhk","slide":9,"bbox":[80,636.8,1760,78]}
+{"kind":"textbox","id":"sh/eloj2t83","slide":9,"text":"Backup Repository","textPreview":"Backup Repository","textChars":17,"textLines":1,"bbox":[98,650,285,20]}
+{"kind":"textbox","id":"sh/lc7u54zi","slide":9,"text":"1 target","textPreview":"1 target","textChars":8,"textLines":1,"bbox":[398,650,145,20]}
+{"kind":"textbox","id":"sh/wra5gbq1","slide":9,"text":"เริ่ม 2-4 TB ตาม retention","textPreview":"เริ่ม 2-4 TB ตาม retention","textChars":26,"textLines":1,"bbox":[556,650,430,18]}
+{"kind":"textbox","id":"sh/7adsji5s","slide":9,"text":"daily backup, monthly archive, restore test","textPreview":"daily backup, monthly archive, restore test","textChars":43,"textLines":1,"bbox":[1000,650,822,18]}
+{"kind":"shape","id":"sh/epkzupwb","slide":9,"bbox":[80,916.4,1760,66]}
+{"kind":"textbox","id":"sh/ex0nuxc3","slide":9,"text":"รวมประมาณ: 17-23 vCPU, 80-120 GB RAM, storage เริ่ม 3-6 TB usable ขึ้นกับ retention และจำนวนไฟล์จริง","textPreview":"รวมประมาณ: 17-23 vCPU, 80-120 GB RAM, storage เริ่ม 3-6 TB usable ขึ้นกับ retention และจำนวนไฟล์จริง","textChars":100,"textLines":1,"bbox":[98,934,1724,22]}
+{"kind":"textbox","id":"sh/3itgfmlk","slide":9,"name":"footer-8","text":"ประเมินจากโค้ดระบบ ณ 15 พ.ค. 2026 • 8","textPreview":"ประเมินจากโค้ดระบบ ณ 15 พ.ค. 2026 • 8","textChars":37,"textLines":1,"bbox":[80,1006,1760,16]}
+{"kind":"notes","id":"nt/fu18jqh0","slide":9,"text":""}
+{"kind":"slide","id":"sl/qh0fepkz","slide":10,"title":"Security, Backup & Operations","textShapes":30}
+{"kind":"textbox","id":"sh/vahoza1g","slide":10,"name":"slide-title","text":"Security, Backup & Operations","textPreview":"Security, Backup & Operations","textChars":29,"textLines":1,"bbox":[80,58,1760,54]}
+{"kind":"textbox","id":"sh/ovahoza1","slide":10,"name":"slide-subtitle","text":"ประเด็นที่ควรทำควบคู่กับการย้ายขึ้น Private Cloud","textPreview":"ประเด็นที่ควรทำควบคู่กับการย้ายขึ้น Private Cloud","textChars":49,"textLines":1,"bbox":[80,126,1760,24]}
+{"kind":"shape","id":"sh/dg7adsji","slide":10,"name":"title-rule","bbox":[80,166,1760,2]}
+{"kind":"shape","id":"sh/6hcrmhk3","slide":10,"bbox":[80,202.8,568,769.6]}
+{"kind":"textbox","id":"sh/z25kb6xk","slide":10,"text":"Security","textPreview":"Security","textChars":8,"textLines":1,"bbox":[108,230,512,32]}
+{"kind":"textbox","id":"sh/onyd0z61","slide":10,"text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[108,280,18,26]}
+{"kind":"textbox","id":"sh/d8v6psfi","slide":10,"text":"ย้าย password/role validation ไป server","textPreview":"ย้าย password/role validation ไป server","textChars":39,"textLines":1,"bbox":[138,280,482,22]}
+{"kind":"textbox","id":"sh/6dcbulwv","slide":10,"text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[108,320,18,26]}
+{"kind":"textbox","id":"sh/vy90je9c","slide":10,"text":"Hash password หรือเชื่อม SSO/IAM","textPreview":"Hash password หรือเชื่อม SSO/IAM","textChars":32,"textLines":1,"bbox":[138,320,482,22]}
+{"kind":"textbox","id":"sh/nuxc3ylc","slide":10,"text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[108,358,18,26]}
+{"kind":"textbox","id":"sh/y90je9cv","slide":10,"text":"ใช้ signed URL สำหรับไฟล์แนบ","textPreview":"ใช้ signed URL สำหรับไฟล์แนบ","textChars":28,"textLines":1,"bbox":[138,358,482,22]}
+{"kind":"textbox","id":"sh/5wjudg7a","slide":10,"text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[108,398,18,26]}
+{"kind":"textbox","id":"sh/gbq1oryt","slide":10,"text":"WAF + TLS + network segmentation","textPreview":"WAF + TLS + network segmentation","textChars":32,"textLines":1,"bbox":[138,398,482,22]}
+{"kind":"shape","id":"sh/n29gr2p8","slide":10,"bbox":[676,202.8,568,769.6]}
+{"kind":"textbox","id":"sh/yhgn29gr","slide":10,"text":"Data Protection","textPreview":"Data Protection","textChars":15,"textLines":1,"bbox":[704,230,512,32]}
+{"kind":"textbox","id":"sh/58z25kb6","slide":10,"text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[704,280,18,26]}
+{"kind":"textbox","id":"sh/gn29gr2p","slide":10,"text":"PostgreSQL PITR / daily snapshot","textPreview":"PostgreSQL PITR / daily snapshot","textChars":32,"textLines":1,"bbox":[734,280,482,22]}
+{"kind":"textbox","id":"sh/neloj2t8","slide":10,"text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[704,320,18,26]}
+{"kind":"textbox","id":"sh/ytsvu9kn","slide":10,"text":"Object storage versioning + lifecycle","textPreview":"Object storage versioning + lifecycle","textChars":37,"textLines":1,"bbox":[734,320,482,22]}
+{"kind":"textbox","id":"sh/2x4nap4r","slide":10,"text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[704,358,18,26]}
+{"kind":"textbox","id":"sh/vixczed8","slide":10,"text":"เข้ารหัส at rest/in transit","textPreview":"เข้ารหัส at rest/in transit","textChars":27,"textLines":1,"bbox":[734,358,482,22]}
+{"kind":"textbox","id":"sh/k3q5o7qp","slide":10,"text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[704,398,18,26]}
+{"kind":"textbox","id":"sh/donyd0z6","slide":10,"text":"restore test รายไตรมาส","textPreview":"restore test รายไตรมาส","textChars":22,"textLines":1,"bbox":[734,398,482,22]}
+{"kind":"shape","id":"sh/6psfil0r","slide":10,"bbox":[1272,202.8,568,769.6]}
+{"kind":"textbox","id":"sh/val87ed8","slide":10,"text":"Operations","textPreview":"Operations","textChars":10,"textLines":1,"bbox":[1300,230,512,32]}
+{"kind":"textbox","id":"sh/kre1w7mp","slide":10,"text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[1300,280,18,26]}
+{"kind":"textbox","id":"sh/dcbulwva","slide":10,"text":"centralized log + audit trail","textPreview":"centralized log + audit trail","textChars":29,"textLines":1,"bbox":[1330,280,482,22]}
+{"kind":"textbox","id":"sh/2lszqtcj","slide":10,"text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[1300,320,18,26]}
+{"kind":"textbox","id":"sh/v6psfil0","slide":10,"text":"alert: error rate, storage quota, DB latency","textPreview":"alert: error rate, storage quota, DB latency","textChars":44,"textLines":1,"bbox":[1330,320,482,22]}
+{"kind":"textbox","id":"sh/h4byhgn2","slide":10,"text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[1300,358,18,26]}
+{"kind":"textbox","id":"sh/sji5snel","slide":10,"text":"CI/CD สำหรับ static web และ API","textPreview":"CI/CD สำหรับ static web และ API","textChars":31,"textLines":1,"bbox":[1330,358,482,22]}
+{"kind":"textbox","id":"sh/3ylc7u54","slide":10,"text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[1300,398,18,26]}
+{"kind":"textbox","id":"sh/adsji5sn","slide":10,"text":"runbook สำหรับ incident และ DR","textPreview":"runbook สำหรับ incident และ DR","textChars":30,"textLines":1,"bbox":[1330,398,482,22]}
+{"kind":"textbox","id":"sh/lszqtcj6","slide":10,"name":"footer-9","text":"ประเมินจากโค้ดระบบ ณ 15 พ.ค. 2026 • 9","textPreview":"ประเมินจากโค้ดระบบ ณ 15 พ.ค. 2026 • 9","textChars":37,"textLines":1,"bbox":[80,1006,1760,16]}
+{"kind":"notes","id":"nt/qh0fepkz","slide":10,"text":""}
+{"kind":"slide","id":"sl/29gr2p8n","slide":11,"title":"Implementation Roadmap","textShapes":19}
+{"kind":"textbox","id":"sh/2p8nqxs7","slide":11,"name":"slide-title","text":"Implementation Roadmap","textPreview":"Implementation Roadmap","textChars":22,"textLines":1,"bbox":[80,58,1760,54]}
+{"kind":"textbox","id":"sh/9gr2p8nq","slide":11,"name":"slide-subtitle","text":"แนวทางดำเนินการเพื่อลดความเสี่ยงและคุมงบประมาณ","textPreview":"แนวทางดำเนินการเพื่อลดความเสี่ยงและคุมงบประมาณ","textChars":46,"textLines":1,"bbox":[80,126,1760,24]}
+{"kind":"shape","id":"sh/gvy90je9","slide":11,"name":"title-rule","bbox":[80,166,1760,2]}
+{"kind":"shape","id":"sh/r2p8nqxs","slide":11,"bbox":[80,394,330,270]}
+{"kind":"shape","id":"sh/2hwfyxob","slide":11,"bbox":[106,420,83.96,44]}
+{"kind":"textbox","id":"sh/94fu18jq","slide":11,"text":"Phase 1","textPreview":"Phase 1","textChars":7,"textLines":1,"bbox":[124,430,48,36]}
+{"kind":"textbox","id":"sh/kjm1cfa9","slide":11,"text":"Stabilize","textPreview":"Stabilize","textChars":9,"textLines":1,"bbox":[106,482,278,30]}
+{"kind":"textbox","id":"sh/rqd4vmtw","slide":11,"text":"สำรวจข้อมูลจริง, retention, สิทธิ์ผู้ใช้, export schema จาก Firebase","textPreview":"สำรวจข้อมูลจริง, retention, สิทธิ์ผู้ใช้, export schema จาก Firebase","textChars":68,"textLines":1,"bbox":[106,530,278,42]}
+{"kind":"textbox","id":"sh/25kb6xkf","slide":11,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[428,508,36,44]}
+{"kind":"shape","id":"sh/4fu18jqh","slide":11,"bbox":[482,394,330,270]}
+{"kind":"shape","id":"sh/x0nuxc3y","slide":11,"bbox":[508,420,83.96,44]}
+{"kind":"textbox","id":"sh/m94fu18j","slide":11,"text":"Phase 2","textPreview":"Phase 2","textChars":7,"textLines":1,"bbox":[526,430,48,36]}
+{"kind":"textbox","id":"sh/fu18jqh0","slide":11,"text":"Backend Layer","textPreview":"Backend Layer","textChars":13,"textLines":1,"bbox":[508,482,278,30]}
+{"kind":"textbox","id":"sh/83itgfml","slide":11,"text":"สร้าง API/RBAC, migrate validation, audit log, signed file access","textPreview":"สร้าง API/RBAC, migrate validation, audit log, signed file access","textChars":65,"textLines":1,"bbox":[508,530,278,42]}
+{"kind":"textbox","id":"sh/xobm58z2","slide":11,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[830,508,36,44]}
+{"kind":"shape","id":"sh/qxs72x4n","slide":11,"bbox":[884,394,330,270]}
+{"kind":"shape","id":"sh/fil0rqd4","slide":11,"bbox":[910,420,83.96,44]}
+{"kind":"textbox","id":"sh/4zidonyd","slide":11,"text":"Phase 3","textPreview":"Phase 3","textChars":7,"textLines":1,"bbox":[928,430,48,36]}
+{"kind":"textbox","id":"sh/xkf6dcbu","slide":11,"text":"Private Cloud Pilot","textPreview":"Private Cloud Pilot","textChars":19,"textLines":1,"bbox":[910,482,278,30]}
+{"kind":"textbox","id":"sh/xczed8v6","slide":11,"text":"deploy HA baseline, migrate sample data, performance & restore test","textPreview":"deploy HA baseline, migrate sample data, performance & restore test","textChars":67,"textLines":1,"bbox":[910,530,278,42]}
+{"kind":"textbox","id":"sh/8v6psfil","slide":11,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[1232,508,36,44]}
+{"kind":"shape","id":"sh/fa9w3m94","slide":11,"bbox":[1286,394,330,270]}
+{"kind":"shape","id":"sh/qpg3ex0n","slide":11,"bbox":[1312,420,83.96,44]}
+{"kind":"textbox","id":"sh/x4nap4r6","slide":11,"text":"Phase 4","textPreview":"Phase 4","textChars":7,"textLines":1,"bbox":[1330,430,48,36]}
+{"kind":"textbox","id":"sh/8jqh0fep","slide":11,"text":"Cutover","textPreview":"Cutover","textChars":7,"textLines":1,"bbox":[1312,482,278,30]}
+{"kind":"textbox","id":"sh/fyxobm58","slide":11,"text":"freeze window, final migration, training, monitoring war room","textPreview":"freeze window, final migration, training, monitoring war room","textChars":61,"textLines":1,"bbox":[1312,530,278,42]}
+{"kind":"shape","id":"sh/qd4vmtwr","slide":11,"bbox":[80,890.4,1760,82]}
+{"kind":"textbox","id":"sh/xs72x4na","slide":11,"text":"Decision ขออนุมัติ: เริ่ม Phase 1-2 เพื่อยืนยัน sizing ด้วยข้อมูลจริง แล้วล็อกงบ Private Cloud ก่อน pilot production","textPreview":"Decision ขออนุมัติ: เริ่ม Phase 1-2 เพื่อยืนยัน sizing ด้วยข้อมูลจริง แล้วล็อกงบ Private Cloud ก่อน pilot production","textChars":116,"textLines":1,"bbox":[100,910,1720,28]}
+{"kind":"textbox","id":"sh/87ed8bat","slide":11,"name":"footer-10","text":"ประเมินจากโค้ดระบบ ณ 15 พ.ค. 2026 • 10","textPreview":"ประเมินจากโค้ดระบบ ณ 15 พ.ค. 2026 • 10","textChars":38,"textLines":1,"bbox":[80,1006,1760,16]}
+{"kind":"notes","id":"nt/29gr2p8n","slide":11,"text":""}
