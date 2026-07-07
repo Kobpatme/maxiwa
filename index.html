@@ -2564,6 +2564,7 @@
                     <th>PR No.</th>
                     <th>วันที่ตั้งเบิก</th>
                     <th>ยอดรวม</th>
+                    <th>เงินประกันติดตั้ง</th>
                     <th>พื้นที่</th>
                     <th>ขั้นตอน</th>
                     <th id="th-action">การดำเนินการ</th>
@@ -4544,6 +4545,7 @@
       <td class="nowrap" style="color:var(--txt2)">${esc(d.pr) || '—'}</td>
       <td class="nowrap" style="color:var(--txt2);font-size:12px">${fmtDate(d.dateReq)}</td>
       <td class="nowrap"><span class="amt ${d.total > 0 ? 'pos' : ''}">${d.total > 0 ? '฿' + d.total.toLocaleString() : '—'}</span></td>
+      <td class="nowrap"><span class="amt ${parseFixed(d.deposit) > 0 ? 'pos' : ''}">${parseFixed(d.deposit) > 0 ? '฿' + parseFixed(d.deposit).toLocaleString() : '—'}</span></td>
       <td class="nowrap"><span class="badge b-wait" style="font-size:10px">${esc(d.area) || '—'}</span></td>
       <td class="nowrap">${stepLabel(d)}</td>
       ${isTL ? '' : `
