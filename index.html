@@ -1986,6 +1986,44 @@
       letter-spacing: 1.5px;
     }
 
+    .pending-breakdown-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .pending-breakdown-row {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) 120px 160px;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #f8fafc;
+    }
+
+    .pending-breakdown-status {
+      color: var(--txt);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .pending-breakdown-count {
+      color: var(--txt3);
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .pending-breakdown-amount {
+      color: #ea580c;
+      font-size: 17px;
+      font-weight: 900;
+      text-align: right;
+      white-space: nowrap;
+    }
+
     .card-icon-box {
       width: 38px;
       height: 38px;
@@ -2189,6 +2227,16 @@
 
       .form-group.span2 {
         grid-column: span 1
+      }
+
+      .pending-breakdown-row {
+        grid-template-columns: 1fr;
+        align-items: flex-start;
+      }
+
+      .pending-breakdown-count,
+      .pending-breakdown-amount {
+        text-align: left;
       }
     }
 
@@ -2784,6 +2832,18 @@
           </div>
 
           <div class="db-grid">
+            <div class="db-card" style="grid-column: span 2; min-height:auto;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+                <h3 style="margin-bottom:0">
+                  <div class="card-icon-box">🧭</div> รายละเอียดยอดคงค้างประกันติดตั้งตามสถานะ
+                </h3>
+                <div class="badge b-wait" id="db-install-pending-detail-count">0 งาน</div>
+              </div>
+              <div class="pending-breakdown-list" id="db-install-pending-breakdown">
+                <!-- JS Render -->
+              </div>
+            </div>
+
             <div class="db-card">
               <h3>
                 <div class="card-icon-box">📊</div> แนวโน้มกระแสเงินสดรายเดือน
@@ -6903,12 +6963,13 @@
       });
       const installRefunded = installDoneItems.reduce((s, d) => s + parseFixed(d.deposit), 0);
       const installPending = totalInstall - installRefunded;
-      
-      const installPendingCount = filteredDB.filter(d => {
+
+      const installPendingItems = filteredDB.filter(d => {
         if (parseFixed(d.deposit) <= 0) return false;
         const s = (d.status || '').trim().toLowerCase();
         return s !== 'done';
-      }).length;
+      });
+      const installPendingCount = installPendingItems.length;
 
       const demoDoneItems = filteredDB.filter(d => {
         const s = (d.status || '').trim().toLowerCase();
@@ -6940,6 +7001,29 @@
         <div><span class="currency-symbol">฿</span>${installPending.toLocaleString()}</div>
         <div style="font-size:20px; color:#64748b; font-weight:800; margin-top:6px;">(${installPendingCount} งาน)</div>
       `;
+
+      const pendingByStatus = installPendingItems.reduce((acc, d) => {
+        const key = getWorkflowStatusKey(d);
+        if (!acc[key]) {
+          acc[key] = { label: getStatusLabel(d), count: 0, amount: 0 };
+        }
+        acc[key].count += 1;
+        acc[key].amount += parseFixed(d.deposit);
+        return acc;
+      }, {});
+      const pendingStatusRows = Object.values(pendingByStatus).sort((a, b) => b.amount - a.amount);
+      const pendingDetailCount = document.getElementById('db-install-pending-detail-count');
+      if (pendingDetailCount) pendingDetailCount.textContent = `${installPendingCount} งาน`;
+      const pendingBreakdown = document.getElementById('db-install-pending-breakdown');
+      if (pendingBreakdown) {
+        pendingBreakdown.innerHTML = pendingStatusRows.length ? pendingStatusRows.map(row => `
+          <div class="pending-breakdown-row">
+            <div class="pending-breakdown-status">${row.label}</div>
+            <div class="pending-breakdown-count">${row.count} งาน</div>
+            <div class="pending-breakdown-amount">฿${row.amount.toLocaleString()}</div>
+          </div>
+        `).join('') : '<div style="padding:24px; text-align:center; color:var(--txt3); font-weight:700;">ไม่มียอดคงค้างประกันติดตั้ง</div>';
+      }
 
       // Removal Group
       document.getElementById('db-total-demo').innerHTML = `<span class="currency-symbol">฿</span>${totalDemo.toLocaleString()}`;
