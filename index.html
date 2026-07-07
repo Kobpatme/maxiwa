@@ -3748,17 +3748,30 @@
       'new': 0, 'fin': 1, 'att': 2, 'tl': 3, 'On Process': 3, 'ret': 4, 'clo': 5, 'done': 6
     };
 
+    function isReturnYes(value) {
+      return (value || '').trim().toLowerCase() === 'yes';
+    }
+
+    function isClosedForOnService(d) {
+      const status = (d.status || '').trim().toLowerCase();
+      const finalStatus = (d.status_final || '').trim().toLowerCase();
+      return status === 'done' ||
+        finalStatus === 'done' ||
+        ((status === 'clo' || finalStatus === 'clo') && !!d.pdf_user_final);
+    }
+
     function isOnServiceItem(d) {
-      return (d.status || '').trim().toLowerCase() === 'done' &&
+      return isClosedForOnService(d) &&
         parseFixed(d.demolish) > 0 &&
-        (d.demoReturn || '').trim() !== 'Yes';
+        !isReturnYes(d.demoReturn);
     }
 
     function getWorkflowStatusKey(d) {
       const status = (d.status || '').trim().toLowerCase();
 
       if (status === 'cancel') return 'cancel';
-      if (status === 'done') return isOnServiceItem(d) ? 'on_service' : 'done';
+      if (isOnServiceItem(d)) return 'on_service';
+      if (status === 'done') return 'done';
       if (status === 'ret') return 'ret';
       if (status === 'clo') return 'clo';
       if (status === 'att') return 'att';
@@ -4210,11 +4223,7 @@
         filteredData = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
       }
 
-      const items = filteredData.filter(d => {
-        const hasDemo = parseFixed(d.demolish) > 0;
-        const notReturned = (d.demoReturn || '').trim() !== 'Yes';
-        return hasDemo && notReturned;
-      });
+      const items = filteredData.filter(isOnServiceItem);
 
       if (items.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--txt3)">ไม่พบรายการ On Service</td></tr>`;
@@ -5742,7 +5751,7 @@
       detailBody.innerHTML = headerHTML + detailHTML + financialHTML + filesHTML + remarkHTML + tlActionHTML + userActionHTML;
 
       // Special 'Off Service' button for On Service items
-      if ((d.status || '').toLowerCase() === 'done' && (d.demolish > 0 && d.demoReturn !== 'Yes')) {
+      if (isOnServiceItem(d)) {
         const offServiceHTML = `
            <div style="margin-top:20px; padding:15px; background:var(--bg-f); border:1px dashed var(--border); border-radius:var(--r-md); text-align:center;">
              <div style="font-size:12px; color:var(--txt2); margin-bottom:10px;">รายการนี้มี "เงินประกันรื้อถอน" คงค้างอยู่ (On Service)</div>
@@ -6728,7 +6737,7 @@
         filteredData = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
       }
 
-      const items = filteredData.filter(d => (d.demolish > 0) && d.demoReturn !== 'Yes');
+      const items = filteredData.filter(isOnServiceItem);
       document.getElementById('demoTableCount').textContent = (items.length) + ' รายการ';
       document.getElementById('demoTbody').innerHTML = items.map((d, i) => `
         <tr onclick="openDetail('${d.id}')">
@@ -6898,9 +6907,7 @@
       const installPendingCount = filteredDB.filter(d => {
         if (parseFixed(d.deposit) <= 0) return false;
         const s = (d.status || '').trim().toLowerCase();
-        const isDone = s === 'done';
-        const isReturned = (d.depReturn || '').trim().toLowerCase() === 'yes';
-        return !(isDone || isReturned);
+        return s !== 'done';
       }).length;
 
       const demoDoneItems = filteredDB.filter(d => {
