@@ -4125,6 +4125,8 @@
     let searchQ = '';
     let sortNoDir = '';
     let _realtimeDebounce = null;
+    let _depositsUnsubscribe = null;
+    let _userUnsubscribe = null;
 
     // Security helpers
     function esc(str) {
@@ -4685,6 +4687,9 @@
       // Use == to handle string/number ID mismatch
       const d = findDepositById(id);
       if (!d) { toast('Record not found', 'error'); return; }
+      if (document.getElementById('detailOverlay')?.classList.contains('open')) {
+        closeModal('detailOverlay');
+      }
       if (document.getElementById('offServiceTitle')) document.getElementById('offServiceTitle').textContent = d.place;
       document.getElementById('f-pdf-demo-off').value = '';
       const btn = document.getElementById('offServiceSaveBtn');
@@ -5064,7 +5069,7 @@
       const pageData = data.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
       document.getElementById('tbody').innerHTML = pageData.map(d => `
-    <tr onclick="if(event.target.tagName !== 'BUTTON' && event.target.tagName !== 'SELECT' && !event.target.classList.contains('copyable-cid')) { if(window.CURRENT_USER?.role === 'tl') openTLModal('${d.id}'); else openEdit('${d.id}', 'auto'); }" style="cursor:pointer;" title="${isTL ? 'คลิกเพื่อเข้าสู่หน้าต่างงานหน้างาน (TL)' : 'คลิกเพื่ออัปเดตสถานะงาน'}">
+    <tr onclick="if(!isInteractiveRowTarget(event)) { if(window.CURRENT_USER?.role === 'tl') openTLModal('${d.id}'); else openEdit('${d.id}', 'auto'); }" style="cursor:pointer;" title="${isTL ? 'คลิกเพื่อเข้าสู่หน้าต่างงานหน้างาน (TL)' : 'คลิกเพื่ออัปเดตสถานะงาน'}">
       <td class="nowrap" style="color:var(--txt3);font-size:12px">
         <span class="copyable-cid" onclick="event.stopPropagation(); copyCID('${esc(d.cid)}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline;">${esc(d.cid) || '—'}</span>
       </td>
@@ -5090,10 +5095,10 @@
       ${isTL ? '' : `
       <td class="nowrap">
         <div class="actions">
-            <button class="act-btn view" title="ดูรายละเอียด" onclick="openDetail('${d.id}')">${svgIcon('eye')}</button>
-            <button class="act-btn edit" title="แก้ไข" onclick="openEdit('${d.id}')">${svgIcon('edit')}</button>
-            <button class="act-btn" title="อัปเดตสถานะ" onclick="openEdit('${d.id}', 'auto')" style="font-size:13px" onmouseover="this.style.background='var(--orange-l)'" onmouseout="this.style.background='var(--white)'">${svgIcon('refresh')}</button>
-            <button class="act-btn" title="ลบรายการ" onclick="confirmDelete('${d.id}')" style="font-size:13px" onmouseover="this.style.background='var(--red-l);border-color:var(--red)'" onmouseout="this.style.background='var(--white);border-color:var(--border)'">${svgIcon('trash')}</button>
+            <button class="act-btn view" title="ดูรายละเอียด" onclick="event.stopPropagation(); openDetail('${d.id}')">${svgIcon('eye')}</button>
+            <button class="act-btn edit" title="แก้ไข" onclick="event.stopPropagation(); openEdit('${d.id}')">${svgIcon('edit')}</button>
+            <button class="act-btn" title="อัปเดตสถานะ" onclick="event.stopPropagation(); openEdit('${d.id}', 'auto')" style="font-size:13px" onmouseover="this.style.background='var(--orange-l)'" onmouseout="this.style.background='var(--white)'">${svgIcon('refresh')}</button>
+            <button class="act-btn" title="ลบรายการ" onclick="event.stopPropagation(); confirmDelete('${d.id}')" style="font-size:13px" onmouseover="this.style.background='var(--red-l);border-color:var(--red)'" onmouseout="this.style.background='var(--white);border-color:var(--border)'">${svgIcon('trash')}</button>
         </div>
       </td>
       `}
@@ -5105,8 +5110,11 @@
 
     // Real-time Listener
     function setupRealtime() {
+      if (_depositsUnsubscribe) _depositsUnsubscribe();
+      if (_userUnsubscribe) _userUnsubscribe();
+
       // Deposits real-time listener
-      db.collection('deposits').onSnapshot(snapshot => {
+      _depositsUnsubscribe = db.collection('deposits').onSnapshot(snapshot => {
         snapshot.docChanges().forEach(change => {
           if (change.type === "added" || change.type === "modified") {
             const data = change.doc.data();
@@ -5122,12 +5130,15 @@
         // Refresh local data (debounced to avoid multiple rapid reloads)
         clearTimeout(_realtimeDebounce);
         _realtimeDebounce = setTimeout(() => {
+          if (document.getElementById('formOverlay')?.classList.contains('open') && isDirty) {
+            return;
+          }
           initApp().then(() => typeof updateNotifs === 'function' && updateNotifs());
         }, 800);
       });
 
       // User duplicate login listener
-      db.collection('users').doc(CURRENT_USER.id).onSnapshot(doc => {
+      _userUnsubscribe = db.collection('users').doc(CURRENT_USER.id).onSnapshot(doc => {
         const data = doc.data();
         if (!data) return;
         const session = sessionStorage.getItem('deposit_session');
@@ -5434,6 +5445,10 @@
       renderKPI();
     }
 
+    function isInteractiveRowTarget(event) {
+      return !!event.target.closest('button, a, input, select, textarea, .copyable-cid, .actions');
+    }
+
     /* ════════ PAGINATION ════════ */
     function goToTablePage(page) {
       currentTablePage = page;
@@ -5459,7 +5474,7 @@
       let html = `<span class="pg-info">แสดง ${startItem}-${endItem} จาก ${totalItems} รายการ</span>`;
 
       // Prev button
-      html += `<button class="pg-btn" ${currentTablePage === 1 ? 'disabled' : ''} onclick="goToTablePage(${currentTablePage - 1})">◀</button>`;
+      html += `<button class="pg-btn" ${currentTablePage === 1 ? 'disabled' : ''} onclick="goToTablePage(${currentTablePage - 1})" title="หน้าก่อนหน้า">${svgIcon('arrowLeft', 'sm')}</button>`;
 
       // Page number buttons (show max 7 pages with ellipsis)
       const maxVisible = 7;
@@ -5483,14 +5498,14 @@
 
       pages.forEach(p => {
         if (p === '...') {
-          html += `<span class="pg-ellipsis">…</span>`;
+          html += `<span class="pg-ellipsis">...</span>`;
         } else {
           html += `<button class="pg-btn ${p === currentTablePage ? 'active' : ''}" onclick="goToTablePage(${p})">${p}</button>`;
         }
       });
 
       // Next button
-      html += `<button class="pg-btn" ${currentTablePage === totalPages ? 'disabled' : ''} onclick="goToTablePage(${currentTablePage + 1})">▶</button>`;
+      html += `<button class="pg-btn" ${currentTablePage === totalPages ? 'disabled' : ''} onclick="goToTablePage(${currentTablePage + 1})" title="หน้าถัดไป">${svgIcon('arrowRight', 'sm')}</button>`;
 
       bar.innerHTML = html;
     }
