@@ -4407,7 +4407,7 @@
         case 'refund_process':
           return `<span class="badge b-process"><span class="dot"></span>อยู่ระหว่างขอคืนเงิน</span>`;
         case 'done':
-          return `<span class="badge b-done"><span class="dot"></span>เสร็จแล้ว</span>`;
+          return `<span class="badge b-done"><span class="dot"></span>${getStatusLabel(d || { status: s })}</span>`;
         case 'on_service':
           return `<span class="badge b-wait"><span class="dot"></span>On Service</span>`;
         case 'cancel':
@@ -5075,7 +5075,7 @@
       </td>
       <td class="nowrap" style="color:var(--txt2);font-size:12px;font-weight:600">${esc(d.no) || '—'}</td>
       <td class="nowrap">
-        <div style="${statusSelectStyle(d.status)}; font-size:13px; font-weight:600; text-align:center;">
+        <div style="${statusSelectStyle(d.status, d)}; font-size:13px; font-weight:600; text-align:center;">
           ${getStatusLabel(d)}
         </div>
       </td>
@@ -5258,11 +5258,28 @@
       document.getElementById('notif-dropdown')?.classList.remove('open');
     });
 
-    function statusSelectStyle(s) {
-      if (s === 'Done') return 'color:var(--green-d);border-color:var(--green);background:var(--green-l)';
-      if (s === 'On Process') return 'color:var(--orange-d);border-color:var(--orange);background:var(--orange-l)';
-      if (s === 'Cancel') return 'color:var(--red);border-color:var(--red);background:var(--red-l)';
-      return 'color:var(--txt3)';
+    function statusSelectStyle(s, d) {
+      const key = getWorkflowStatusKey(d || { status: s });
+      const base = 'display:inline-flex;align-items:center;justify-content:center;min-width:104px;padding:5px 10px;border:1px solid;border-radius:999px;';
+      switch (key) {
+        case 'done':
+          return base + 'color:var(--green-d);border-color:var(--green);background:var(--green-l)';
+        case 'cancel':
+          return base + 'color:var(--red);border-color:var(--red);background:var(--red-l)';
+        case 'tl_process':
+        case 'clo':
+        case 'refund_process':
+          return base + 'color:var(--orange-d);border-color:var(--orange);background:var(--orange-l)';
+        case 'ret':
+          return base + 'color:var(--violet);border-color:var(--violet);background:var(--violet-l)';
+        case 'fin':
+        case 'att':
+        case 'tl_wait':
+        case 'on_service':
+          return base + 'color:var(--blue-d);border-color:var(--blue-m);background:var(--blue-l)';
+        default:
+          return base + 'color:var(--txt2);border-color:var(--border);background:var(--gray-l)';
+      }
     }
 
     function isOverdue(d) { return false; }
@@ -7259,7 +7276,7 @@
             <span class="copyable-cid" onclick="event.stopPropagation(); copyCID('${esc(d.cid)}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline;">${esc(d.cid) || '—'}</span>
           </td>
           <td class="nowrap">
-            <div style="${statusSelectStyle(d.status)}; font-size:13px; font-weight:600; text-align:center;">
+            <div style="${statusSelectStyle(d.status, d)}; font-size:13px; font-weight:600; text-align:center;">
               ${getStatusLabel(d)}
             </div>
           </td>
