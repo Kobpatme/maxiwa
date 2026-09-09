@@ -69,11 +69,23 @@ function assertRemoteWriteAllowed(operation) {
 
 /* ─── DATA: DEPOSITS ─── */
 
-async function getDeposits() {
+function getDepositsQuery(userProfile) {
+    let query = db.collection('deposits');
+    if (!isFirebaseAuthEnabled()) return query;
+    if (!userProfile?.uid) throw new Error('Authenticated UID profile is required');
+    if (userProfile.role === 'admin') return query;
+    if (userProfile.role === 'user') return query.where('owner_uid', '==', userProfile.uid);
+    if (userProfile.role === 'tl' && userProfile.area) {
+        return query.where('tl_area', '==', userProfile.area);
+    }
+    throw new Error('Profile role/area is not configured for an authorized deposit query');
+}
+
+async function getDeposits(userProfile = null) {
     try {
         // Fetch all deposits. We'll handle sorting in memory if needed, 
         // to avoid Firestore filtering out docs that lack the 'id' field.
-        const snapshot = await db.collection('deposits').get();
+        const snapshot = await getDepositsQuery(userProfile).get();
         const data = snapshot.docs.map(doc => {
             const docData = doc.data();
             return { 

@@ -5264,8 +5264,8 @@
         return;
       }
 
-      // Deposits real-time listener
-      _depositsUnsubscribe = db.collection('deposits').onSnapshot(snapshot => {
+      // The secure-mode query must carry the same owner/team constraint as Rules.
+      _depositsUnsubscribe = getDepositsQuery(CURRENT_USER).onSnapshot(snapshot => {
         snapshot.docChanges().forEach(change => {
           if (change.type === "added" || change.type === "modified") {
             const data = change.doc.data();
@@ -5288,7 +5288,22 @@
         }, 800);
       });
 
-      // User duplicate login listener
+      if (isFirebaseAuthEnabled()) {
+        _userUnsubscribe = db.collection('user_profiles').doc(CURRENT_USER.uid).onSnapshot(doc => {
+          const profile = doc.data();
+          if (!profile || profile.active !== true) {
+            alert('บัญชีนี้ถูกระงับหรือไม่พบโปรไฟล์ ระบบจะนำคุณออกจากระบบ');
+            logout();
+            return;
+          }
+          if (profile.role !== CURRENT_USER.role || profile.area !== CURRENT_USER.area) {
+            location.reload();
+          }
+        });
+        return;
+      }
+
+      // Legacy duplicate-login listener (removed at coordinated Auth cutover).
       _userUnsubscribe = db.collection('users').doc(CURRENT_USER.id).onSnapshot(doc => {
         const data = doc.data();
         if (!data) return;
@@ -7921,7 +7936,7 @@
       document.getElementById('user-display').textContent = `${CURRENT_USER.name} (${CURRENT_USER.role})`;
 
       // RBAC
-      if (CURRENT_USER.role === 'admin') {
+      if (CURRENT_USER.role === 'admin' && !isFirebaseAuthEnabled()) {
         document.getElementById('admin-nav').style.display = 'block';
       } else {
         document.getElementById('admin-nav').style.display = 'none';
@@ -8266,8 +8281,8 @@
           DB = JSON.parse(JSON.stringify(MOCK_CASES));
           USER_LIST = Object.values(MOCK_USERS);
         } else {
-          DB = await getDeposits();
-          USER_LIST = await getUsers();
+          DB = await getDeposits(CURRENT_USER);
+          USER_LIST = isFirebaseAuthEnabled() ? await getStaffDirectory() : await getUsers();
         }
         renderKPI();
         renderTable();

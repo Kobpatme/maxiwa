@@ -34,6 +34,8 @@ assert.match(html, /firebase-auth-compat\.js/);
 assert.match(client, /signInWithEmailAndPassword/);
 assert.match(client, /sendPasswordResetEmail/);
 assert.match(client, /Legacy password lookup is disabled/);
+assert.match(client, /where\('owner_uid', '==', userProfile\.uid\)/);
+assert.match(client, /where\('tl_area', '==', userProfile\.area\)/);
 assert.match(config, /DEPOSIT_AUTH_MODE = 'legacy'/);
 assert.match(firestoreRules, /match \/user_profiles\/\{uid\}/);
 assert.match(firestoreRules, /match \/users\/\{document=\*\*\}/);

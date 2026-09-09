@@ -6,7 +6,7 @@ import {
   assertSucceeds,
   initializeTestEnvironment
 } from '@firebase/rules-unit-testing';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
 
 const PROJECT_ID = 'deposit-manager-local';
 let env;
@@ -81,6 +81,20 @@ test('TL can read only matching area', async () => {
   const upcDb = env.authenticatedContext('tl-upc').firestore();
   await assertSucceeds(getDoc(doc(bkkDb, 'deposits/job-bkk')));
   await assertFails(getDoc(doc(upcDb, 'deposits/job-bkk')));
+});
+
+test('owner and TL constrained list queries satisfy Rules', async () => {
+  const ownerDb = env.authenticatedContext('owner-a').firestore();
+  const tlDb = env.authenticatedContext('tl-bkk').firestore();
+  const ownerQuery = query(collection(ownerDb, 'deposits'), where('owner_uid', '==', 'owner-a'));
+  const tlQuery = query(collection(tlDb, 'deposits'), where('tl_area', '==', 'BKK'));
+  assert.equal((await assertSucceeds(getDocs(ownerQuery))).size, 1);
+  assert.equal((await assertSucceeds(getDocs(tlQuery))).size, 1);
+});
+
+test('unconstrained non-admin list query is rejected', async () => {
+  const db = env.authenticatedContext('owner-a').firestore();
+  await assertFails(getDocs(collection(db, 'deposits')));
 });
 
 test('client cannot elevate its own role', async () => {

@@ -16,7 +16,7 @@
 | Desktop visual | Chrome local fixture, admin, 1440×900 | ผ่านการ render; พบรายการสังเคราะห์ 10 รายการและ KPI ตรง fixture |
 | Mobile visual 390×844 | Chrome local fixture, admin/TL | render ได้ แต่พบ layout ถูกตัด/บีบด้านขวาและ action/filter ล้นพื้นที่ เป็น baseline defect สำหรับ P4 |
 | Browser smoke | Chrome tab ใหม่, admin และ TL fixture | ผ่าน: admin แสดง 10 แถว/KPI ตาม fixture; TL เปิด `page-tl-tasks`; ไม่พบ console error ในรอบตรวจสุดท้าย |
-| Firebase Emulator | `npm run test:rules` | ผ่าน 10/10: unauthenticated, owner, admin, TL ข้ามพื้นที่, privilege escalation, protected fields, PDF/file path และ cross-team file access |
+| Firebase Emulator | `npm run test:rules` | ผ่าน 12/12: unauthenticated, owner, admin, query constraint, TL ข้ามพื้นที่, privilege escalation, protected fields, PDF/file path และ cross-team file access |
 
 ## ข้อจำกัดและสิ่งที่ยังไม่ยืนยัน
 
@@ -31,7 +31,7 @@
 | Secure Auth adapter | `node scripts/baseline-check.mjs` + syntax check | ผ่าน: Auth state/UID profile, email-password sign-in, sign-out และ provider reset link ถูกเตรียมหลัง feature gate; legacy เป็นค่าเริ่มต้นจนกว่าจะ cutover |
 | Plaintext path isolation | static integration | ผ่านใน secure mode: query password, session lookup, bulk legacy user read และ browser account/role mutation ถูกปฏิเสธ |
 | Migration dry-run | `node --test scripts/auth-migration-dry-run.test.mjs` | ผ่าน 2/2: จับคู่ UID แบบ idempotent, ตรวจ duplicate/missing และไม่แสดงค่ารหัสผ่าน |
-| Firestore/Storage Rules | `npm run test:rules` | ผ่าน 10/10 บน Emulator โดย test runner รองรับ workspace path ภาษาไทยผ่าน temporary ASCII path |
+| Firestore/Storage Rules | `npm run test:rules` | ผ่าน 12/12 บน Emulator รวม constrained/unconstrained list query โดย test runner รองรับ workspace path ภาษาไทยผ่าน temporary ASCII path |
 | Production dependency audit | `npm audit --omit=dev` | ผ่าน: 0 ช่องโหว่ production dependency |
 | Dev tool audit | `npm audit` | ยังมี 10 รายการใน Firebase CLI/test dependency (8 moderate, 1 high, 1 critical); `npm audit fix` แบบไม่ breaking ลดแล้ว และไม่ใช้ `--force` ที่จะ downgrade CLI แบบ breaking |
 | Production cutover/deploy | ไม่ได้ดำเนินการ | ถูกต้องตามแผน: ยังไม่แก้ Auth accounts, Rules, database หรือ Storage production |

@@ -39,6 +39,8 @@ node scripts/auth-migration-dry-run.mjs tests/fixtures/auth-migration/legacy-use
 - TL: หลังโหลด profile ของตนแล้ว query ต้องมี `where('tl_area', '==', profile.area)`
 - ห้ามเรียก `get()` ทั้ง collection แล้วหวังให้ Rules กรองผลลัพธ์ เพราะ Firestore Rules ประเมิน query ว่ามีโอกาสคืนเอกสารที่ไม่มีสิทธิ์หรือไม่
 
+secure Auth adapter ใน `firebase-client.js` ใช้ข้อกำหนดนี้แล้วทั้ง initial load และ realtime listener; admin เท่านั้นที่ใช้ collection query โดยไม่มี owner/team constraint
+
 นโยบายที่ต้องมีเจ้าของระบบยืนยันก่อนเปิดใช้: ผู้ใช้ทั่วไปเห็นเฉพาะงานตนหรือทั้งฝ่าย, TL หลายพื้นที่แทนค่าเดียวอย่างไร, ฟิลด์สถานะใดที่แต่ละบทบาทเปลี่ยนได้ และผู้ใดอนุมัติ soft delete
 
 ## Storage migration
