@@ -13,7 +13,14 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="firebase-config.js"></script>
+  <script>
+    // Local baseline mode is opt-in and must be known before firebase-client.js loads.
+    // Example: index.html?mock=1&user=admin001
+    window.DEPOSIT_LOCAL_FIXTURE = new URLSearchParams(window.location.search).get('mock') === '1';
+  </script>
   <script src="firebase-client.js"></script>
+  <script src="mock-data.js"></script>
+  <script src="domain-logic.js"></script>
   <style>
     /* ─── TOKENS ─────────────────────────────────── */
     :root {
@@ -2063,6 +2070,16 @@
       gap: 14px;
     }
 
+    .kpi[role="button"]:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .kpi[role="button"]:focus-visible {
+      outline: 3px solid var(--blue-focus);
+      outline-offset: 2px;
+    }
+
     .kpi-icon2 {
       width: 44px;
       height: 44px;
@@ -3195,7 +3212,7 @@
                       class="currency-symbol">฿</span>0</div>
                 </div>
                 <div class="db-hero-stat-item">
-                  <div class="db-hero-stat-lbl">คงค้าง</div>
+                  <div class="db-hero-stat-lbl">On Service คงค้าง</div>
                   <div class="db-hero-stat-val" id="db-demo-pending"
                     style="color:var(--orange); flex-direction:column; align-items:flex-start; gap:0;">
                     <div><span class="currency-symbol">฿</span>0</div>
@@ -3377,7 +3394,7 @@
           <div class="card">
             <div class="card-header" style="justify-content:space-between">
               <span class="card-title"><span data-svg-icon="barrier" data-svg-class="sm"></span> รายการ On Service (ประกันรื้อถอน)</span>
-              <span style="font-size:13px; color:var(--txt3)">รายการที่ปิดงานติดตั้งแล้ว
+              <span id="active-demo-summary" style="font-size:13px; color:var(--txt3)">รายการที่ปิดงานติดตั้งแล้ว
                 แต่ยังมีเงินประกันรื้อถอนคงค้าง</span>
             </div>
             <div class="table-wrap">
@@ -3387,12 +3404,39 @@
                     <th>อาคาร / ลูกค้า</th>
                     <th>พื้นที่ / ทีม TL</th>
                     <th>CID</th>
+                    <th>เจ้าของงาน</th>
+                    <th>วันที่ติดตั้งเสร็จ</th>
                     <th style="text-align:right">เงินประกันรื้อถอน</th>
                     <th style="text-align:center">สถานะ</th>
                     <th style="text-align:right">จัดการ</th>
                   </tr>
                 </thead>
                 <tbody id="active-demo-tbody">
+                  <!-- JS Render -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:20px">
+            <div class="card-header" style="justify-content:space-between">
+              <span class="card-title"><span data-svg-icon="clock" data-svg-class="sm"></span> มีประกันรื้อถอน แต่ยังอยู่ระหว่างดำเนินงาน</span>
+              <span id="pre-service-demo-summary" style="font-size:13px; color:var(--txt3)">ยังไม่ปิดงานติดตั้ง จึงยังไม่สามารถ Off Service ได้</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>อาคาร / ลูกค้า</th>
+                    <th>พื้นที่ / ทีม TL</th>
+                    <th>CID</th>
+                    <th>เจ้าของงาน</th>
+                    <th>ขั้นตอนปัจจุบัน</th>
+                    <th style="text-align:right">เงินประกันรื้อถอน</th>
+                    <th style="text-align:right">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody id="pre-service-demo-tbody">
                   <!-- JS Render -->
                 </tbody>
               </table>
@@ -3878,6 +3922,25 @@
     </div>
   </div>
 
+  <!-- ═══════ MODAL: NON-REFUNDABLE COST DETAIL ═══════ -->
+  <div class="overlay" id="costDetailOverlay">
+    <div class="modal lg" role="dialog" aria-modal="true" aria-labelledby="costDetailTitle">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title" id="costDetailTitle">ค่าใช้จ่ายที่ไม่ได้รับคืน</div>
+          <div class="modal-sub">ค่าธรรมเนียมอาคารและค่าใช้จ่ายอื่น ตามตัวกรองปัจจุบัน</div>
+        </div>
+        <button class="modal-close" onclick="closeModal('costDetailOverlay')" aria-label="ปิด"><span data-svg-icon="close"></span></button>
+      </div>
+      <div class="modal-body" id="costDetailBody" style="padding:20px 25px">
+        <!-- JS Render -->
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('costDetailOverlay')">ปิด</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ═════════ MODAL: TL SPECIALIZED WORKSPACE ═════════ -->
   <div class="overlay" id="tlWorkOverlay">
     <div class="modal lg" id="tlWorkModal">
@@ -4107,9 +4170,9 @@
        CONFIG / FLAGS
        หมายเหตุ: ตั้งค่า USE_MOCK = false สำหรับ production
     ════════════════════════════════════════════════════════ */
-    const USE_MOCK = false;
-    const MOCK_USERS = {};
-    const MOCK_CASES = [];
+    const USE_MOCK = window.DEPOSIT_LOCAL_FIXTURE === true;
+    const MOCK_USERS = window.DEPOSIT_MOCK_USERS || {};
+    const MOCK_CASES = window.DEPOSIT_MOCK_CASES || [];
 
     /* ════════════════════════════════════════════════════════
        DATA STORE
@@ -4281,21 +4344,15 @@
     };
 
     function isReturnYes(value) {
-      return (value || '').trim().toLowerCase() === 'yes';
+      return DepositDomain.isReturnYes(value);
     }
 
     function isClosedForOnService(d) {
-      const status = (d.status || '').trim().toLowerCase();
-      const finalStatus = (d.status_final || '').trim().toLowerCase();
-      return status === 'done' ||
-        finalStatus === 'done' ||
-        ((status === 'clo' || finalStatus === 'clo') && !!d.pdf_user_final);
+      return DepositDomain.isInstallationClosed(d);
     }
 
     function isOnServiceItem(d) {
-      return isClosedForOnService(d) &&
-        parseFixed(d.demolish) > 0 &&
-        !isReturnYes(d.demoReturn);
+      return DepositDomain.isOnServiceItem(d);
     }
 
     function getWorkflowStatusKey(d) {
@@ -4349,11 +4406,7 @@
 
     /* ════════ HELPERS ════════ */
     function parseFixed(val) {
-      if (typeof val === 'number') return val || 0;
-      if (!val) return 0;
-      // Remove commas and parse
-      const n = parseFloat(val.toString().replace(/,/g, ''));
-      return isNaN(n) ? 0 : n;
+      return DepositDomain.parseMoney(val);
     }
 
     function getStepIndex(d) {
@@ -4634,15 +4687,13 @@
       const onProcLabel = isTL ? 'อยู่ระหว่างตรวจรับ' : 'อยู่ระหว่างขอคืนเงิน';
 
       const total = filteredData.length;
-      const done = filteredData.filter(d => {
-        const s = (d.status || '').trim().toLowerCase();
-        return s === 'done';
-      }).length;
+      const done = filteredData.filter(d => getWorkflowStatusKey(d) === 'done').length;
       const proc = filteredData.filter(d => getStatusLabel(d) === 'อยู่ระหว่างขอคืนเงิน').length;
 
-      const buildingFee = filteredData.reduce((s, d) => s + parseFixed(d.fee) + parseFixed(d.other), 0);
+      const costMetrics = DepositDomain.getNonRefundableCostMetrics(filteredData);
       const installDep = filteredData.reduce((s, d) => s + parseFixed(d.deposit), 0);
-      const demoDep = filteredData.reduce((s, d) => s + parseFixed(d.demolish), 0);
+      const removalMetrics = DepositDomain.getRemovalDepositMetrics(filteredData);
+      const demoDep = removalMetrics.onServiceAmount;
       const amt = filteredData.reduce((s, d) => s + parseFixed(d.total), 0);
       const dep = filteredData.filter(d => (d.depReturn || '').trim().toLowerCase() !== 'yes').reduce((s, d) => s + parseFixed(d.deposit), 0);
 
@@ -4659,9 +4710,18 @@
       <div class="kpi-icon2 green">${svgIcon('check')}</div>
       <div><div class="kpi-val" style="color:var(--green)">${done}</div><div class="kpi-lbl">เสร็จสิ้นแล้ว</div></div>
     </div>
-    <div class="kpi" style="border-left: 4px solid var(--violet)">
+    <div class="kpi" id="nonRefundableCostKpi" role="button" tabindex="0"
+      aria-label="ดูรายละเอียดค่าใช้จ่ายที่ไม่ได้รับคืน"
+      onclick="openNonRefundableCostDetail()"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openNonRefundableCostDetail()}"
+      title="คลิกเพื่อดูค่าธรรมเนียมและค่าใช้จ่ายอื่น"
+      style="border-left:4px solid var(--violet);cursor:pointer">
       <div class="kpi-icon2 violet">${svgIcon('service')}</div>
-      <div><div class="kpi-val" style="color:var(--violet);font-size:16px">฿${buildingFee.toLocaleString()}</div><div class="kpi-lbl">ค่าใช้จ่ายสุทธิ (Sunk Cost)</div></div>
+      <div>
+        <div class="kpi-val" style="color:var(--violet);font-size:16px">฿${costMetrics.totalAmount.toLocaleString('th-TH', { maximumFractionDigits: 2 })}</div>
+        <div class="kpi-lbl">ค่าใช้จ่ายที่ไม่ได้รับคืน</div>
+        <div style="font-size:9px;color:var(--txt3);margin-top:3px;line-height:1.35">ค่าธรรมเนียม ฿${costMetrics.feeAmount.toLocaleString('th-TH', { maximumFractionDigits: 2 })}<br>อื่น ๆ ฿${costMetrics.otherAmount.toLocaleString('th-TH', { maximumFractionDigits: 2 })}</div>
+      </div>
     </div>
     <div class="kpi" style="border-left: 4px solid var(--blue)">
       <div class="kpi-icon2 blue">${svgIcon('shield')}</div>
@@ -4669,7 +4729,7 @@
     </div>
     <div class="kpi" style="border-left: 4px solid var(--red)">
       <div class="kpi-icon2 red">${svgIcon('barrier')}</div>
-      <div><div class="kpi-val" style="color:var(--red);font-size:16px">฿${demoDep.toLocaleString()}</div><div class="kpi-lbl">ประกันรื้อถอน (Conditional)</div></div>
+      <div><div class="kpi-val" style="color:var(--red);font-size:16px">฿${demoDep.toLocaleString()}</div><div class="kpi-lbl">รื้อถอนคงค้าง (On Service)</div></div>
     </div>
   `;
 
@@ -4680,6 +4740,45 @@
       if (document.getElementById('sb-dep-amt')) document.getElementById('sb-dep-amt').textContent = '฿' + dep.toLocaleString();
       const now = new Date();
       if (document.getElementById('sb-updated')) document.getElementById('sb-updated').textContent = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function openNonRefundableCostDetail() {
+      const filteredData = getFilteredData();
+      const items = filteredData.filter(d => !DepositDomain.isCancelled(d) && (parseFixed(d.fee) > 0 || parseFixed(d.other) > 0));
+      const metrics = DepositDomain.getNonRefundableCostMetrics(items);
+      const money = value => value.toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+      const body = document.getElementById('costDetailBody');
+      if (!body) return;
+
+      const warning = metrics.missingOtherDescriptionCount > 0
+        ? `<div style="margin:0 0 16px;padding:10px 12px;border-radius:8px;background:var(--orange-l);color:var(--orange-d);font-size:12px;font-weight:600">มี ${metrics.missingOtherDescriptionCount} งานที่ระบุค่าใช้จ่ายอื่น แต่ไม่มีรายละเอียด</div>`
+        : '';
+      const rows = items.map(d => {
+        const fee = parseFixed(d.fee);
+        const other = parseFixed(d.other);
+        return `
+          <tr>
+            <td><div style="font-weight:700">${esc(d.place) || '—'}</div><div style="font-size:11px;color:var(--txt3)">${esc(d.owner) || '—'} · ${esc(d.area) || '—'}</div></td>
+            <td class="nowrap">${d.dateReq ? esc(fmtDate(String(d.dateReq).slice(0, 10))) : '—'}</td>
+            <td style="text-align:right">฿${money(fee)}</td>
+            <td style="text-align:right"><div>฿${money(other)}</div>${other > 0 ? `<div style="font-size:10px;color:${String(d.other_desc || '').trim() ? 'var(--txt3)' : 'var(--orange)'}">${esc(d.other_desc) || 'ไม่ระบุรายละเอียด'}</div>` : ''}</td>
+            <td style="text-align:right;font-weight:800;color:var(--violet)">฿${money(fee + other)}</td>
+          </tr>`;
+      }).join('');
+
+      body.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+          <div class="money-card"><div class="money-title">ค่าธรรมเนียมอาคาร</div><div class="money-val">฿${money(metrics.feeAmount)}</div></div>
+          <div class="money-card"><div class="money-title">ค่าใช้จ่ายอื่น</div><div class="money-val">฿${money(metrics.otherAmount)}</div></div>
+          <div class="money-card"><div class="money-title">รวมที่ไม่ได้รับคืน</div><div class="money-val" style="color:var(--violet)">฿${money(metrics.totalAmount)}</div><div style="font-size:11px;color:var(--txt3)">${metrics.affectedCount} งาน</div></div>
+        </div>
+        ${warning}
+        <div style="font-size:12px;color:var(--txt3);margin-bottom:12px">ไม่รวมเงินประกันติดตั้ง เงินประกันรื้อถอน และรายการที่ยกเลิก</div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>อาคาร / เจ้าของงาน</th><th>วันที่ตั้งเบิก</th><th style="text-align:right">ค่าธรรมเนียม</th><th style="text-align:right">ค่าใช้จ่ายอื่น</th><th style="text-align:right">รวม</th></tr></thead>
+          <tbody>${rows || '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--txt3)">ไม่พบค่าใช้จ่ายตามตัวกรองปัจจุบัน</td></tr>'}</tbody>
+        </table></div>`;
+      openModal('costDetailOverlay');
     }
 
     /* ════════ OFF SERVICE LOGIC ════════ */
@@ -4759,13 +4858,15 @@
       }
 
       const items = filteredData.filter(isOnServiceItem);
+      const metrics = DepositDomain.getRemovalDepositMetrics(filteredData);
+      const summary = document.getElementById('active-demo-summary');
+      if (summary) summary.textContent = `${items.length} งาน · คงค้าง ฿${metrics.onServiceAmount.toLocaleString()}`;
 
       if (items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--txt3)">ไม่พบรายการ On Service</td></tr>`;
-        return;
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:40px; color:var(--txt3)">ไม่พบรายการ On Service</td></tr>`;
       }
 
-      tbody.innerHTML = items.map(d => `
+      if (items.length > 0) tbody.innerHTML = items.map(d => `
         <tr>
           <td>
             <div style="font-weight:700; color:var(--txt)">${d.place}</div>
@@ -4778,6 +4879,8 @@
           <td class="nowrap" style="color:var(--txt3);font-size:12px">
             <span class="copyable-cid" onclick="event.stopPropagation(); copyCID('${esc(d.cid)}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline;">${esc(d.cid) || '—'}</span>
           </td>
+          <td>${esc(d.owner) || '—'}</td>
+          <td class="nowrap">${d.install_date ? esc(fmtDate(String(d.install_date).slice(0, 10))) : '<span style="color:var(--txt3)">ไม่พบวันที่</span>'}</td>
           <td style="text-align:right; font-weight:700; color:var(--orange)">
             ฿${parseFixed(d.demolish).toLocaleString()}
           </td>
@@ -4789,6 +4892,44 @@
               <button class="btn btn-primary btn-sm" onclick="openOffServiceModal('${d.id}')">Off Service</button>
               <button class="icon-btn" onclick="openDetail('${d.id}')">${svgIcon('eye')}</button>
             </div>
+          </td>
+        </tr>
+      `).join('');
+
+      const preServiceTbody = document.getElementById('pre-service-demo-tbody');
+      const preServiceItems = filteredData.filter(DepositDomain.isPreServiceItem);
+      const preServiceSummary = document.getElementById('pre-service-demo-summary');
+      if (preServiceSummary) {
+        preServiceSummary.textContent = `${preServiceItems.length} งาน · ฿${metrics.preServiceAmount.toLocaleString()} · ยังไม่สามารถ Off Service ได้`;
+      }
+      if (!preServiceTbody) return;
+
+      if (preServiceItems.length === 0) {
+        preServiceTbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:40px; color:var(--txt3)">ไม่มีรายการที่อยู่ระหว่างดำเนินงาน</td></tr>`;
+        return;
+      }
+
+      preServiceTbody.innerHTML = preServiceItems.map(d => `
+        <tr>
+          <td>
+            <div style="font-weight:700; color:var(--txt)">${esc(d.place) || '—'}</div>
+            <div style="font-size:11px; color:var(--txt3)">${esc(d.customer) || '—'}</div>
+          </td>
+          <td>
+            <div style="font-size:13px">${esc(d.area) || '—'}</div>
+            <div style="font-size:11px; color:var(--blue)">${esc(d.tl_team) || '—'}</div>
+          </td>
+          <td class="nowrap" style="color:var(--txt3);font-size:12px">
+            <span class="copyable-cid" onclick="event.stopPropagation(); copyCID('${esc(d.cid)}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline;">${esc(d.cid) || '—'}</span>
+          </td>
+          <td>${esc(d.owner) || '—'}</td>
+          <td>
+            <div style="font-size:12px; font-weight:700">${getStatusLabel(d)}</div>
+            ${stepLabel(d)}
+          </td>
+          <td style="text-align:right; font-weight:700; color:var(--orange)">฿${parseFixed(d.demolish).toLocaleString()}</td>
+          <td style="text-align:right">
+            <button class="icon-btn" onclick="openDetail('${d.id}')" title="ดูรายละเอียด">${svgIcon('eye')}</button>
           </td>
         </tr>
       `).join('');
@@ -4807,7 +4948,8 @@
         }
       }
 
-      const items = filteredData.filter(d => (d.status || '').toLowerCase() === 'done');
+      // On Service is not fully complete even when installation status is "done".
+      const items = filteredData.filter(d => getWorkflowStatusKey(d) === 'done');
 
       if (items.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--txt3)">ไม่พบรายการที่เสร็จสมบูรณ์</td></tr>`;
@@ -5016,15 +5158,16 @@
         return ms && mo && ma && mq;
       });
 
-      // 3. Sort by NO.
-      if (sortNoDir) {
-        filtered.sort((a, b) => {
+      // 3. Fully completed work is always placed after active work.
+      // The selected NO. direction still applies within each group.
+      const noComparator = sortNoDir
+        ? (a, b) => {
           const na = parseFloat((a.no || '').toString().replace(/[^0-9.]/g, '')) || 0;
           const nb = parseFloat((b.no || '').toString().replace(/[^0-9.]/g, '')) || 0;
           return sortNoDir === 'asc' ? na - nb : nb - na;
-        });
-      }
-      return filtered;
+        }
+        : undefined;
+      return DepositDomain.sortCompletedLast(filtered, noComparator);
     }
 
     function toggleSortNo() {
@@ -5112,6 +5255,13 @@
     function setupRealtime() {
       if (_depositsUnsubscribe) _depositsUnsubscribe();
       if (_userUnsubscribe) _userUnsubscribe();
+
+      // Fixture mode must never attach listeners to the configured Firebase project.
+      if (USE_MOCK) {
+        _depositsUnsubscribe = null;
+        _userUnsubscribe = null;
+        return;
+      }
 
       // Deposits real-time listener
       _depositsUnsubscribe = db.collection('deposits').onSnapshot(snapshot => {
@@ -6219,7 +6369,10 @@
       if (isTL) {
         let helpMsg = [];
         if ((+d.deposit || 0) > 0) helpMsg.push('<span style="color:var(--green-d); font-weight:700;">มีเงินประกันติดตั้ง (฿' + (+d.deposit).toLocaleString() + ')</span>');
-        if ((+d.demolish || 0) > 0) helpMsg.push('<span style="color:var(--green-d); font-weight:700;">มีเงินประกันรื้อถอน (฿' + (+d.demolish).toLocaleString() + ')</span>');
+        if (DepositDomain.hasRemovalDeposit(d)) {
+          const removalLabel = DepositDomain.isRemovalRefunded(d) ? 'คืนเงินประกันรื้อถอนแล้ว' : 'เงินประกันรื้อถอนยังไม่คืน';
+          helpMsg.push('<span style="color:var(--green-d); font-weight:700;">' + removalLabel + ' (฿' + parseFixed(d.demolish).toLocaleString() + ')</span>');
+        }
         headerHTML += `
           <div style="padding:18px; background:var(--green-l); border:2px solid var(--green); border-radius:var(--r-lg); margin-bottom:24px; box-shadow:0 4px 15px rgba(16, 185, 129, 0.1);">
             <div style="font-size:14px; color:var(--green-d); font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:8px;">ข้อมูลเงินประกันคงค้าง (Insurance Overview)</div>
@@ -6379,7 +6532,10 @@
       // Prepare Insurance Msg (Original logic kept as an alternative overview)
       let helpMsg = [];
       if ((+d.deposit || 0) > 0) helpMsg.push('<span style="color:var(--green-d); font-weight:700;">มีเงินประกันติดตั้ง (฿' + (+d.deposit).toLocaleString() + ')</span>');
-      if ((+d.demolish || 0) > 0) helpMsg.push('<span style="color:var(--green-d); font-weight:700;">มีเงินประกันรื้อถอน (฿' + (+d.demolish).toLocaleString() + ')</span>');
+      if (DepositDomain.hasRemovalDeposit(d)) {
+        const removalLabel = DepositDomain.isRemovalRefunded(d) ? 'คืนเงินประกันรื้อถอนแล้ว' : 'เงินประกันรื้อถอนยังไม่คืน';
+        helpMsg.push('<span style="color:var(--green-d); font-weight:700;">' + removalLabel + ' (฿' + parseFixed(d.demolish).toLocaleString() + ')</span>');
+      }
 
       const progressHTML = `<div class="progress-track"><div class="progress-steps-new" id="tlProgress"></div></div>`;
 
@@ -7114,7 +7270,7 @@
         renderTLTasksPage();
       } else if (id === 'active-demo') {
         document.getElementById('nav-active-demo').classList.add('active');
-        document.getElementById('topbar-sub').textContent = 'รายการที่มีเงินประกันรื้อถอนคงค้าง (On Service)';
+        document.getElementById('topbar-sub').textContent = 'ติดตามเงินประกันรื้อถอนที่ยังไม่คืน แยกตามขั้นตอนงาน';
         renderActiveDemoTable();
       } else if (id === 'done-list') {
         document.getElementById('nav-done-list').classList.add('active');
@@ -7139,8 +7295,9 @@
       const waiting    = tlData.filter(d => getWorkflowStatusKey(d) === 'tl_wait').length;
       const inProgress = tlData.filter(d => getWorkflowStatusKey(d) === 'tl_process').length;
       const done       = tlData.filter(d => ['done', 'on_service'].includes(getWorkflowStatusKey(d))).length;
-      const totalDemo  = tlData.reduce((s, d) => s + parseFixed(d.demolish), 0);
-      const returned   = tlData.filter(d => (d.demoReturn || '').toLowerCase() === 'yes').length;
+      const removalMetrics = DepositDomain.getRemovalDepositMetrics(tlData);
+      const totalDemo  = removalMetrics.onServiceAmount;
+      const returned   = removalMetrics.refundedCount;
 
       if (labelEl) {
         const isAdmin = CURRENT_USER && CURRENT_USER.role === 'admin';
@@ -7174,7 +7331,7 @@
           <div class="kpi-icon2 red">${svgIcon('money')}</div>
           <div>
             <div class="kpi-val" style="color:var(--red);font-size:${totalDemo >= 1000000 ? '14px' : '18px'}">฿${totalDemo.toLocaleString()}</div>
-            <div class="kpi-lbl">มูลค่าประกันรื้อถอน</div>
+            <div class="kpi-lbl">On Service คงค้าง</div>
           </div>
         </div>
         <div class="kpi" style="border-left:4px solid var(--green)">
@@ -7250,6 +7407,7 @@
 
       // Apply status filter (table only)
       tlData = tlData.filter(d => matchesStatusFilter(d, tlStatusFilter));
+      tlData = DepositDomain.sortCompletedLast(tlData);
 
       document.getElementById('tlTaskCount').textContent = tlData.length + ' รายการ';
       const empty = document.getElementById('tlEmptyState');
@@ -7305,36 +7463,6 @@
       `}).join('');
     }
 
-    function renderActiveDemoPage() {
-      // Role-based area filtering: If TL, only show their areas
-      let filteredData = DB;
-      if (CURRENT_USER && CURRENT_USER.role === 'tl' && CURRENT_USER.area) {
-        const allowedAreas = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
-        filteredData = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
-      }
-
-      const items = filteredData.filter(isOnServiceItem);
-      document.getElementById('demoTableCount').textContent = (items.length) + ' รายการ';
-      document.getElementById('demoTbody').innerHTML = items.map((d, i) => `
-        <tr onclick="openDetail('${d.id}')">
-          <td>${i + 1}</td>
-          <td><span class="badge b-wait">On Service</span></td>
-          <td>
-            <div style="font-weight:700">${d.place}</div>
-            <div style="font-size:10px; color:var(--txt3)">${d.customer || '-'}</div>
-          </td>
-          <td>${d.owner}</td>
-          <td><span class="badge b-wait" style="font-size:10px">${d.area || '-'}</span></td>
-          <td><span style="font-weight:700; color:var(--blue)">฿${(d.demolish || 0).toLocaleString()}</span></td>
-          <td>
-            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); openOffServiceModal('${d.id}')">
-              Off Service
-            </button>
-          </td>
-        </tr>
-      `).join('');
-    }
-
     /* ════════ EXECUTIVE DASHBOARD LOGIC ════════ */
     let trendChart, allocationChart, ownerFinanceChart;
     let myStatusChart, myTrendChart; // For Individual Dashboard
@@ -7348,7 +7476,8 @@
       const myData = getFilteredData().filter(d => (d.owner || '').includes(CURRENT_USER.name) || (d.created_by || '').includes(CURRENT_USER.name));
 
       const totalInstall = myData.reduce((s, d) => s + parseFixed(d.deposit), 0);
-      const totalDemo = myData.reduce((s, d) => s + parseFixed(d.demolish), 0);
+      const removalMetrics = DepositDomain.getRemovalDepositMetrics(myData);
+      const totalDemo = removalMetrics.totalAmount;
       const totalInsuranceVal = totalInstall + totalDemo;
 
       // Fees & Other
@@ -7362,12 +7491,9 @@
       }).reduce((s, d) => s + parseFixed(d.deposit), 0);
       const installPending = totalInstall - installRefunded;
 
-      // Removal Refund (strictly Done)
-      const demoRefunded = myData.filter(d => {
-        const s = (d.status || '').trim().toLowerCase();
-        return s === 'done';
-      }).reduce((s, d) => s + parseFixed(d.demolish), 0);
-      const demoPending = totalDemo - demoRefunded;
+      // Removal deposit uses the explicit return flag; installation status alone is insufficient.
+      const demoRefunded = removalMetrics.refundedAmount;
+      const demoPending = removalMetrics.outstandingAmount;
 
       // Overall Summary
       const overallRefunded = installRefunded; // Recalculated: success rate only for installation deposits
@@ -7433,12 +7559,10 @@
           const m = new Date(date).getMonth();
           const s = (d.status || '').trim().toLowerCase();
           const isDone = s === 'done';
-          // Removed depReturn/demoReturn standalone checks for trend chart as well
-
           if (isDone) {
             myRefundData[m] += (d.deposit || 0);
-            myRefundData[m] += (d.demolish || 0);
           }
+          if (DepositDomain.isRemovalRefunded(d)) myRefundData[m] += parseFixed(d.demolish);
         }
       });
 
@@ -7478,7 +7602,8 @@
       }
 
       const totalInstall = filteredDB.reduce((s, d) => s + parseFixed(d.deposit), 0);
-      const totalDemo = filteredDB.reduce((s, d) => s + parseFixed(d.demolish), 0);
+      const removalMetrics = DepositDomain.getRemovalDepositMetrics(filteredDB);
+      const totalDemo = removalMetrics.totalAmount;
       const totalInsuranceVal = totalInstall + totalDemo;
 
       // 1. Installation Refund (strictly status === 'Done')
@@ -7496,21 +7621,15 @@
       });
       const installPendingCount = installPendingItems.length;
 
-      const demoDoneItems = filteredDB.filter(d => {
-        const s = (d.status || '').trim().toLowerCase();
-        return s === 'done';
-      });
-      const demoRefunded = demoDoneItems.reduce((s, d) => s + parseFixed(d.demolish), 0);
-      const demoPending = totalDemo - demoRefunded;
-
-      const demoPendingCount = filteredDB.filter(d => {
-        if (parseFixed(d.demolish) <= 0) return false;
-        return (d.demoReturn || '').trim() !== 'Yes';
-      }).length;
+      const demoRefunded = removalMetrics.refundedAmount;
+      const demoPending = removalMetrics.onServiceAmount;
+      const demoPendingCount = removalMetrics.onServiceCount;
+      const demoPreService = removalMetrics.preServiceAmount;
+      const demoPreServiceCount = removalMetrics.preServiceCount;
 
       // 3. Overall Summary (Hero)
       const overallRefunded = installRefunded + demoRefunded;
-      const overallPending = installPending + demoPending;
+      const overallPending = installPending + removalMetrics.outstandingAmount;
       const successPct = totalInsuranceVal > 0 ? (overallRefunded / totalInsuranceVal * 100).toFixed(2) : "0.00";
 
       // Update UI Elements
@@ -7556,6 +7675,7 @@
       document.getElementById('db-demo-pending').innerHTML = `
         <div><span class="currency-symbol">฿</span>${demoPending.toLocaleString()}</div>
         <div style="font-size:20px; color:var(--txt3); font-weight:800; margin-top:6px;">(${demoPendingCount} งาน)</div>
+        <div style="font-size:11px; color:var(--txt3); font-weight:600; margin-top:8px; line-height:1.4;">ยังไม่เข้า On Service: ฿${demoPreService.toLocaleString()} (${demoPreServiceCount} งาน)</div>
       `;
 
       // 1. Monthly Financial Trend — last 12 months rolling
@@ -7648,8 +7768,11 @@
 
       // 3. Area Outstanding Value
       const areaFin = {};
-      filteredDB.filter(d => (d.status || '').toLowerCase() !== 'done' && (d.status || '').toLowerCase() !== 'cancel').forEach(d => {
-        if (d.area) areaFin[d.area] = (areaFin[d.area] || 0) + (d.deposit || 0);
+      filteredDB.filter(d => !DepositDomain.isCancelled(d)).forEach(d => {
+        const status = (d.status || '').trim().toLowerCase();
+        const installOutstanding = status === 'done' ? 0 : parseFixed(d.deposit);
+        const removalOutstanding = DepositDomain.isRemovalRefunded(d) ? 0 : parseFixed(d.demolish);
+        if (d.area) areaFin[d.area] = (areaFin[d.area] || 0) + installOutstanding + removalOutstanding;
       });
 
       const areaColors = [chartColors.blue, chartColors.orange, chartColors.green, chartColors.violet, chartColors.red, chartColors.teal, chartColors.gold];
@@ -7688,13 +7811,16 @@
         }
       });
 
-      // 4. Render Top 5 Outstanding (Installation Only)
+      // 4. Render Top 5 Outstanding (installation + unreturned removal deposit)
       const topOutstanding = [...filteredDB]
-        .filter(d => (d.status || '').toLowerCase() !== 'done' && (d.status || '').toLowerCase() !== 'cancel')
+        .filter(d => !DepositDomain.isCancelled(d))
         .map(d => ({
           ...d,
-          totalOutstanding: (d.deposit || 0) + (d.demolish || 0)
+          installOutstanding: (d.status || '').trim().toLowerCase() === 'done' ? 0 : parseFixed(d.deposit),
+          removalOutstanding: DepositDomain.isRemovalRefunded(d) ? 0 : parseFixed(d.demolish)
         }))
+        .map(d => ({ ...d, totalOutstanding: d.installOutstanding + d.removalOutstanding }))
+        .filter(d => d.totalOutstanding > 0)
         .sort((a, b) => b.totalOutstanding - a.totalOutstanding)
         .slice(0, 5);
 
@@ -7706,8 +7832,8 @@
           </td>
           <td><span class="badge b-wait" style="font-size:10px">${d.area || '-'}</span></td>
           <td><span class="badge b-violet" style="font-size:10px">${d.owner}</span></td>
-          <td style="color:var(--txt2)">฿${(d.deposit || 0).toLocaleString()}</td>
-          <td style="color:var(--txt2)">฿${(d.demolish || 0).toLocaleString()}</td>
+          <td style="color:var(--txt2)">฿${d.installOutstanding.toLocaleString()}</td>
+          <td style="color:var(--txt2)">฿${d.removalOutstanding.toLocaleString()}</td>
           <td style="text-align:right"><span class="val-pill">฿${d.totalOutstanding.toLocaleString()}</span></td>
         </tr>
       `).join('');
@@ -7860,6 +7986,12 @@
 
       setupRealtime();
       initApp().then(() => {
+        if (USE_MOCK) {
+          const requestedPage = new URLSearchParams(window.location.search).get('page');
+          const fixturePages = ['list', 'my-dashboard', 'dashboard', 'tl-tasks', 'active-demo', 'done-list'];
+          if (fixturePages.includes(requestedPage)) showPage(requestedPage);
+          if (new URLSearchParams(window.location.search).get('open') === 'cost') openNonRefundableCostDetail();
+        }
         checkDueDates();
       });
     }
@@ -7921,6 +8053,13 @@
 
     async function checkSession() {
       if (USE_MOCK) {
+        const requestedUser = new URLSearchParams(window.location.search).get('user');
+        if (requestedUser && MOCK_USERS[requestedUser]) {
+          sessionStorage.setItem('deposit_mock_session', JSON.stringify({
+            employeeId: requestedUser,
+            loginTime: Date.now()
+          }));
+        }
         const session = sessionStorage.getItem('deposit_mock_session');
         if (session) {
           const data = JSON.parse(session);

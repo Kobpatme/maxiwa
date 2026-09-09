@@ -8,6 +8,12 @@ if (firebase.apps.length === 0) {
 const db = firebase.firestore();
 const storage = firebase.storage();
 
+function assertRemoteWriteAllowed(operation) {
+    if (window.DEPOSIT_LOCAL_FIXTURE === true) {
+        throw new Error(`Local fixture mode blocked Firebase write: ${operation}`);
+    }
+}
+
 /* ─── DATA: DEPOSITS ─── */
 
 async function getDeposits() {
@@ -42,6 +48,7 @@ async function getDeposits() {
 }
 
 async function insertDeposit(depositData) {
+    assertRemoteWriteAllowed('insertDeposit');
     try {
         const docRef = await db.collection('deposits').add(depositData);
         // Ensure the returned object has an 'id' field for app compatibility
@@ -62,6 +69,7 @@ async function insertDeposit(depositData) {
 }
 
 async function updateDeposit(id, depositData) {
+    assertRemoteWriteAllowed('updateDeposit');
     if (!id) throw new Error('ID is required for updateDeposit');
     try {
         let docId = String(id);
@@ -84,6 +92,7 @@ async function updateDeposit(id, depositData) {
 }
 
 async function deleteDeposit(id) {
+    assertRemoteWriteAllowed('deleteDeposit');
     if (!id) throw new Error('ID is required for deleteDeposit');
     try {
         let docId = String(id);
@@ -107,6 +116,7 @@ async function deleteDeposit(id) {
 /* ─── STORAGE (File Upload) ─── */
 
 async function uploadFile(file, folder = 'misc') {
+    assertRemoteWriteAllowed('uploadFile');
     try {
         const fileExt = file.name.split('.').pop();
         const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
@@ -140,6 +150,7 @@ async function uploadFile(file, folder = 'misc') {
 }
 
 async function deleteFileFromUrl(url) {
+    assertRemoteWriteAllowed('deleteFileFromUrl');
     if (!url || typeof url !== 'string') return;
     try {
         // Firebase storage references can be created from URL
@@ -192,6 +203,7 @@ async function getUsers() {
 }
 
 async function addUser(userData) {
+    assertRemoteWriteAllowed('addUser');
     try {
         const docRef = await db.collection('users').add(userData);
         return { id: docRef.id, ...userData };
@@ -202,6 +214,7 @@ async function addUser(userData) {
 }
 
 async function removeUser(id) {
+    assertRemoteWriteAllowed('removeUser');
     if (!id) throw new Error('ID is required for removeUser');
     try {
         // Force ID to string to prevent Firestore path errors
@@ -214,6 +227,7 @@ async function removeUser(id) {
 }
 
 async function updateUser(id, userData) {
+    assertRemoteWriteAllowed('updateUser');
     if (!id) throw new Error('ID is required for updateUser');
     try {
         await db.collection('users').doc(String(id)).update(userData);
@@ -226,6 +240,7 @@ async function updateUser(id, userData) {
 
 // บันทึกคำขอรีเซ็ตรหัสผ่านให้แอดมินจัดการ (แบบเก่า - มีไว้แจ้งเตือนแอดมิน)
 async function requestPasswordReset(payload) {
+    assertRemoteWriteAllowed('requestPasswordReset');
     try {
         await db.collection('password_reset_requests').add({
             employee_id: payload.employee_id,
@@ -242,6 +257,7 @@ async function requestPasswordReset(payload) {
 
 // ระบบรีเซ็ตรหัสผ่านอัตโนมัติ (Phase 2)
 async function verifyAndResetPassword(employeeId, email, newPassword) {
+    assertRemoteWriteAllowed('verifyAndResetPassword');
     try {
         const snapshot = await db.collection('users')
             .where('employee_id', '==', employeeId)
