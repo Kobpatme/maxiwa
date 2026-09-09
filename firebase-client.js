@@ -7,6 +7,59 @@ if (firebase.apps.length === 0) {
 
 const db = firebase.firestore();
 const storage = firebase.storage();
+const auth = firebase.auth();
+
+function isFirebaseAuthEnabled() {
+    return !window.DEPOSIT_LOCAL_FIXTURE && window.DEPOSIT_AUTH_MODE === 'firebase';
+}
+
+async function signInWithFirebase(email, password) {
+    if (!isFirebaseAuthEnabled()) throw new Error('Firebase Auth mode is not enabled');
+    if (!String(email || '').includes('@')) {
+        throw new Error('secure-auth-requires-email');
+    }
+    const credential = await auth.signInWithEmailAndPassword(String(email).trim(), password);
+    return getAuthProfile(credential.user.uid);
+}
+
+async function getAuthProfile(uid) {
+    if (!uid) return null;
+    const doc = await db.collection('user_profiles').doc(uid).get();
+    if (!doc.exists || doc.data().active !== true) {
+        await auth.signOut();
+        throw new Error('auth-profile-unavailable');
+    }
+    return { id: doc.id, uid: doc.id, ...doc.data() };
+}
+
+function waitForFirebaseAuthProfile() {
+    return new Promise((resolve, reject) => {
+        const unsubscribe = auth.onAuthStateChanged(async user => {
+            unsubscribe();
+            if (!user) return resolve(null);
+            try {
+                resolve(await getAuthProfile(user.uid));
+            } catch (error) {
+                reject(error);
+            }
+        }, reject);
+    });
+}
+
+async function sendFirebasePasswordReset(email) {
+    if (!isFirebaseAuthEnabled()) throw new Error('Firebase Auth mode is not enabled');
+    auth.useDeviceLanguage();
+    await auth.sendPasswordResetEmail(String(email || '').trim());
+}
+
+async function signOutFirebase() {
+    await auth.signOut();
+}
+
+async function getStaffDirectory() {
+    const snapshot = await db.collection('staff_directory').orderBy('name').get();
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
 
 function assertRemoteWriteAllowed(operation) {
     if (window.DEPOSIT_LOCAL_FIXTURE === true) {
@@ -164,6 +217,7 @@ async function deleteFileFromUrl(url) {
 /* ─── USER MANAGEMENT (Auth/Admin) ─── */
 
 async function validateUserWithPassword(employeeId, password) {
+    if (isFirebaseAuthEnabled()) throw new Error('Legacy password lookup is disabled in Firebase Auth mode');
     try {
         const snapshot = await db.collection('users')
             .where('employee_id', '==', employeeId)
@@ -181,6 +235,7 @@ async function validateUserWithPassword(employeeId, password) {
 
 // ใช้สำหรับตรวจ session ที่มีอยู่แล้ว (ไม่เช็กรหัสผ่านซ้ำ)
 async function validateUser(employeeId) {
+    if (isFirebaseAuthEnabled()) throw new Error('Legacy session lookup is disabled in Firebase Auth mode');
     try {
         const snapshot = await db.collection('users').where('employee_id', '==', employeeId).limit(1).get();
         if (snapshot.empty) return null;
@@ -193,6 +248,9 @@ async function validateUser(employeeId) {
 }
 
 async function getUsers() {
+    if (isFirebaseAuthEnabled()) {
+        throw new Error('Bulk legacy account reads are disabled in Firebase Auth mode');
+    }
     try {
         const snapshot = await db.collection('users').orderBy('name').get();
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -203,6 +261,7 @@ async function getUsers() {
 }
 
 async function addUser(userData) {
+    if (isFirebaseAuthEnabled()) throw new Error('Account creation requires the trusted admin backend');
     assertRemoteWriteAllowed('addUser');
     try {
         const docRef = await db.collection('users').add(userData);
@@ -214,6 +273,7 @@ async function addUser(userData) {
 }
 
 async function removeUser(id) {
+    if (isFirebaseAuthEnabled()) throw new Error('Account removal requires the trusted admin backend');
     assertRemoteWriteAllowed('removeUser');
     if (!id) throw new Error('ID is required for removeUser');
     try {
@@ -227,6 +287,7 @@ async function removeUser(id) {
 }
 
 async function updateUser(id, userData) {
+    if (isFirebaseAuthEnabled()) throw new Error('Account and role changes require the trusted admin backend');
     assertRemoteWriteAllowed('updateUser');
     if (!id) throw new Error('ID is required for updateUser');
     try {
@@ -240,6 +301,7 @@ async function updateUser(id, userData) {
 
 // บันทึกคำขอรีเซ็ตรหัสผ่านให้แอดมินจัดการ (แบบเก่า - มีไว้แจ้งเตือนแอดมิน)
 async function requestPasswordReset(payload) {
+    if (isFirebaseAuthEnabled()) throw new Error('Legacy password reset requests are disabled in Firebase Auth mode');
     assertRemoteWriteAllowed('requestPasswordReset');
     try {
         await db.collection('password_reset_requests').add({
@@ -257,6 +319,7 @@ async function requestPasswordReset(payload) {
 
 // ระบบรีเซ็ตรหัสผ่านอัตโนมัติ (Phase 2)
 async function verifyAndResetPassword(employeeId, email, newPassword) {
+    if (isFirebaseAuthEnabled()) throw new Error('Direct password reset is disabled in Firebase Auth mode');
     assertRemoteWriteAllowed('verifyAndResetPassword');
     try {
         const snapshot = await db.collection('users')

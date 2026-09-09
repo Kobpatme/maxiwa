@@ -84,6 +84,8 @@
 
 **จุดตัด production:** ห้ามปล่อยหน้าเว็บ Auth ใหม่กับ Rules/บัญชีที่ยังไม่พร้อม ต้องมีลำดับ deploy ร่วมกันและวิธีกู้การเข้าใช้ของผู้ดูแล โดยไม่เปิด Rules สาธารณะหรือคืนระบบ plaintext password
 
+**ความคืบหน้า local/staging (9 ก.ย. 2026):** เตรียม secure Auth adapter แบบ feature-gated, password-reset email, UID profile/directory schema, deny-by-default Firestore/Storage Rules, rule-compatible indexes, migration dry-run และ Emulator tests 10 กรณีแล้ว ทั้งหมดผ่านใน local fixture แต่ checklist P1 ด้านบนยังไม่ถือว่าเสร็จจนกว่าจะยืนยันนโยบายสิทธิ์, เตรียม trusted admin backend, migrate บัญชี/ข้อมูล/ไฟล์ใน staging และทำ coordinated cutover โดยดู `docs/auth-security-migration.md`
+
 ### P2 — ความถูกต้องของข้อมูลและการกู้คืน
 
 - [ ] ใช้ document ID เป็นตัวอ้างอิงหลัก ผ่าน compatibility layer สำหรับ numeric ID เดิม ไม่เปลี่ยน ID ทั้งระบบโดยไม่มีแผนย้าย

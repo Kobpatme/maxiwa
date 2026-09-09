@@ -1,0 +1,49 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function profile() {
+      return firestore.get(/databases/(default)/documents/user_profiles/$(request.auth.uid)).data;
+    }
+
+    function active() {
+      return signedIn()
+        && firestore.exists(/databases/(default)/documents/user_profiles/$(request.auth.uid))
+        && profile().active == true;
+    }
+
+    function deposit(depositId) {
+      return firestore.get(/databases/(default)/documents/deposits/$(depositId)).data;
+    }
+
+    function canReadDeposit(depositId) {
+      return active() && (
+        profile().role == 'admin'
+        || deposit(depositId).owner_uid == request.auth.uid
+        || (profile().role == 'tl' && deposit(depositId).tl_area == profile().area)
+      );
+    }
+
+    function validPdfUpload() {
+      return request.resource != null
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType == 'application/pdf';
+    }
+
+    match /deposits/{depositId}/{category}/{fileName} {
+      allow read: if canReadDeposit(depositId);
+      allow create: if canReadDeposit(depositId) && validPdfUpload();
+      allow update: if false;
+      allow delete: if active() && profile().role == 'admin';
+    }
+
+    // Existing flat folders stay closed in the target rules until files are migrated.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

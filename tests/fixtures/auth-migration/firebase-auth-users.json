@@ -1,0 +1,7 @@
+{
+  "users": [
+    { "uid": "fixture-admin-uid", "email": "admin@example.invalid" },
+    { "uid": "fixture-user-uid", "email": "user@example.invalid" },
+    { "uid": "fixture-tl-uid", "email": "tl@example.invalid" }
+  ]
+}

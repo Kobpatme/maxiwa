@@ -4,6 +4,9 @@ import vm from 'node:vm';
 
 const html = readFileSync('index.html', 'utf8');
 const client = readFileSync('firebase-client.js', 'utf8');
+const config = readFileSync('firebase-config.js', 'utf8');
+const firestoreRules = readFileSync('firestore.rules', 'utf8');
+const storageRules = readFileSync('storage.rules', 'utf8');
 const fixture = readFileSync('mock-data.js', 'utf8');
 const sandbox = { window: {} };
 vm.runInNewContext(fixture, sandbox);
@@ -27,6 +30,14 @@ assert.match(html, /filteredData\.filter\(DepositDomain\.isPreServiceItem\)/);
 assert.match(html, /id="nonRefundableCostKpi"/);
 assert.match(html, /id="costDetailOverlay"/);
 assert.match(html, /getNonRefundableCostMetrics\(filteredData\)/);
+assert.match(html, /firebase-auth-compat\.js/);
+assert.match(client, /signInWithEmailAndPassword/);
+assert.match(client, /sendPasswordResetEmail/);
+assert.match(client, /Legacy password lookup is disabled/);
+assert.match(config, /DEPOSIT_AUTH_MODE = 'legacy'/);
+assert.match(firestoreRules, /match \/user_profiles\/\{uid\}/);
+assert.match(firestoreRules, /match \/users\/\{document=\*\*\}/);
+assert.match(storageRules, /match \/deposits\/\{depositId\}\/\{category\}\/\{fileName\}/);
 
 for (const operation of [
   'insertDeposit', 'updateDeposit', 'deleteDeposit', 'uploadFile', 'deleteFileFromUrl',

@@ -1,0 +1,28 @@
+{
+  "users": [
+    {
+      "employee_id": "admin001",
+      "email": "admin@example.invalid",
+      "password": "fixture-only",
+      "name": "Fixture Admin",
+      "role": "admin",
+      "area": "ALL"
+    },
+    {
+      "employee_id": "user001",
+      "email": "user@example.invalid",
+      "password": "fixture-only",
+      "name": "Fixture Owner",
+      "role": "user",
+      "area": "BKK"
+    },
+    {
+      "employee_id": "tl001",
+      "email": "tl@example.invalid",
+      "password": "fixture-only",
+      "name": "Fixture TL",
+      "role": "tl",
+      "area": "BKK"
+    }
+  ]
+}

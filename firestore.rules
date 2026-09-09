@@ -1,0 +1,103 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function profile() {
+      return get(/databases/$(database)/documents/user_profiles/$(request.auth.uid)).data;
+    }
+
+    function hasActiveProfile() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/user_profiles/$(request.auth.uid))
+        && profile().active == true;
+    }
+
+    function isAdmin() {
+      return hasActiveProfile() && profile().role == 'admin';
+    }
+
+    function isOwner(data) {
+      return hasActiveProfile() && data.owner_uid == request.auth.uid;
+    }
+
+    function isAssignedTl(data) {
+      return hasActiveProfile()
+        && profile().role == 'tl'
+        && profile().area is string
+        && data.tl_area == profile().area;
+    }
+
+    function ownerUpdateFieldsOnly() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'place', 'customer', 'cid', 'pr', 'detail', 'note',
+        'pdf_payment', 'pdf_layout', 'pdf_additional', 'pdf_user_final',
+        'return_status', 'complete', 'updated_at', 'updated_by', 'version'
+      ]);
+    }
+
+    function tlUpdateFieldsOnly() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+        'att', 'status', 'complete_tl', 'pdf_tl_work', 'pdf_tl_extra',
+        'tl_received_at', 'tl_completed_at', 'updated_at', 'updated_by', 'version'
+      ]);
+    }
+
+    function preservesServerIdentity() {
+      return request.resource.data.owner_uid == resource.data.owner_uid
+        && request.resource.data.employee_id == resource.data.employee_id
+        && request.resource.data.created_at == resource.data.created_at
+        && request.resource.data.version == resource.data.version + 1
+        && request.resource.data.updated_by == request.auth.uid;
+    }
+
+    match /user_profiles/{uid} {
+      allow read: if hasActiveProfile() && (request.auth.uid == uid || isAdmin());
+      // Account creation, role changes and activation are trusted-backend operations.
+      allow create, update, delete: if false;
+    }
+
+    match /staff_directory/{uid} {
+      allow read: if hasActiveProfile();
+      allow create, update, delete: if false;
+    }
+
+    match /deposits/{depositId} {
+      allow read: if isAdmin() || isOwner(resource.data) || isAssignedTl(resource.data);
+
+      allow create: if hasActiveProfile()
+        && profile().role == 'user'
+        && request.resource.data.owner_uid == request.auth.uid
+        && request.resource.data.updated_by == request.auth.uid
+        && request.resource.data.version == 1;
+
+      allow update: if (isAdmin() && preservesServerIdentity())
+        || (isOwner(resource.data) && ownerUpdateFieldsOnly() && preservesServerIdentity())
+        || (isAssignedTl(resource.data) && tlUpdateFieldsOnly() && preservesServerIdentity());
+
+      // P2 replaces permanent deletion with an audited soft-delete backend operation.
+      allow delete: if false;
+    }
+
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // Plaintext legacy accounts and client-created reset requests are quarantined.
+    match /users/{document=**} {
+      allow read, write: if false;
+    }
+
+    match /password_reset_requests/{document=**} {
+      allow read, write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

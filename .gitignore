@@ -8,3 +8,5 @@ migrate-data.js
 C:/tmp/
 *-diag.js
 setup-admin.js
+*-debug.log
+.firebase/

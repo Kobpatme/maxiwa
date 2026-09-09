@@ -9,6 +9,7 @@
     href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Figtree:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -2764,9 +2765,9 @@
     <div class="login-box">
       <div class="login-logo"><img class="system-logo" src="https://img1.pic.in.th/images/NewLogo.png" alt="Deposit Manager"></div>
       <h2>เข้าสู่ระบบ</h2>
-      <p>กรุณากรอกรหัสพนักงานและรหัสผ่านเพื่อใช้งานระบบ</p>
+      <p id="login-help">กรุณากรอกรหัสพนักงานและรหัสผ่านเพื่อใช้งานระบบ</p>
       <form class="login-form" onsubmit="handleLogin(event)">
-        <label>รหัสพนักงาน</label>
+        <label id="login-id-label">รหัสพนักงาน</label>
         <input type="text" class="login-input" id="login-id" placeholder="EMPLOYEE ID" required autofocus>
         <label>รหัสผ่าน</label>
         <input type="password" class="login-input" id="login-password" placeholder="Password" required>
@@ -2788,19 +2789,19 @@
   <div id="forgotOverlay" class="overlay" style="z-index:10000">
     <div class="modal">
       <div class="modal-head">
-        <div class="modal-title">รีเซ็ตรหัสผ่านอัตโนมัติ</div>
+        <div class="modal-title" id="forgot-title">รีเซ็ตรหัสผ่าน</div>
         <button class="modal-close" onclick="closeForgotPassword()"><span data-svg-icon="close"></span></button>
       </div>
       <div class="modal-body">
-        <p style="font-size:13px; color:var(--txt3); margin-bottom:16px">
+        <p id="forgot-help" style="font-size:13px; color:var(--txt3); margin-bottom:16px">
           กรุณากรอกข้อมูลให้ตรงตามที่ลงทะเบียนไว้ ระบบจะดำเนินการเปลี่ยนรหัสผ่านให้ทันที
         </p>
         <form onsubmit="submitForgotPassword(event)">
-          <div class="form-group">
+          <div class="form-group" id="fp-employee-group">
             <label style="font-size:12px; font-weight:600">รหัสพนักงาน</label>
             <input type="text" class="login-input" id="fp-employee-id" placeholder="EMPLOYEE ID" required style="margin-bottom:12px">
           </div>
-          <div class="form-group">
+          <div class="form-group" id="fp-new-password-group">
             <label style="font-size:12px; font-weight:600">อีเมลที่ลงทะเบียนไว้</label>
             <input type="email" class="login-input" id="fp-email" placeholder="example@company.com" required style="margin-bottom:12px">
           </div>
@@ -7874,13 +7875,15 @@
           if (user && user.password && user.password !== password) {
             user = null;
           }
+        } else if (isFirebaseAuthEnabled()) {
+          user = await signInWithFirebase(id, password);
         } else {
           user = await validateUserWithPassword(id, password);
         }
 
         if (user) {
           CURRENT_USER = user;
-          if (!USE_MOCK) {
+          if (!USE_MOCK && !isFirebaseAuthEnabled()) {
             const sessionId = Math.random().toString(36).substring(2) + Date.now();
             sessionStorage.setItem('deposit_session', JSON.stringify({
               employeeId: user.employee_id,
@@ -7903,8 +7906,11 @@
         } else {
           err.style.display = 'block';
         }
-      } catch (err) {
-        toast('เกิดข้อผิดพลาดในการเข้าสู่ระบบ', 'error');
+      } catch (loginError) {
+        err.style.display = 'block';
+        err.textContent = loginError.message === 'secure-auth-requires-email'
+          ? 'โหมดเข้าสู่ระบบที่ปลอดภัยต้องใช้อีเมลที่ลงทะเบียน'
+          : 'อีเมลหรือรหัสผ่านไม่ถูกต้อง หรือบัญชียังไม่พร้อมใช้งาน';
       }
     }
 
@@ -7996,12 +8002,33 @@
       });
     }
 
-    function logout() {
+    async function logout() {
       sessionStorage.removeItem('deposit_session');
+      if (isFirebaseAuthEnabled()) await signOutFirebase();
       location.reload();
     }
 
-    function openForgotPassword() { openModal('forgotOverlay'); }
+    function configureAuthUi() {
+      const secure = isFirebaseAuthEnabled();
+      document.getElementById('login-id-label').textContent = secure ? 'อีเมลบริษัท' : 'รหัสพนักงาน';
+      document.getElementById('login-id').placeholder = secure ? 'name@company.com' : 'EMPLOYEE ID';
+      document.getElementById('login-help').textContent = secure
+        ? 'กรุณาใช้อีเมลบริษัทและรหัสผ่าน Firebase Authentication'
+        : 'กรุณากรอกรหัสพนักงานและรหัสผ่านเพื่อใช้งานระบบ';
+      document.getElementById('fp-employee-group').style.display = secure ? 'none' : 'block';
+      document.getElementById('fp-new-password-group').style.display = secure ? 'none' : 'block';
+      document.getElementById('fp-employee-id').required = !secure;
+      document.getElementById('fp-new-password').required = !secure;
+      document.getElementById('forgot-help').textContent = secure
+        ? 'ระบบจะส่งลิงก์ยืนยันตัวตนไปยังอีเมลที่ลงทะเบียนไว้ และจะไม่เปลี่ยนรหัสผ่านจากหน้าเว็บนี้'
+        : 'กรุณากรอกข้อมูลให้ตรงตามที่ลงทะเบียนไว้ ระบบจะดำเนินการเปลี่ยนรหัสผ่านให้ทันที';
+      document.getElementById('fp-submit-btn').textContent = secure ? 'ส่งลิงก์รีเซ็ตรหัสผ่าน' : 'ยืนยันและเปลี่ยนรหัสผ่าน';
+    }
+
+    function openForgotPassword() {
+      configureAuthUi();
+      openModal('forgotOverlay');
+    }
     function closeForgotPassword() { closeModal('forgotOverlay'); }
 
     async function submitForgotPassword(e) {
@@ -8015,7 +8042,8 @@
       // ซ่อนข้อความเก่า
       statusEl.style.display = 'none';
 
-      if (!empId || !email || !newPwd) {
+      const secure = isFirebaseAuthEnabled();
+      if (!email || (!secure && (!empId || !newPwd))) {
         statusEl.style.display = 'block';
         statusEl.style.background = 'var(--red-l)';
         statusEl.style.color = 'var(--red)';
@@ -8029,12 +8057,15 @@
       submitBtn.textContent = ' กำลังตรวจสอบ...';
 
       try {
-        await verifyAndResetPassword(empId, email, newPwd);
+        if (secure) await sendFirebasePasswordReset(email);
+        else await verifyAndResetPassword(empId, email, newPwd);
         statusEl.style.display = 'block';
         statusEl.style.background = 'var(--green-l)';
         statusEl.style.color = 'var(--green-d)';
         statusEl.style.border = '1px solid var(--green)';
-        statusEl.innerHTML = 'เปลี่ยนรหัสผ่านสำเร็จ! กรุณาปิดหน้าต่างนี้แล้วเข้าสู่ระบบด้วยรหัสผ่านใหม่';
+        statusEl.innerHTML = secure
+          ? 'ส่งลิงก์แล้ว หากอีเมลนี้ลงทะเบียนไว้ กรุณาตรวจสอบกล่องจดหมายและดำเนินการตามลิงก์'
+          : 'เปลี่ยนรหัสผ่านสำเร็จ! กรุณาปิดหน้าต่างนี้แล้วเข้าสู่ระบบด้วยรหัสผ่านใหม่';
       } catch (err) {
         statusEl.style.display = 'block';
         statusEl.style.background = 'var(--red-l)';
@@ -8047,11 +8078,12 @@
         }
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'ยืนยันและเปลี่ยนรหัสผ่าน';
+        submitBtn.textContent = secure ? 'ส่งลิงก์รีเซ็ตรหัสผ่าน' : 'ยืนยันและเปลี่ยนรหัสผ่าน';
       }
     }
 
     async function checkSession() {
+      configureAuthUi();
       if (USE_MOCK) {
         const requestedUser = new URLSearchParams(window.location.search).get('user');
         if (requestedUser && MOCK_USERS[requestedUser]) {
@@ -8069,6 +8101,17 @@
             setupUserSession();
             return;
           }
+        }
+      } else if (isFirebaseAuthEnabled()) {
+        try {
+          const user = await waitForFirebaseAuthProfile();
+          if (user) {
+            CURRENT_USER = user;
+            setupUserSession();
+            return;
+          }
+        } catch (authError) {
+          console.error('Secure authentication session error:', authError);
         }
       } else {
         const session = sessionStorage.getItem('deposit_session');
