@@ -2866,11 +2866,11 @@
         </div>
       </nav>
       <div class="sidebar-stats">
-        <div class="stat-row"><span class="stat-label">ยอดรวมทั้งหมด</span><span class="stat-val blue"
+        <div class="stat-row"><span class="stat-label">ยอดชำระรวม</span><span class="stat-val blue"
             id="sb-total-amt">฿0</span></div>
-        <div class="stat-row"><span class="stat-label">เงินประกันคงค้าง</span><span class="stat-val orange"
+        <div class="stat-row"><span class="stat-label">ประกันคงค้างรวม</span><span class="stat-val orange"
             id="sb-dep-amt">฿0</span></div>
-        <div class="stat-row"><span class="stat-label">อัปเดตล่าสุด</span><span class="stat-val"
+        <div class="stat-row"><span class="stat-label">คำนวณล่าสุด</span><span class="stat-val"
             id="sb-updated">—</span></div>
       </div>
     </aside>
@@ -4684,6 +4684,7 @@
     /* ════════ RENDER KPI ════════ */
     function renderKPI() {
       const filteredData = getFilteredData();
+      const sidebarMetrics = DepositDomain.getSidebarFinancialMetrics(getRoleAllowedData());
       const isTL = CURRENT_USER && CURRENT_USER.role === 'tl';
       const onProcLabel = isTL ? 'อยู่ระหว่างตรวจรับ' : 'อยู่ระหว่างขอคืนเงิน';
 
@@ -4695,8 +4696,6 @@
       const installDep = filteredData.reduce((s, d) => s + parseFixed(d.deposit), 0);
       const removalMetrics = DepositDomain.getRemovalDepositMetrics(filteredData);
       const demoDep = removalMetrics.onServiceAmount;
-      const amt = filteredData.reduce((s, d) => s + parseFixed(d.total), 0);
-      const dep = filteredData.filter(d => (d.depReturn || '').trim().toLowerCase() !== 'yes').reduce((s, d) => s + parseFixed(d.deposit), 0);
 
       document.getElementById('kpiRow').innerHTML = `
     <div class="kpi" style="border-left: 4px solid var(--blue)">
@@ -4737,8 +4736,12 @@
       // document.getElementById('nav-total').textContent = total;
       // document.getElementById('nav-process').textContent = proc;
       // document.getElementById('nav-done').textContent = done;
-      if (document.getElementById('sb-total-amt')) document.getElementById('sb-total-amt').textContent = '฿' + amt.toLocaleString();
-      if (document.getElementById('sb-dep-amt')) document.getElementById('sb-dep-amt').textContent = '฿' + dep.toLocaleString();
+      if (document.getElementById('sb-total-amt')) document.getElementById('sb-total-amt').textContent = '฿' + sidebarMetrics.totalPaymentAmount.toLocaleString('th-TH', { maximumFractionDigits: 2 });
+      if (document.getElementById('sb-dep-amt')) {
+        const outstandingEl = document.getElementById('sb-dep-amt');
+        outstandingEl.textContent = '฿' + sidebarMetrics.totalOutstandingAmount.toLocaleString('th-TH', { maximumFractionDigits: 2 });
+        outstandingEl.title = `ติดตั้ง ฿${sidebarMetrics.installationOutstandingAmount.toLocaleString('th-TH', { maximumFractionDigits: 2 })} · รื้อถอน ฿${sidebarMetrics.removalOutstandingAmount.toLocaleString('th-TH', { maximumFractionDigits: 2 })}`;
+      }
       const now = new Date();
       if (document.getElementById('sb-updated')) document.getElementById('sb-updated').textContent = now.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
     }
@@ -5138,8 +5141,7 @@
       }
     });
 
-    function getFilteredData() {
-      // 1. Role-based filtering
+    function getRoleAllowedData() {
       let roleAllowedData = DB;
       if (CURRENT_USER && CURRENT_USER.role === 'admin') {
         roleAllowedData = DB;
@@ -5149,6 +5151,13 @@
         const allowedAreas = CURRENT_USER.area.split(',').map(s => s.trim().toLowerCase());
         roleAllowedData = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
       }
+
+      return roleAllowedData;
+    }
+
+    function getFilteredData() {
+      // 1. Role-based filtering
+      const roleAllowedData = getRoleAllowedData();
 
       // 2. UI Filters (Search, Status, Owner, Area)
       const filtered = roleAllowedData.filter(d => {
@@ -7491,7 +7500,8 @@
       // but primarily it shows "My" stuff. Let's sync with filters for consistency.
       const myData = getFilteredData().filter(d => (d.owner || '').includes(CURRENT_USER.name) || (d.created_by || '').includes(CURRENT_USER.name));
 
-      const totalInstall = myData.reduce((s, d) => s + parseFixed(d.deposit), 0);
+      const installationMetrics = DepositDomain.getInstallationDepositMetrics(myData);
+      const totalInstall = installationMetrics.totalAmount;
       const removalMetrics = DepositDomain.getRemovalDepositMetrics(myData);
       const totalDemo = removalMetrics.totalAmount;
       const totalInsuranceVal = totalInstall + totalDemo;
@@ -7500,12 +7510,9 @@
       const totalFee = myData.reduce((s, d) => s + parseFixed(d.fee), 0);
       const totalOther = myData.reduce((s, d) => s + parseFixed(d.other), 0);
 
-      // Installation Refund (strictly Done)
-      const installRefunded = myData.filter(d => {
-        const s = (d.status || '').trim().toLowerCase();
-        return s === 'done';
-      }).reduce((s, d) => s + parseFixed(d.deposit), 0);
-      const installPending = totalInstall - installRefunded;
+      // Installation refund follows the explicit money-return flag, not workflow completion.
+      const installRefunded = installationMetrics.refundedAmount;
+      const installPending = installationMetrics.outstandingAmount;
 
       // Removal deposit uses the explicit return flag; installation status alone is insufficient.
       const demoRefunded = removalMetrics.refundedAmount;
@@ -7573,9 +7580,7 @@
         let date = d.date_accounting || d.date_return || d.dateReq;
         if (date) {
           const m = new Date(date).getMonth();
-          const s = (d.status || '').trim().toLowerCase();
-          const isDone = s === 'done';
-          if (isDone) {
+          if (isReturnYes(d.depReturn)) {
             myRefundData[m] += (d.deposit || 0);
           }
           if (DepositDomain.isRemovalRefunded(d)) myRefundData[m] += parseFixed(d.demolish);
@@ -7617,23 +7622,20 @@
         filteredDB = DB.filter(d => allowedAreas.includes((d.area || '').toLowerCase()));
       }
 
-      const totalInstall = filteredDB.reduce((s, d) => s + parseFixed(d.deposit), 0);
+      const installationMetrics = DepositDomain.getInstallationDepositMetrics(filteredDB);
+      const totalInstall = installationMetrics.totalAmount;
       const removalMetrics = DepositDomain.getRemovalDepositMetrics(filteredDB);
       const totalDemo = removalMetrics.totalAmount;
       const totalInsuranceVal = totalInstall + totalDemo;
 
-      // 1. Installation Refund (strictly status === 'Done')
-      const installDoneItems = filteredDB.filter(d => {
-        const s = (d.status || '').trim().toLowerCase();
-        return s === 'done';
-      });
-      const installRefunded = installDoneItems.reduce((s, d) => s + parseFixed(d.deposit), 0);
-      const installPending = totalInstall - installRefunded;
+      // 1. Installation Refund (explicit return flag)
+      const installRefunded = installationMetrics.refundedAmount;
+      const installPending = installationMetrics.outstandingAmount;
 
       const installPendingItems = filteredDB.filter(d => {
+        if (DepositDomain.isCancelled(d)) return false;
         if (parseFixed(d.deposit) <= 0) return false;
-        const s = (d.status || '').trim().toLowerCase();
-        return s !== 'done';
+        return !isReturnYes(d.depReturn);
       });
       const installPendingCount = installPendingItems.length;
 
@@ -7785,8 +7787,7 @@
       // 3. Area Outstanding Value
       const areaFin = {};
       filteredDB.filter(d => !DepositDomain.isCancelled(d)).forEach(d => {
-        const status = (d.status || '').trim().toLowerCase();
-        const installOutstanding = status === 'done' ? 0 : parseFixed(d.deposit);
+        const installOutstanding = isReturnYes(d.depReturn) ? 0 : parseFixed(d.deposit);
         const removalOutstanding = DepositDomain.isRemovalRefunded(d) ? 0 : parseFixed(d.demolish);
         if (d.area) areaFin[d.area] = (areaFin[d.area] || 0) + installOutstanding + removalOutstanding;
       });
@@ -7832,7 +7833,7 @@
         .filter(d => !DepositDomain.isCancelled(d))
         .map(d => ({
           ...d,
-          installOutstanding: (d.status || '').trim().toLowerCase() === 'done' ? 0 : parseFixed(d.deposit),
+          installOutstanding: isReturnYes(d.depReturn) ? 0 : parseFixed(d.deposit),
           removalOutstanding: DepositDomain.isRemovalRefunded(d) ? 0 : parseFixed(d.demolish)
         }))
         .map(d => ({ ...d, totalOutstanding: d.installOutstanding + d.removalOutstanding }))

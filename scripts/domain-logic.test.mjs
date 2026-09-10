@@ -37,6 +37,21 @@ assert.deepEqual(JSON.parse(JSON.stringify(metrics)), {
   preServiceAmount: 3000, preServiceCount: 1
 });
 
+const installation = d.getInstallationDepositMetrics([
+  { status: 'new', deposit: '10,000', depReturn: 'No' },
+  { status: 'ret', deposit: 5000, depReturn: 'Yes' },
+  { status: 'done', deposit: 2500, depReturn: 'No' },
+  { status: 'Cancel', deposit: 9000, depReturn: 'No' }
+]);
+assert.deepEqual(JSON.parse(JSON.stringify(installation)), {
+  totalAmount: 17500,
+  totalCount: 3,
+  refundedAmount: 5000,
+  refundedCount: 1,
+  outstandingAmount: 12500,
+  outstandingCount: 2
+});
+
 const ordered = d.sortCompletedLast([
   { id: 'done-2', status: 'done', demolish: 0, no: 2 },
   { id: 'active-3', status: 'ret', no: 3 },
@@ -62,4 +77,16 @@ assert.deepEqual(JSON.parse(JSON.stringify(costs)), {
   missingOtherDescriptionCount: 1
 });
 
-console.log('PASS removal-deposit domain rules and metrics');
+const sidebar = d.getSidebarFinancialMetrics([
+  { status: 'new', deposit: '10,000', demolish: 2000, fee: 500, other: 250, depReturn: 'No', demoReturn: 'No' },
+  { status: 'done', deposit: 5000, demolish: 3000, fee: 100, depReturn: 'Yes', demoReturn: 'Yes' },
+  { status: 'Cancel', deposit: 9000, demolish: 9000, fee: 9000, other: 9000, depReturn: 'No', demoReturn: 'No' }
+]);
+assert.deepEqual(JSON.parse(JSON.stringify(sidebar)), {
+  totalPaymentAmount: 20850,
+  installationOutstandingAmount: 10000,
+  removalOutstandingAmount: 2000,
+  totalOutstandingAmount: 12000
+});
+
+console.log('PASS deposit domain rules and financial metrics');

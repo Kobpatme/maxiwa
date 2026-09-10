@@ -90,6 +90,28 @@
     });
   }
 
+  function getInstallationDepositMetrics(items) {
+    return (items || []).reduce((metrics, item) => {
+      if (isCancelled(item)) return metrics;
+      const amount = parseMoney(item && item.deposit);
+      if (amount === 0) return metrics;
+      metrics.totalAmount += amount;
+      metrics.totalCount += 1;
+      if (isReturnYes(item && item.depReturn)) {
+        metrics.refundedAmount += amount;
+        metrics.refundedCount += 1;
+      } else {
+        metrics.outstandingAmount += amount;
+        metrics.outstandingCount += 1;
+      }
+      return metrics;
+    }, {
+      totalAmount: 0, totalCount: 0,
+      refundedAmount: 0, refundedCount: 0,
+      outstandingAmount: 0, outstandingCount: 0
+    });
+  }
+
   function getNonRefundableCostMetrics(items) {
     return (items || []).reduce((metrics, item) => {
       if (isCancelled(item)) return metrics;
@@ -113,9 +135,31 @@
     });
   }
 
+  function getSidebarFinancialMetrics(items) {
+    const activeItems = (items || []).filter(item => !isCancelled(item));
+    const installationMetrics = getInstallationDepositMetrics(activeItems);
+    const removalMetrics = getRemovalDepositMetrics(activeItems);
+
+    const totalPaymentAmount = activeItems.reduce((sum, item) => {
+      return sum
+        + parseMoney(item && item.deposit)
+        + parseMoney(item && item.demolish)
+        + parseMoney(item && item.fee)
+        + parseMoney(item && item.other);
+    }, 0);
+
+    return {
+      totalPaymentAmount,
+      installationOutstandingAmount: installationMetrics.outstandingAmount,
+      removalOutstandingAmount: removalMetrics.outstandingAmount,
+      totalOutstandingAmount: installationMetrics.outstandingAmount + removalMetrics.outstandingAmount
+    };
+  }
+
   root.DepositDomain = {
     normalize, parseMoney, isReturnYes, isCancelled, hasRemovalDeposit,
     isRemovalRefunded, isInstallationClosed, isOnServiceItem, isPreServiceItem, isFullyCompleted,
-    sortCompletedLast, getRemovalDepositMetrics, getNonRefundableCostMetrics
+    sortCompletedLast, getRemovalDepositMetrics, getInstallationDepositMetrics,
+    getNonRefundableCostMetrics, getSidebarFinancialMetrics
   };
 })(typeof window !== 'undefined' ? window : globalThis);
