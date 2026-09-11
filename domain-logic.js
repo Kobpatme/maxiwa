@@ -277,8 +277,14 @@
       const workflowKey = statusResolver(item);
       const lastActivityDate = getLastActivityDate(item);
       const ageDays = daysBetween(lastActivityDate || item.dateReq || item.createdAt, now) || 0;
-      const dueDate = parseDateValue(item.dateDue);
+      const dueSource = ['tl_wait', 'tl_process'].includes(workflowKey)
+        ? (item.tl_due_date || item.dateDue)
+        : workflowKey === 'off_service_pending'
+          ? (item.off_service_due_date || item.dateDue)
+          : item.dateDue;
+      const dueDate = parseDateValue(dueSource);
       const overdueDays = dueDate && dayStart(dueDate) < dayStart(now) ? daysBetween(dueDate, now) : 0;
+      const dueInDays = dueDate && dayStart(dueDate) >= dayStart(now) ? daysBetween(now, dueDate) : null;
       const outstandingAmount = getOutstandingAmount(item);
       const missingDocuments = getMissingDocumentLabels(item, workflowKey);
       const consistencyIssues = getConsistencyIssues(item, workflowKey);
@@ -289,6 +295,9 @@
       if (overdueDays > 0) {
         score += 35 + Math.min(15, overdueDays);
         reasons.push(`เกินกำหนด ${overdueDays} วัน`);
+      } else if (dueInDays != null && dueInDays <= 3) {
+        score += dueInDays === 0 ? 30 : 20 - (dueInDays * 3);
+        reasons.push(dueInDays === 0 ? 'ครบกำหนดวันนี้' : `ครบกำหนดใน ${dueInDays} วัน`);
       }
       if (ageDays >= 14) {
         score += 25;
@@ -329,6 +338,7 @@
         workflowKey,
         ageDays,
         overdueDays,
+        dueInDays,
         dueDate,
         lastActivityDate,
         outstandingAmount,
@@ -338,6 +348,85 @@
       };
     }).filter(result => result && result.score > 0).sort((a, b) =>
       b.score - a.score || b.outstandingAmount - a.outstandingAmount || b.ageDays - a.ageDays
+    );
+  }
+
+  function getActionNotifications(items, options) {
+    const config = options || {};
+    const now = parseDateValue(config.now) || new Date();
+    const statusResolver = typeof config.statusResolver === 'function'
+      ? config.statusResolver
+      : item => isOffServicePendingItem(item)
+        ? 'off_service_pending'
+        : (normalize(item && (item.workflowKey || item.status)) || 'new');
+    const statusLabelResolver = typeof config.statusLabelResolver === 'function'
+      ? config.statusLabelResolver
+      : item => statusResolver(item);
+    const recipientRole = normalize(config.recipientRole);
+    const queue = getSmartWorkQueue(items, { now, statusResolver, statusLabelResolver });
+
+    return queue.map(entry => {
+      const taskId = String(entry.item.id_firestore || entry.item.id || 'unknown');
+      const activityKey = entry.lastActivityDate
+        ? entry.lastActivityDate.toISOString().slice(0, 10)
+        : 'no-activity';
+      const dueSoonDays = entry.dueDate && entry.overdueDays === 0
+        ? daysBetween(now, entry.dueDate)
+        : null;
+      const isDueSoon = dueSoonDays != null && dueSoonDays >= 0 && dueSoonDays <= 3;
+      const isOffServicePending = entry.workflowKey === 'off_service_pending';
+      const isRoleAction = recipientRole === 'tl'
+        ? ['tl_wait', 'off_service_pending'].includes(entry.workflowKey)
+        : recipientRole === 'user'
+          ? ['ret', 'clo', 'off_service_pending'].includes(entry.workflowKey)
+          : false;
+      const actionable = entry.priority !== 'low' || isDueSoon || isOffServicePending || isRoleAction;
+      if (!actionable) return null;
+
+      let signal = entry.priority;
+      let titlePrefix = 'ควรติดตาม';
+      let severity = entry.priority === 'high' ? 3 : 2;
+      if (entry.overdueDays > 0) {
+        signal = 'overdue';
+        titlePrefix = `เกินกำหนด ${entry.overdueDays} วัน`;
+        severity = 3;
+      } else if (isDueSoon) {
+        signal = 'due-soon';
+        titlePrefix = dueSoonDays === 0 ? 'ครบกำหนดวันนี้' : `ครบกำหนดใน ${dueSoonDays} วัน`;
+        severity = dueSoonDays === 0 ? 3 : 2;
+      } else if (isOffServicePending) {
+        signal = 'off-service';
+        titlePrefix = 'รอดำเนินการ Off Service';
+        severity = 3;
+      } else if (recipientRole === 'tl' && entry.workflowKey === 'tl_wait') {
+        signal = 'tl-assigned';
+        titlePrefix = 'มีงานใหม่รอ TL รับงาน';
+        severity = 2;
+      } else if (recipientRole === 'user' && entry.workflowKey === 'ret') {
+        signal = 'user-review';
+        titlePrefix = 'งานรอ User ตรวจรับ';
+        severity = 2;
+      } else if (recipientRole === 'user' && entry.workflowKey === 'clo') {
+        signal = 'user-close';
+        titlePrefix = 'งานรอแนบหลักฐานปิดงาน';
+        severity = 2;
+      }
+
+      const reasons = entry.reasons.filter(reason => reason !== 'ไม่มีข้อมูลวันครบกำหนด');
+      return {
+        id: `work:${taskId}:${entry.workflowKey}:${signal}:${activityKey}`,
+        taskId,
+        type: signal,
+        severity,
+        title: `${titlePrefix}: ${String(entry.item.place || 'ไม่ระบุอาคาร')}`,
+        detail: reasons.slice(0, 2).join(' · ') || statusLabelResolver(entry.item),
+        workflowKey: entry.workflowKey,
+        dueDate: entry.dueDate,
+        createdAt: entry.lastActivityDate || now,
+        score: entry.score
+      };
+    }).filter(Boolean).sort((a, b) =>
+      b.severity - a.severity || b.score - a.score || b.createdAt - a.createdAt
     );
   }
 
@@ -455,6 +544,6 @@
     sortCompletedLast, getRemovalDepositMetrics, getInstallationDepositMetrics,
     getNonRefundableCostMetrics, getSidebarFinancialMetrics,
     parseDateValue, daysBetween, getLastActivityDate, getOutstandingAmount,
-    getMissingDocumentLabels, getConsistencyIssues, getSmartWorkQueue, getOperationalAnalytics
+    getMissingDocumentLabels, getConsistencyIssues, getSmartWorkQueue, getActionNotifications, getOperationalAnalytics
   };
 })(typeof window !== 'undefined' ? window : globalThis);

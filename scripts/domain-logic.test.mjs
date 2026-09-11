@@ -131,6 +131,42 @@ assert.ok(smartQueue.find(entry => entry.item.id === 'inconsistent-done').consis
 assert.equal(smartQueue.some(entry => entry.item.id === 'active-on-service'), false);
 assert.ok(smartQueue.find(entry => entry.item.id === 'off-service-pending').missingDocuments.includes('หลักฐาน Off Service'));
 
+const notifications = d.getActionNotifications([
+  {
+    id: 'due-today', status: 'fin', place: '<อาคารทดสอบ>', deposit: 50000,
+    dateReq: '2026-09-01', dateDue: '2026-09-10', updatedAt: '2026-09-09'
+  },
+  {
+    id: 'active-on-service', status: 'done', place: 'ลูกค้ายังใช้งาน', demolish: 90000,
+    demoReturn: 'No', depReturn: 'Yes', dateReq: '2025-01-01', updatedAt: '2025-01-01'
+  },
+  {
+    id: 'off-service-pending', status: 'done', place: 'ลูกค้ายกเลิกแล้ว', demolish: 10000,
+    demoReturn: 'No', depReturn: 'Yes', service_cancel_date: '2026-09-09',
+    off_service_status: 'pending', updatedAt: '2026-09-09'
+  }
+], { now: '2026-09-10T12:00:00+07:00' });
+assert.equal(notifications.length, 2);
+assert.equal(notifications.some(item => item.taskId === 'active-on-service'), false);
+assert.equal(notifications.find(item => item.taskId === 'due-today').type, 'due-soon');
+assert.match(notifications.find(item => item.taskId === 'due-today').title, /ครบกำหนดวันนี้/);
+assert.equal(notifications.find(item => item.taskId === 'off-service-pending').type, 'off-service');
+assert.equal(new Set(notifications.map(item => item.taskId)).size, notifications.length);
+
+const tlNotifications = d.getActionNotifications([
+  {
+    id: 'tl-new', status: 'tl', workflowKey: 'tl_wait', place: 'อาคาร TL', deposit: 1000,
+    dateReq: '2026-09-09', dateDue: '2026-09-30', tl_due_date: '2026-09-12', updatedAt: '2026-09-09'
+  }
+], {
+  now: '2026-09-10T12:00:00+07:00',
+  recipientRole: 'tl',
+  statusResolver: item => item.workflowKey
+});
+assert.equal(tlNotifications.length, 1);
+assert.equal(tlNotifications[0].type, 'due-soon');
+assert.match(tlNotifications[0].title, /ครบกำหนดใน 2 วัน/);
+
 const analytics = d.getOperationalAnalytics([
   {
     id: 'open', status: 'fin', area: 'BKK 1', place: 'อาคาร A', deposit: 20000,
