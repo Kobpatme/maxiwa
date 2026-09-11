@@ -13,6 +13,8 @@ assert.equal(d.isOnServiceItem({ status: 'clo', pdf_user_final: 'https://example
 assert.equal(d.isOnServiceItem({ status: 'clo', demolish: 3000, demoReturn: 'No' }), false);
 assert.equal(d.isOnServiceItem({ status: 'Cancel', demolish: 5000, demoReturn: 'No' }), false);
 assert.equal(d.isOnServiceItem({ status: 'ret', demolish: 5000, demoReturn: 'No' }), false);
+assert.equal(d.isOffServicePendingItem({ status: 'done', demolish: 5000, demoReturn: 'No', service_cancel_date: '2026-09-09' }), true);
+assert.equal(d.isOnServiceItem({ status: 'done', demolish: 5000, demoReturn: 'No', service_cancel_date: '2026-09-09' }), false);
 assert.equal(d.isPreServiceItem({ status: 'ret', demolish: 5000, demoReturn: 'No' }), true);
 assert.equal(d.isPreServiceItem({ status: 'done', demolish: 5000, demoReturn: 'No' }), false);
 assert.equal(d.isPreServiceItem({ status: 'ret', demolish: 5000, demoReturn: 'Yes' }), false);
@@ -25,15 +27,17 @@ assert.equal(d.parseMoney('Infinity'), 0);
 
 const metrics = d.getRemovalDepositMetrics([
   { status: 'done', demolish: 1000, demoReturn: 'No' },
+  { status: 'done', demolish: 500, demoReturn: 'No', off_service_status: 'pending' },
   { status: 'done', demolish: 2000, demoReturn: 'Yes' },
   { status: 'ret', demolish: 3000, demoReturn: 'No' },
   { status: 'Cancel', demolish: 4000, demoReturn: 'No' }
 ]);
 assert.deepEqual(JSON.parse(JSON.stringify(metrics)), {
-  totalAmount: 6000, totalCount: 3,
+  totalAmount: 6500, totalCount: 4,
   refundedAmount: 2000, refundedCount: 1,
-  outstandingAmount: 4000, outstandingCount: 2,
+  outstandingAmount: 4500, outstandingCount: 3,
   onServiceAmount: 1000, onServiceCount: 1,
+  offServicePendingAmount: 500, offServicePendingCount: 1,
   preServiceAmount: 3000, preServiceCount: 1
 });
 
@@ -88,5 +92,69 @@ assert.deepEqual(JSON.parse(JSON.stringify(sidebar)), {
   removalOutstandingAmount: 2000,
   totalOutstandingAmount: 12000
 });
+
+assert.equal(d.parseDateValue('09/09/2569 09:00:00').getFullYear(), 2026);
+assert.equal(d.daysBetween('2026-09-01', '2026-09-10'), 9);
+
+const smartQueue = d.getSmartWorkQueue([
+  {
+    id: 'urgent-fin', status: 'fin', place: 'อาคารทดสอบ', deposit: 80000,
+    depReturn: 'No', dateReq: '2026-08-20', dateDue: '2026-09-01',
+    updatedAt: '2026-08-29T09:00:00+07:00'
+  },
+  {
+    id: 'inconsistent-done', status: 'done', deposit: 10000,
+    depReturn: 'No', dateReq: '2026-09-08', dateDue: '2026-09-20',
+    updatedAt: '2026-09-09T09:00:00+07:00'
+  },
+  {
+    id: 'complete', status: 'done', deposit: 5000,
+    depReturn: 'Yes', dateReq: '2026-09-01', dateDue: '2026-09-05',
+    updatedAt: '2026-09-06T09:00:00+07:00'
+  },
+  {
+    id: 'active-on-service', status: 'done', demolish: 25000, demoReturn: 'No',
+    depReturn: 'Yes', dateReq: '2026-01-01', updatedAt: '2026-01-01'
+  },
+  {
+    id: 'off-service-pending', status: 'done', demolish: 25000, demoReturn: 'No',
+    depReturn: 'Yes', service_cancel_date: '2026-09-08', off_service_status: 'pending',
+    dateReq: '2026-01-01', updatedAt: '2026-09-08'
+  }
+], { now: '2026-09-10T12:00:00+07:00' });
+assert.equal(smartQueue.length, 3);
+assert.equal(smartQueue[0].item.id, 'urgent-fin');
+assert.equal(smartQueue[0].priority, 'high');
+assert.equal(smartQueue[0].overdueDays, 9);
+assert.ok(smartQueue[0].reasons.some(reason => reason.includes('เกินกำหนด 9 วัน')));
+assert.ok(smartQueue.find(entry => entry.item.id === 'inconsistent-done').consistencyIssues.length > 0);
+assert.equal(smartQueue.some(entry => entry.item.id === 'active-on-service'), false);
+assert.ok(smartQueue.find(entry => entry.item.id === 'off-service-pending').missingDocuments.includes('หลักฐาน Off Service'));
+
+const analytics = d.getOperationalAnalytics([
+  {
+    id: 'open', status: 'fin', area: 'BKK 1', place: 'อาคาร A', deposit: 20000,
+    depReturn: 'No', dateReq: '2026-08-01', dateDue: '2026-09-01', updatedAt: '2026-09-05'
+  },
+  {
+    id: 'returned', status: 'done', area: 'BKK 1', place: 'อาคาร A', deposit: 10000,
+    depReturn: 'Yes', dateReq: '2026-08-01', date_return: '2026-08-11', updatedAt: '2026-08-11'
+  },
+  {
+    id: 'cancelled', status: 'Cancel', area: 'BKK 2', deposit: 99999,
+    dateReq: '2026-09-01', dateDue: '2026-09-02'
+  },
+  {
+    id: 'active-on-service', status: 'done', area: 'BKK 3', demolish: 90000,
+    demoReturn: 'No', depReturn: 'Yes', dateReq: '2025-01-01', dateDue: '2025-01-02', updatedAt: '2025-01-01'
+  }
+], { now: '2026-09-10T12:00:00+07:00' });
+assert.equal(analytics.overdueCount, 1);
+assert.equal(analytics.overdueRiskAmount, 20000);
+assert.equal(analytics.bottleneck.label, 'fin');
+assert.equal(analytics.refundByArea[0].averageDays, 10);
+assert.equal(analytics.accuracy.dueDateCoveragePct, 100);
+assert.equal(analytics.accuracy.openCount, 1);
+assert.equal(analytics.queue.some(entry => entry.item.id === 'active-on-service'), false);
 
 console.log('PASS deposit domain rules and financial metrics');

@@ -38,8 +38,15 @@
     return isClosingStep && (inspectedByBuilding || Boolean(item.pdf_user_final));
   }
 
+  function isOffServicePendingItem(item) {
+    if (!hasRemovalDeposit(item) || !isInstallationClosed(item) || isRemovalRefunded(item)) return false;
+    const pendingStatus = normalize(item && item.off_service_status) === 'pending';
+    return pendingStatus || Boolean(item && (item.off_service_requested || item.service_cancel_date));
+  }
+
   function isOnServiceItem(item) {
-    return hasRemovalDeposit(item) && isInstallationClosed(item) && !isRemovalRefunded(item);
+    return hasRemovalDeposit(item) && isInstallationClosed(item)
+      && !isRemovalRefunded(item) && !isOffServicePendingItem(item);
   }
 
   function isPreServiceItem(item) {
@@ -47,7 +54,8 @@
   }
 
   function isFullyCompleted(item) {
-    return normalize(item && item.status) === 'done' && !isOnServiceItem(item);
+    return normalize(item && item.status) === 'done'
+      && !isOnServiceItem(item) && !isOffServicePendingItem(item);
   }
 
   function sortCompletedLast(items, withinGroupComparator) {
@@ -73,7 +81,10 @@
         metrics.outstandingAmount += amount;
         metrics.outstandingCount += 1;
       }
-      if (isOnServiceItem(item)) {
+      if (isOffServicePendingItem(item)) {
+        metrics.offServicePendingAmount += amount;
+        metrics.offServicePendingCount += 1;
+      } else if (isOnServiceItem(item)) {
         metrics.onServiceAmount += amount;
         metrics.onServiceCount += 1;
       } else if (isPreServiceItem(item)) {
@@ -86,6 +97,7 @@
       refundedAmount: 0, refundedCount: 0,
       outstandingAmount: 0, outstandingCount: 0,
       onServiceAmount: 0, onServiceCount: 0,
+      offServicePendingAmount: 0, offServicePendingCount: 0,
       preServiceAmount: 0, preServiceCount: 0
     });
   }
@@ -156,10 +168,293 @@
     };
   }
 
+  function parseDateValue(value) {
+    if (!value) return null;
+    if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : new Date(value.getTime());
+    if (typeof value.toDate === 'function') {
+      const converted = value.toDate();
+      return converted instanceof Date && !Number.isNaN(converted.getTime()) ? converted : null;
+    }
+    if (typeof value.seconds === 'number') {
+      const converted = new Date(value.seconds * 1000);
+      return Number.isNaN(converted.getTime()) ? null : converted;
+    }
+
+    const text = String(value).trim();
+    const thaiMatch = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+    if (thaiMatch) {
+      let year = Number(thaiMatch[3]);
+      if (year > 2400) year -= 543;
+      const converted = new Date(
+        year, Number(thaiMatch[2]) - 1, Number(thaiMatch[1]),
+        Number(thaiMatch[4] || 0), Number(thaiMatch[5] || 0), Number(thaiMatch[6] || 0)
+      );
+      return Number.isNaN(converted.getTime()) ? null : converted;
+    }
+
+    const isoDateMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (isoDateMatch) {
+      const converted = new Date(Number(isoDateMatch[1]), Number(isoDateMatch[2]) - 1, Number(isoDateMatch[3]));
+      return Number.isNaN(converted.getTime()) ? null : converted;
+    }
+
+    const converted = new Date(text);
+    return Number.isNaN(converted.getTime()) ? null : converted;
+  }
+
+  function dayStart(value) {
+    const date = parseDateValue(value);
+    if (!date) return null;
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  function daysBetween(from, to) {
+    const start = dayStart(from);
+    const end = dayStart(to);
+    if (!start || !end) return null;
+    return Math.max(0, Math.floor((end - start) / 86400000));
+  }
+
+  function getLastActivityDate(item) {
+    const candidates = [item && item.updatedAt, item && item.createdAt, item && item.dateReq];
+    (item && Array.isArray(item.log) ? item.log : []).forEach(entry => {
+      candidates.push(entry && (entry.time || entry.createdAt || entry.timestamp));
+    });
+    return candidates
+      .map(parseDateValue)
+      .filter(Boolean)
+      .sort((a, b) => b - a)[0] || null;
+  }
+
+  function getOutstandingAmount(item) {
+    if (!item || isCancelled(item)) return 0;
+    const installation = isReturnYes(item.depReturn) ? 0 : parseMoney(item.deposit);
+    const removal = isReturnYes(item.demoReturn) ? 0 : parseMoney(item.demolish);
+    return installation + removal;
+  }
+
+  function getMissingDocumentLabels(item, workflowKey) {
+    const missing = [];
+    const afterPayment = ['att', 'tl_wait', 'tl_process', 'ret', 'clo', 'refund_process', 'done', 'on_service'];
+    if (afterPayment.includes(workflowKey) && !item.pdf_payment) missing.push('หลักฐานการจ่าย');
+
+    const requiresTlEvidence = ['ret', 'clo', 'refund_process', 'done', 'on_service'].includes(workflowKey)
+      && normalize(item.inspected_by) !== 'building dept';
+    if (requiresTlEvidence && !item.pdf_tl_work) missing.push('หลักฐานงาน TL');
+    if (workflowKey === 'off_service_pending' && !item.pdf_demo_off) missing.push('หลักฐาน Off Service');
+    if (workflowKey === 'clo' && !item.pdf_user_final) missing.push('หลักฐานปิดงาน');
+    return missing;
+  }
+
+  function getConsistencyIssues(item, workflowKey) {
+    const issues = [];
+    const earlySteps = ['new', 'fin', 'att', 'tl_wait', 'tl_process'];
+    if (parseMoney(item.deposit) > 0 && isReturnYes(item.depReturn) && earlySteps.includes(workflowKey)) {
+      issues.push('ระบุว่าคืนประกันติดตั้งแล้ว แต่ขั้นตอนงานยังไม่ถึงการคืนเงิน');
+    }
+    if (parseMoney(item.deposit) > 0 && !isReturnYes(item.depReturn) && workflowKey === 'done') {
+      issues.push('ปิดงานแล้ว แต่ยังไม่ระบุการคืนประกันติดตั้ง');
+    }
+    if (parseMoney(item.demolish) === 0 && isReturnYes(item.demoReturn)) {
+      issues.push('ระบุคืนประกันรื้อถอน แต่ไม่มียอดประกันรื้อถอน');
+    }
+    return issues;
+  }
+
+  function getSmartWorkQueue(items, options) {
+    const config = options || {};
+    const now = parseDateValue(config.now) || new Date();
+    const statusResolver = typeof config.statusResolver === 'function'
+      ? config.statusResolver
+      : item => isOffServicePendingItem(item)
+        ? 'off_service_pending'
+        : (normalize(item && (item.workflowKey || item.status)) || 'new');
+    const statusLabelResolver = typeof config.statusLabelResolver === 'function'
+      ? config.statusLabelResolver
+      : item => statusResolver(item);
+
+    return (items || []).filter(item => !isCancelled(item) && !isOnServiceItem(item)).map(item => {
+      const workflowKey = statusResolver(item);
+      const lastActivityDate = getLastActivityDate(item);
+      const ageDays = daysBetween(lastActivityDate || item.dateReq || item.createdAt, now) || 0;
+      const dueDate = parseDateValue(item.dateDue);
+      const overdueDays = dueDate && dayStart(dueDate) < dayStart(now) ? daysBetween(dueDate, now) : 0;
+      const outstandingAmount = getOutstandingAmount(item);
+      const missingDocuments = getMissingDocumentLabels(item, workflowKey);
+      const consistencyIssues = getConsistencyIssues(item, workflowKey);
+      if (isFullyCompleted(item) && outstandingAmount === 0 && consistencyIssues.length === 0) return null;
+      const reasons = [];
+      let score = 0;
+
+      if (overdueDays > 0) {
+        score += 35 + Math.min(15, overdueDays);
+        reasons.push(`เกินกำหนด ${overdueDays} วัน`);
+      }
+      if (ageDays >= 14) {
+        score += 25;
+        reasons.push(`ค้าง${statusLabelResolver(item)}ประมาณ ${ageDays} วัน`);
+      } else if (ageDays >= 7) {
+        score += 15;
+        reasons.push(`ค้าง${statusLabelResolver(item)}ประมาณ ${ageDays} วัน`);
+      } else if (ageDays >= 3) {
+        score += 8;
+        reasons.push(`ค้าง${statusLabelResolver(item)}ประมาณ ${ageDays} วัน`);
+      }
+      if (ageDays >= 14) {
+        score += 20;
+        reasons.push(`ไม่มีความเคลื่อนไหว ${ageDays} วัน`);
+      } else if (ageDays >= 7) {
+        score += 12;
+        reasons.push(`ไม่มีความเคลื่อนไหว ${ageDays} วัน`);
+      }
+      if (outstandingAmount >= 100000) score += 15;
+      else if (outstandingAmount >= 50000) score += 10;
+      else if (outstandingAmount >= 10000) score += 5;
+      if (outstandingAmount > 0) reasons.push(`ยอดประกันคงค้าง ฿${outstandingAmount.toLocaleString('th-TH')}`);
+      if (missingDocuments.length > 0) {
+        score += Math.min(30, missingDocuments.length * 12);
+        reasons.push(`ขาด ${missingDocuments.join(', ')}`);
+      }
+      if (consistencyIssues.length > 0) {
+        score += Math.min(40, consistencyIssues.length * 25);
+        reasons.push(...consistencyIssues);
+      }
+      if (!dueDate) reasons.push('ไม่มีข้อมูลวันครบกำหนด');
+
+      const priority = score >= 50 ? 'high' : score >= 25 ? 'medium' : 'low';
+      return {
+        item,
+        score,
+        priority,
+        workflowKey,
+        ageDays,
+        overdueDays,
+        dueDate,
+        lastActivityDate,
+        outstandingAmount,
+        missingDocuments,
+        consistencyIssues,
+        reasons
+      };
+    }).filter(result => result && result.score > 0).sort((a, b) =>
+      b.score - a.score || b.outstandingAmount - a.outstandingAmount || b.ageDays - a.ageDays
+    );
+  }
+
+  function getRefundCompletionDate(item) {
+    const explicit = [item && item.date_return, item && item.date_accounting, item && item.dateAcc]
+      .map(parseDateValue).filter(Boolean).sort((a, b) => b - a)[0];
+    return explicit || getLastActivityDate(item);
+  }
+
+  function getOperationalAnalytics(items, options) {
+    const config = options || {};
+    const now = parseDateValue(config.now) || new Date();
+    const statusResolver = typeof config.statusResolver === 'function'
+      ? config.statusResolver
+      : item => isOffServicePendingItem(item)
+        ? 'off_service_pending'
+        : (normalize(item && (item.workflowKey || item.status)) || 'new');
+    const statusLabelResolver = typeof config.statusLabelResolver === 'function'
+      ? config.statusLabelResolver
+      : item => statusResolver(item);
+    const activeItems = (items || []).filter(item => !isCancelled(item));
+    // On Service is a normal holding state while the customer is still using the service.
+    // It becomes actionable only after a service-cancellation request is recorded.
+    const openItems = activeItems.filter(item => !isFullyCompleted(item) && !isOnServiceItem(item));
+    const queue = getSmartWorkQueue(activeItems, { now, statusResolver, statusLabelResolver });
+
+    const stages = {};
+    openItems.forEach(item => {
+      const key = statusResolver(item);
+      if (!stages[key]) stages[key] = { key, label: statusLabelResolver(item), count: 0, totalAgeDays: 0 };
+      stages[key].count += 1;
+      stages[key].totalAgeDays += daysBetween(getLastActivityDate(item) || item.dateReq || item.createdAt, now) || 0;
+    });
+    const stageAges = Object.values(stages).map(stage => ({
+      ...stage,
+      averageAgeDays: stage.count ? stage.totalAgeDays / stage.count : 0
+    })).sort((a, b) => b.averageAgeDays - a.averageAgeDays || b.count - a.count);
+
+    const refundDurations = [];
+    activeItems.forEach(item => {
+      const hasRefund = (parseMoney(item.deposit) > 0 && isReturnYes(item.depReturn))
+        || (parseMoney(item.demolish) > 0 && isReturnYes(item.demoReturn));
+      if (!hasRefund) return;
+      const start = parseDateValue(item.dateReq || item.createdAt);
+      const end = getRefundCompletionDate(item);
+      const durationDays = daysBetween(start, end);
+      if (durationDays == null) return;
+      refundDurations.push({ item, durationDays });
+    });
+
+    const groupDuration = field => {
+      const groups = {};
+      refundDurations.forEach(entry => {
+        const key = String(entry.item[field] || 'ไม่ระบุ').trim() || 'ไม่ระบุ';
+        if (!groups[key]) groups[key] = { label: key, count: 0, totalDays: 0 };
+        groups[key].count += 1;
+        groups[key].totalDays += entry.durationDays;
+      });
+      return Object.values(groups).map(group => ({
+        ...group,
+        averageDays: group.count ? group.totalDays / group.count : 0
+      })).sort((a, b) => b.averageDays - a.averageDays || b.count - a.count);
+    };
+
+    const monthAmount = (year, month) => activeItems.reduce((sum, item) => {
+      const date = parseDateValue(item.dateReq || item.createdAt);
+      if (!date || date.getFullYear() !== year || date.getMonth() !== month) return sum;
+      return sum + parseMoney(item.deposit) + parseMoney(item.demolish);
+    }, 0);
+    const monthCount = (year, month) => activeItems.filter(item => {
+      const date = parseDateValue(item.dateReq || item.createdAt);
+      return date && date.getFullYear() === year && date.getMonth() === month;
+    }).length;
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth();
+    const previousDate = new Date(currentYear, currentMonth - 1, 1);
+    const currentAmount = monthAmount(currentYear, currentMonth);
+    const previousAmount = monthAmount(previousDate.getFullYear(), previousDate.getMonth());
+    const percentChange = previousAmount > 0 ? ((currentAmount - previousAmount) / previousAmount) * 100 : null;
+
+    const dueDateCount = openItems.filter(item => parseDateValue(item.dateDue)).length;
+    const overdueEntries = queue.filter(entry => entry.overdueDays > 0);
+    const accuracy = {
+      dueDateCoveragePct: openItems.length ? dueDateCount / openItems.length * 100 : 100,
+      dueDateCount,
+      openCount: openItems.length,
+      refundDurationCoveragePct: activeItems.length ? refundDurations.length / activeItems.length * 100 : 100,
+      refundDurationCount: refundDurations.length,
+      totalCount: activeItems.length,
+      stageAgeIsEstimated: true
+    };
+
+    return {
+      queue,
+      stageAges,
+      bottleneck: stageAges[0] || null,
+      refundByArea: groupDuration('area'),
+      refundByBuilding: groupDuration('place'),
+      overdueRiskAmount: overdueEntries.reduce((sum, entry) => sum + entry.outstandingAmount, 0),
+      overdueCount: overdueEntries.length,
+      monthComparison: {
+        currentAmount,
+        previousAmount,
+        currentCount: monthCount(currentYear, currentMonth),
+        previousCount: monthCount(previousDate.getFullYear(), previousDate.getMonth()),
+        percentChange
+      },
+      accuracy
+    };
+  }
+
   root.DepositDomain = {
     normalize, parseMoney, isReturnYes, isCancelled, hasRemovalDeposit,
-    isRemovalRefunded, isInstallationClosed, isOnServiceItem, isPreServiceItem, isFullyCompleted,
+    isRemovalRefunded, isInstallationClosed, isOffServicePendingItem, isOnServiceItem, isPreServiceItem, isFullyCompleted,
     sortCompletedLast, getRemovalDepositMetrics, getInstallationDepositMetrics,
-    getNonRefundableCostMetrics, getSidebarFinancialMetrics
+    getNonRefundableCostMetrics, getSidebarFinancialMetrics,
+    parseDateValue, daysBetween, getLastActivityDate, getOutstandingAmount,
+    getMissingDocumentLabels, getConsistencyIssues, getSmartWorkQueue, getOperationalAnalytics
   };
 })(typeof window !== 'undefined' ? window : globalThis);
