@@ -105,7 +105,7 @@ const listKpis = d.getListPageKpiMetrics([
 assert.deepEqual(JSON.parse(JSON.stringify(listKpis)), {
   totalCount: 5,
   activeWorkCount: 2,
-  completedCount: 1,
+  completedCount: 2,
   nonRefundableCostAmount: 750,
   feeAmount: 500,
   otherAmount: 250,
@@ -113,7 +113,7 @@ assert.deepEqual(JSON.parse(JSON.stringify(listKpis)), {
   onServiceRemovalAmount: 4000
 });
 
-assert.equal(d.getListPageKpiMetrics([
+const workflowCountKpis = d.getListPageKpiMetrics([
   { workflowKey: 'new', status: 'new' },
   { workflowKey: 'off_service_pending', status: 'done' },
   { workflowKey: 'on_service', status: 'done' },
@@ -121,7 +121,9 @@ assert.equal(d.getListPageKpiMetrics([
   { workflowKey: 'cancel', status: 'Cancel' }
 ], {
   statusResolver: item => item.workflowKey
-}).activeWorkCount, 2);
+});
+assert.equal(workflowCountKpis.activeWorkCount, 2, 'new and Off Service Pending are active work');
+assert.equal(workflowCountKpis.completedCount, 2, 'done and On Service are completed work');
 
 assert.equal(d.parseDateValue('09/09/2569 09:00:00').getFullYear(), 2026);
 assert.equal(d.daysBetween('2026-09-01', '2026-09-10'), 9);

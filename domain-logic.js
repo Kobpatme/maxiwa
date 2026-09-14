@@ -175,6 +175,7 @@
       ? config.statusResolver
       : item => normalize(item && (item.workflowKey || item.status)) || 'new';
     const closedWorkflowKeys = new Set(['done', 'on_service', 'cancel']);
+    const completedWorkflowKeys = new Set(['done', 'on_service']);
     const installationMetrics = getInstallationDepositMetrics(rows);
     const removalMetrics = getRemovalDepositMetrics(rows);
     const costMetrics = getNonRefundableCostMetrics(rows);
@@ -182,7 +183,7 @@
     return {
       totalCount: rows.length,
       activeWorkCount: rows.filter(item => !closedWorkflowKeys.has(normalize(statusResolver(item)))).length,
-      completedCount: rows.filter(item => normalize(statusResolver(item)) === 'done').length,
+      completedCount: rows.filter(item => completedWorkflowKeys.has(normalize(statusResolver(item)))).length,
       nonRefundableCostAmount: costMetrics.totalAmount,
       feeAmount: costMetrics.feeAmount,
       otherAmount: costMetrics.otherAmount,
