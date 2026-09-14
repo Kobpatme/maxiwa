@@ -100,12 +100,11 @@ const listKpis = d.getListPageKpiMetrics([
   { workflowKey: 'done', status: 'done', deposit: 2000, demolish: 500, depReturn: 'Yes', demoReturn: 'Yes' },
   { workflowKey: 'cancel', status: 'Cancel', deposit: 9000, demolish: 9000, fee: 9000 }
 ], {
-  statusResolver: item => item.workflowKey,
-  inProgressKey: 'tl_process'
+  statusResolver: item => item.workflowKey
 });
 assert.deepEqual(JSON.parse(JSON.stringify(listKpis)), {
   totalCount: 5,
-  inProgressCount: 1,
+  activeWorkCount: 2,
   completedCount: 1,
   nonRefundableCostAmount: 750,
   feeAmount: 500,
@@ -115,12 +114,14 @@ assert.deepEqual(JSON.parse(JSON.stringify(listKpis)), {
 });
 
 assert.equal(d.getListPageKpiMetrics([
-  { workflowKey: 'tl_process', status: 'On Process' },
-  { workflowKey: 'refund_process', status: 'On Process' }
+  { workflowKey: 'new', status: 'new' },
+  { workflowKey: 'off_service_pending', status: 'done' },
+  { workflowKey: 'on_service', status: 'done' },
+  { workflowKey: 'done', status: 'done' },
+  { workflowKey: 'cancel', status: 'Cancel' }
 ], {
-  statusResolver: item => item.workflowKey,
-  inProgressKey: 'refund_process'
-}).inProgressCount, 1);
+  statusResolver: item => item.workflowKey
+}).activeWorkCount, 2);
 
 assert.equal(d.parseDateValue('09/09/2569 09:00:00').getFullYear(), 2026);
 assert.equal(d.daysBetween('2026-09-01', '2026-09-10'), 9);

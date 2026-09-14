@@ -174,14 +174,14 @@
     const statusResolver = typeof config.statusResolver === 'function'
       ? config.statusResolver
       : item => normalize(item && (item.workflowKey || item.status)) || 'new';
-    const inProgressKey = normalize(config.inProgressKey || 'refund_process');
+    const closedWorkflowKeys = new Set(['done', 'on_service', 'cancel']);
     const installationMetrics = getInstallationDepositMetrics(rows);
     const removalMetrics = getRemovalDepositMetrics(rows);
     const costMetrics = getNonRefundableCostMetrics(rows);
 
     return {
       totalCount: rows.length,
-      inProgressCount: rows.filter(item => normalize(statusResolver(item)) === inProgressKey).length,
+      activeWorkCount: rows.filter(item => !closedWorkflowKeys.has(normalize(statusResolver(item)))).length,
       completedCount: rows.filter(item => normalize(statusResolver(item)) === 'done').length,
       nonRefundableCostAmount: costMetrics.totalAmount,
       feeAmount: costMetrics.feeAmount,

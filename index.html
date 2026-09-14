@@ -5003,11 +5003,8 @@
     function renderKPI() {
       const filteredData = getFilteredData();
       const sidebarMetrics = DepositDomain.getSidebarFinancialMetrics(getRoleAllowedData());
-      const isTL = CURRENT_USER && CURRENT_USER.role === 'tl';
-      const onProcLabel = isTL ? 'อยู่ระหว่างตรวจรับ' : 'อยู่ระหว่างขอคืนเงิน';
       const kpiMetrics = DepositDomain.getListPageKpiMetrics(filteredData, {
-        statusResolver: getWorkflowStatusKey,
-        inProgressKey: isTL ? 'tl_process' : 'refund_process'
+        statusResolver: getWorkflowStatusKey
       });
 
       document.getElementById('kpiRow').innerHTML = `
@@ -5017,7 +5014,7 @@
     </div>
     <div class="kpi" style="border-left: 4px solid var(--orange)">
       <div class="kpi-icon2 orange">${svgIcon('clock')}</div>
-      <div><div class="kpi-val" style="color:var(--orange)">${kpiMetrics.inProgressCount}</div><div class="kpi-lbl">${onProcLabel}</div></div>
+      <div><div class="kpi-val" style="color:var(--orange)">${kpiMetrics.activeWorkCount}</div><div class="kpi-lbl">งานที่กำลังดำเนินการ<br>(ยังไม่ปิดงาน)</div></div>
     </div>
     <div class="kpi" style="border-left: 4px solid var(--green)">
       <div class="kpi-icon2 green">${svgIcon('check')}</div>
