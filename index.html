@@ -5005,28 +5005,23 @@
       const sidebarMetrics = DepositDomain.getSidebarFinancialMetrics(getRoleAllowedData());
       const isTL = CURRENT_USER && CURRENT_USER.role === 'tl';
       const onProcLabel = isTL ? 'อยู่ระหว่างตรวจรับ' : 'อยู่ระหว่างขอคืนเงิน';
-
-      const total = filteredData.length;
-      const done = filteredData.filter(d => getWorkflowStatusKey(d) === 'done').length;
-      const proc = filteredData.filter(d => getStatusLabel(d) === 'อยู่ระหว่างขอคืนเงิน').length;
-
-      const costMetrics = DepositDomain.getNonRefundableCostMetrics(filteredData);
-      const installDep = filteredData.reduce((s, d) => s + parseFixed(d.deposit), 0);
-      const removalMetrics = DepositDomain.getRemovalDepositMetrics(filteredData);
-      const demoDep = removalMetrics.onServiceAmount;
+      const kpiMetrics = DepositDomain.getListPageKpiMetrics(filteredData, {
+        statusResolver: getWorkflowStatusKey,
+        inProgressKey: isTL ? 'tl_process' : 'refund_process'
+      });
 
       document.getElementById('kpiRow').innerHTML = `
     <div class="kpi" style="border-left: 4px solid var(--blue)">
       <div class="kpi-icon2 blue">${svgIcon('file')}</div>
-      <div><div class="kpi-val">${total}</div><div class="kpi-lbl">รายการทั้งหมด</div></div>
+      <div><div class="kpi-val">${kpiMetrics.totalCount}</div><div class="kpi-lbl">รายการทั้งหมด</div></div>
     </div>
     <div class="kpi" style="border-left: 4px solid var(--orange)">
       <div class="kpi-icon2 orange">${svgIcon('clock')}</div>
-      <div><div class="kpi-val" style="color:var(--orange)">${proc}</div><div class="kpi-lbl">${onProcLabel}</div></div>
+      <div><div class="kpi-val" style="color:var(--orange)">${kpiMetrics.inProgressCount}</div><div class="kpi-lbl">${onProcLabel}</div></div>
     </div>
     <div class="kpi" style="border-left: 4px solid var(--green)">
       <div class="kpi-icon2 green">${svgIcon('check')}</div>
-      <div><div class="kpi-val" style="color:var(--green)">${done}</div><div class="kpi-lbl">เสร็จสิ้นแล้ว</div></div>
+      <div><div class="kpi-val" style="color:var(--green)">${kpiMetrics.completedCount}</div><div class="kpi-lbl">เสร็จสิ้นแล้ว</div></div>
     </div>
     <div class="kpi" id="nonRefundableCostKpi" role="button" tabindex="0"
       aria-label="ดูรายละเอียดค่าใช้จ่ายที่ไม่ได้รับคืน"
@@ -5036,24 +5031,21 @@
       style="border-left:4px solid var(--violet);cursor:pointer">
       <div class="kpi-icon2 violet">${svgIcon('service')}</div>
       <div>
-        <div class="kpi-val" style="color:var(--violet);font-size:16px">฿${costMetrics.totalAmount.toLocaleString('th-TH', { maximumFractionDigits: 2 })}</div>
+        <div class="kpi-val" style="color:var(--violet);font-size:16px">฿${kpiMetrics.nonRefundableCostAmount.toLocaleString('th-TH', { maximumFractionDigits: 2 })}</div>
         <div class="kpi-lbl">ค่าใช้จ่ายที่ไม่ได้รับคืน</div>
-        <div style="font-size:9px;color:var(--txt3);margin-top:3px;line-height:1.35">ค่าธรรมเนียม ฿${costMetrics.feeAmount.toLocaleString('th-TH', { maximumFractionDigits: 2 })}<br>อื่น ๆ ฿${costMetrics.otherAmount.toLocaleString('th-TH', { maximumFractionDigits: 2 })}</div>
+        <div style="font-size:9px;color:var(--txt3);margin-top:3px;line-height:1.35">ค่าธรรมเนียม ฿${kpiMetrics.feeAmount.toLocaleString('th-TH', { maximumFractionDigits: 2 })}<br>อื่น ๆ ฿${kpiMetrics.otherAmount.toLocaleString('th-TH', { maximumFractionDigits: 2 })}</div>
       </div>
     </div>
     <div class="kpi" style="border-left: 4px solid var(--blue)">
       <div class="kpi-icon2 blue">${svgIcon('shield')}</div>
-      <div><div class="kpi-val" style="color:var(--blue);font-size:16px">฿${installDep.toLocaleString()}</div><div class="kpi-lbl">ประกันติดตั้ง (Refundable)</div></div>
+      <div><div class="kpi-val" style="color:var(--blue);font-size:16px">฿${kpiMetrics.installationDepositAmount.toLocaleString('th-TH', { maximumFractionDigits: 2 })}</div><div class="kpi-lbl">ประกันติดตั้ง (Refundable)</div></div>
     </div>
     <div class="kpi" style="border-left: 4px solid var(--red)">
       <div class="kpi-icon2 red">${svgIcon('barrier')}</div>
-      <div><div class="kpi-val" style="color:var(--red);font-size:16px">฿${demoDep.toLocaleString()}</div><div class="kpi-lbl">รื้อถอนคงค้าง (On Service)</div></div>
+      <div><div class="kpi-val" style="color:var(--red);font-size:16px">฿${kpiMetrics.onServiceRemovalAmount.toLocaleString('th-TH', { maximumFractionDigits: 2 })}</div><div class="kpi-lbl">รื้อถอนคงค้าง (On Service)</div></div>
     </div>
   `;
 
-      // document.getElementById('nav-total').textContent = total;
-      // document.getElementById('nav-process').textContent = proc;
-      // document.getElementById('nav-done').textContent = done;
       if (document.getElementById('sb-total-amt')) document.getElementById('sb-total-amt').textContent = '฿' + sidebarMetrics.totalPaymentAmount.toLocaleString('th-TH', { maximumFractionDigits: 2 });
       if (document.getElementById('sb-dep-amt')) {
         const outstandingEl = document.getElementById('sb-dep-amt');

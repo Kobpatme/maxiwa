@@ -168,6 +168,29 @@
     };
   }
 
+  function getListPageKpiMetrics(items, options) {
+    const rows = Array.isArray(items) ? items : [];
+    const config = options || {};
+    const statusResolver = typeof config.statusResolver === 'function'
+      ? config.statusResolver
+      : item => normalize(item && (item.workflowKey || item.status)) || 'new';
+    const inProgressKey = normalize(config.inProgressKey || 'refund_process');
+    const installationMetrics = getInstallationDepositMetrics(rows);
+    const removalMetrics = getRemovalDepositMetrics(rows);
+    const costMetrics = getNonRefundableCostMetrics(rows);
+
+    return {
+      totalCount: rows.length,
+      inProgressCount: rows.filter(item => normalize(statusResolver(item)) === inProgressKey).length,
+      completedCount: rows.filter(item => normalize(statusResolver(item)) === 'done').length,
+      nonRefundableCostAmount: costMetrics.totalAmount,
+      feeAmount: costMetrics.feeAmount,
+      otherAmount: costMetrics.otherAmount,
+      installationDepositAmount: installationMetrics.totalAmount,
+      onServiceRemovalAmount: removalMetrics.onServiceAmount
+    };
+  }
+
   function parseDateValue(value) {
     if (!value) return null;
     if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : new Date(value.getTime());
@@ -542,7 +565,7 @@
     normalize, parseMoney, isReturnYes, isCancelled, hasRemovalDeposit,
     isRemovalRefunded, isInstallationClosed, isOffServicePendingItem, isOnServiceItem, isPreServiceItem, isFullyCompleted,
     sortCompletedLast, getRemovalDepositMetrics, getInstallationDepositMetrics,
-    getNonRefundableCostMetrics, getSidebarFinancialMetrics,
+    getNonRefundableCostMetrics, getSidebarFinancialMetrics, getListPageKpiMetrics,
     parseDateValue, daysBetween, getLastActivityDate, getOutstandingAmount,
     getMissingDocumentLabels, getConsistencyIssues, getSmartWorkQueue, getActionNotifications, getOperationalAnalytics
   };
