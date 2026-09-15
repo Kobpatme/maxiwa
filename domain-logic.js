@@ -27,6 +27,11 @@
     return hasRemovalDeposit(item) && isReturnYes(item && item.demoReturn);
   }
 
+  function isInstallationRefunded(item) {
+    if (!item || isCancelled(item) || parseMoney(item.deposit) === 0) return false;
+    return normalize(item.status) === 'done' || normalize(item.status_final) === 'done';
+  }
+
   function isInstallationClosed(item) {
     if (!item || isCancelled(item)) return false;
     const status = normalize(item.status);
@@ -109,7 +114,7 @@
       if (amount === 0) return metrics;
       metrics.totalAmount += amount;
       metrics.totalCount += 1;
-      if (isReturnYes(item && item.depReturn)) {
+      if (isInstallationRefunded(item)) {
         metrics.refundedAmount += amount;
         metrics.refundedCount += 1;
       } else {
@@ -252,7 +257,7 @@
 
   function getOutstandingAmount(item) {
     if (!item || isCancelled(item)) return 0;
-    const installation = isReturnYes(item.depReturn) ? 0 : parseMoney(item.deposit);
+    const installation = isInstallationRefunded(item) ? 0 : parseMoney(item.deposit);
     const removal = isReturnYes(item.demoReturn) ? 0 : parseMoney(item.demolish);
     return installation + removal;
   }
@@ -491,8 +496,7 @@
 
     const refundDurations = [];
     activeItems.forEach(item => {
-      const hasRefund = (parseMoney(item.deposit) > 0 && isReturnYes(item.depReturn))
-        || (parseMoney(item.demolish) > 0 && isReturnYes(item.demoReturn));
+      const hasRefund = isInstallationRefunded(item);
       if (!hasRefund) return;
       const start = parseDateValue(item.dateReq || item.createdAt);
       const end = getRefundCompletionDate(item);
@@ -564,6 +568,7 @@
 
   root.DepositDomain = {
     normalize, parseMoney, isReturnYes, isCancelled, hasRemovalDeposit,
+    isInstallationRefunded,
     isRemovalRefunded, isInstallationClosed, isOffServicePendingItem, isOnServiceItem, isPreServiceItem, isFullyCompleted,
     sortCompletedLast, getRemovalDepositMetrics, getInstallationDepositMetrics,
     getNonRefundableCostMetrics, getSidebarFinancialMetrics, getListPageKpiMetrics,

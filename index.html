@@ -8113,7 +8113,7 @@
       const totalFee = myData.reduce((s, d) => s + parseFixed(d.fee), 0);
       const totalOther = myData.reduce((s, d) => s + parseFixed(d.other), 0);
 
-      // Installation refund follows the explicit money-return flag, not workflow completion.
+      // Installation deposit is considered refunded only after the job is closed.
       const installRefunded = installationMetrics.refundedAmount;
       const installPending = installationMetrics.outstandingAmount;
 
@@ -8183,10 +8183,9 @@
         let date = d.date_accounting || d.date_return || d.dateReq;
         if (date) {
           const m = new Date(date).getMonth();
-          if (isReturnYes(d.depReturn)) {
-            myRefundData[m] += (d.deposit || 0);
+          if (DepositDomain.isInstallationRefunded(d)) {
+            myRefundData[m] += parseFixed(d.deposit);
           }
-          if (DepositDomain.isRemovalRefunded(d)) myRefundData[m] += parseFixed(d.demolish);
         }
       });
 
@@ -8231,14 +8230,14 @@
       const totalDemo = removalMetrics.totalAmount;
       const totalInsuranceVal = totalInstall + totalDemo;
 
-      // 1. Installation Refund (explicit return flag)
+      // 1. Installation Refund (closed jobs only)
       const installRefunded = installationMetrics.refundedAmount;
       const installPending = installationMetrics.outstandingAmount;
 
       const installPendingItems = filteredDB.filter(d => {
         if (DepositDomain.isCancelled(d)) return false;
         if (parseFixed(d.deposit) <= 0) return false;
-        return !isReturnYes(d.depReturn);
+        return !DepositDomain.isInstallationRefunded(d);
       });
       const installPendingCount = installPendingItems.length;
 
@@ -8249,9 +8248,10 @@
       const demoPreServiceCount = removalMetrics.preServiceCount;
 
       // 3. Overall Summary (Hero)
-      const overallRefunded = installRefunded + demoRefunded;
+      // Overall refund success follows installation deposits only. Removal deposits are separate.
+      const overallRefunded = installRefunded;
       const overallPending = installPending + removalMetrics.outstandingAmount;
-      const successPct = totalInsuranceVal > 0 ? (overallRefunded / totalInsuranceVal * 100).toFixed(2) : "0.00";
+      const successPct = totalInstall > 0 ? (overallRefunded / totalInstall * 100).toFixed(2) : "0.00";
 
       // Update UI Elements
       document.getElementById('db-success-rate-pct').textContent = successPct + '%';
@@ -8391,7 +8391,7 @@
       // 3. Area Outstanding Value
       const areaFin = {};
       filteredDB.filter(d => !DepositDomain.isCancelled(d)).forEach(d => {
-        const installOutstanding = isReturnYes(d.depReturn) ? 0 : parseFixed(d.deposit);
+        const installOutstanding = DepositDomain.isInstallationRefunded(d) ? 0 : parseFixed(d.deposit);
         const removalOutstanding = DepositDomain.isRemovalRefunded(d) ? 0 : parseFixed(d.demolish);
         if (d.area) areaFin[d.area] = (areaFin[d.area] || 0) + installOutstanding + removalOutstanding;
       });
@@ -8437,7 +8437,7 @@
         .filter(d => !DepositDomain.isCancelled(d))
         .map(d => ({
           ...d,
-          installOutstanding: isReturnYes(d.depReturn) ? 0 : parseFixed(d.deposit),
+          installOutstanding: DepositDomain.isInstallationRefunded(d) ? 0 : parseFixed(d.deposit),
           removalOutstanding: DepositDomain.isRemovalRefunded(d) ? 0 : parseFixed(d.demolish)
         }))
         .map(d => ({ ...d, totalOutstanding: d.installOutstanding + d.removalOutstanding }))

@@ -50,11 +50,19 @@ const installation = d.getInstallationDepositMetrics([
 assert.deepEqual(JSON.parse(JSON.stringify(installation)), {
   totalAmount: 17500,
   totalCount: 3,
-  refundedAmount: 5000,
+  refundedAmount: 2500,
   refundedCount: 1,
-  outstandingAmount: 12500,
+  outstandingAmount: 15000,
   outstandingCount: 2
 });
+assert.equal(d.isInstallationRefunded({ status: 'ret', deposit: 5000, depReturn: 'Yes' }), false,
+  'a return flag before job closure must not count as refunded');
+assert.equal(d.isInstallationRefunded({ status: 'done', deposit: 2500, depReturn: 'No' }), true,
+  'a closed job counts as installation deposit refunded');
+assert.equal(d.isInstallationRefunded({ status: 'ret', status_final: 'done', deposit: 1000 }), true,
+  'final closed status also counts as refunded');
+assert.equal(d.isInstallationRefunded({ status: 'Cancel', status_final: 'done', deposit: 1000 }), false,
+  'cancelled jobs never count as refunded');
 
 const ordered = d.sortCompletedLast([
   { id: 'done-2', status: 'done', demolish: 0, no: 2 },
