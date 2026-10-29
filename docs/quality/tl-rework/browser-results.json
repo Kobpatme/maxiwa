@@ -1,0 +1,14 @@
+{
+  "mode": "offline local fixture; external SDK initialization shimmed; no production/Firebase integration exercised",
+  "results": [
+    "PASS round 1: User send-back -> TL accept -> edit/save -> submit -> User review; original evidence retained",
+    "PASS round 2: User send-back -> TL accept -> edit/save -> submit -> User review; original evidence retained",
+    "PASS main-form save does not skip TL work; corrected info may reuse existing evidence",
+    "PASS User accepts corrected work -> closing -> final document upload -> done",
+    "PASS normal first submission validates missing evidence and then reaches User review",
+    "PASS extra-document upload preserves evidence and workflow state",
+    "PASS previously stuck record can submit from the detail screen without clearing old evidence",
+    "PASS no uncaught browser errors"
+  ],
+  "errors": []
+}

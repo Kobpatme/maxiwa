@@ -4701,6 +4701,17 @@
       return ['tl_wait', 'tl_process', 'ret', 'clo', 'done', 'on_service', 'off_service_pending'].includes(getWorkflowStatusKey(d));
     }
 
+    function isTLWorkInProgress(d) {
+      return !!d && ['tl', 'on process'].includes((d.status || '').trim().toLowerCase())
+        && d.complete_tl === 'On Process';
+    }
+
+    function getTLReworkLog(d) {
+      if (!d || !['tl', 'on process'].includes((d.status || '').trim().toLowerCase())) return null;
+      return [...(d.log || [])].reverse().find(entry =>
+        String(entry.title || '').startsWith('ส่งกลับแก้ไขโดย User:')) || null;
+    }
+
     function copyCID(cid) {
       if (!cid || cid === '—') return;
       navigator.clipboard.writeText(cid).then(() => {
@@ -5737,7 +5748,7 @@
       const pageData = data.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
       document.getElementById('tbody').innerHTML = pageData.map(d => `
-    <tr onclick="if(!isInteractiveRowTarget(event)) { if(window.CURRENT_USER?.role === 'tl') openTLModal('${d.id}'); else openEdit('${d.id}', 'auto'); }" style="cursor:pointer;" title="${isTL ? 'คลิกเพื่อเข้าสู่หน้าต่างงานหน้างาน (TL)' : 'คลิกเพื่ออัปเดตสถานะงาน'}">
+    <tr onclick="if(!isInteractiveRowTarget(event)) { if(CURRENT_USER?.role === 'tl') openTLModal('${d.id}'); else openEdit('${d.id}', 'auto'); }" style="cursor:pointer;" title="${isTL ? 'คลิกเพื่อเข้าสู่หน้าต่างงานหน้างาน (TL)' : 'คลิกเพื่ออัปเดตสถานะงาน'}">
       <td class="nowrap" style="color:var(--txt3);font-size:12px">
         <span class="copyable-cid" onclick="event.stopPropagation(); copyCID('${esc(d.cid)}')" title="คลิกเพื่อคัดลอก CID" style="cursor:copy; text-decoration:underline;">${esc(d.cid) || '—'}</span>
       </td>
@@ -6418,11 +6429,11 @@
       // Update Step 4: TL Status Display (read-only for User)
       const step4StatusEl = document.getElementById('step4-tl-status');
       if (step4StatusEl) {
-        if (d.complete_tl === 'On Process') {
+        if (isTLWorkInProgress(d)) {
           step4StatusEl.innerHTML = '<span style="color:var(--orange)"> กำลังดำเนินการ</span>';
           step4StatusEl.style.borderColor = 'var(--orange)';
           step4StatusEl.style.background = 'var(--orange-l)';
-        } else if (d.pdf_tl_work) {
+        } else if (['ret', 'clo', 'done', 'on_service', 'off_service_pending'].includes(getWorkflowStatusKey(d))) {
           step4StatusEl.innerHTML = '<span style="color:var(--green-d)">TL ดำเนินการเสร็จสิ้น</span>';
           step4StatusEl.style.borderColor = 'var(--green)';
           step4StatusEl.style.background = 'var(--green-l)';
@@ -6438,25 +6449,25 @@
       const step5AcceptNote = document.getElementById('step5-accept-note');
       if (step5EvidenceEl) {
         if (d.pdf_tl_work) {
-          step5EvidenceEl.innerHTML = `
-            <a href="${safeUrl(d.pdf_tl_work)}" target="_blank" style="display:flex; align-items:center; gap:10px; text-decoration:none; padding:12px; background:var(--blue-l); border:1px solid var(--blue); border-radius:var(--r-sm);">
+          step5EvidenceEl.innerHTML = (Array.isArray(d.pdf_tl_work) ? d.pdf_tl_work : [d.pdf_tl_work]).map((url, index) => `
+            <a href="${safeUrl(url)}" target="_blank" style="display:flex; align-items:center; gap:10px; text-decoration:none; padding:12px; background:var(--blue-l); border:1px solid var(--blue); border-radius:var(--r-sm);">
               <span style="font-size:24px"></span>
               <div style="flex:1; text-align:left;">
-                <div style="font-size:12px; color:var(--blue); font-weight:700; text-transform:uppercase;">หลักฐานงาน TL</div>
+                <div style="font-size:12px; color:var(--blue); font-weight:700; text-transform:uppercase;">หลักฐานงาน TL ${index + 1}</div>
                 <div style="font-size:13px; color:var(--txt2);">คลิกเพื่อดูไฟล์ PDF</div>
               </div>
             </a>
-          `;
-          if (step5AcceptNote) step5AcceptNote.style.display = 'block';
+          `).join('');
+          if (step5AcceptNote) step5AcceptNote.style.display = d.status === 'ret' ? 'block' : 'none';
         } else {
           step5EvidenceEl.innerHTML = ' ยังไม่มีหลักฐานจาก TL';
-          if (step5AcceptNote) step5AcceptNote.style.display = 'none';
+          if (step5AcceptNote) step5AcceptNote.style.display = d.status === 'ret' ? 'block' : 'none';
         }
       }
 
       const sendBackUI = document.getElementById('step5-sendback-ui');
       if (sendBackUI) {
-        sendBackUI.style.display = (d.pdf_tl_work) ? 'block' : 'none';
+        sendBackUI.style.display = d.status === 'ret' ? 'block' : 'none';
       }
 
       setVal('f-return-status', d.return_status || 'Pending');
@@ -6632,9 +6643,13 @@
           // Upload all files in this field in parallel
           // หาก uploadFile() โยน error จะ propagate ขึ้นมาที่นี่พร้อมข้อความจาก Firebase
           const results = await Promise.all(
-            files.map(file => uploadFile(file, ff.folder).catch(err => {
-              throw new Error(`ไฟล์ "${file.name}": ${err.message}`);
-            }))
+            files.map(async file => {
+              try {
+                return USE_MOCK ? `mock://uploads/${ff.folder}/${file.name}` : await uploadFile(file, ff.folder);
+              } catch (err) {
+                throw new Error(`ไฟล์ "${file.name}": ${err.message}`);
+              }
+            })
           );
 
           const uploadedUrls = results;
@@ -6743,9 +6758,8 @@
           completeVal = 'Complete';
         }
 
-        if (finalStatus === 'tl' && (fileUrls.pdf_tl_work || oldData?.pdf_tl_work)) {
-          finalStatus = 'ret'; // Move to Return process step
-        }
+        // Existing evidence may belong to a rejected round. Only the TL submit
+        // action may hand field work back to the user for review.
 
         // Step 5: "รับงาน" button clicked -> Move to Step 6 (clo)
         if (currentStep === 5 && finalStatus === 'ret') {
@@ -6821,7 +6835,7 @@
           tl_complete_date: getVal('f-tl-complete-date'),
           inspected_by: getVal('f-inspected-by'),
           ...fileUrls, // Spread uploaded URLs
-          log: (editingId && findDepositById(editingId)?.log) || []
+          log: [...((editingId && findDepositById(editingId)?.log) || [])]
         };
 
         // Add Log entry for major changes
@@ -6846,7 +6860,7 @@
             const more = changedLabels.length > 8 ? ` +${changedLabels.length - 8} more` : '';
             addLogEntry(obj, `Edited fields: ${shown}${more}`, 'AUDIT');
           }
-          const updated = await updateDeposit(editingId, obj);
+          const updated = USE_MOCK ? { ...oldData, ...obj } : await updateDeposit(editingId, obj);
           mergeDepositIntoDB(editingId, updated);
         } else {
           const inserted = await insertDeposit(obj);
@@ -6857,9 +6871,14 @@
 
         // --- POST-SAVE SUCCESS CLEANUP ---
 
+        // Step 5 acceptance updates this hidden field automatically. Keep the
+        // next Step 6 save from overwriting that accepted state with Pending.
+        const returnStatusInput = document.getElementById('f-return-status');
+        if (returnStatusInput) returnStatusInput.value = obj.return_status || 'Pending';
+
         // 1. Delete old files from storage (now that DB is pointing to new ones)
         for (const oldUrl of pendingCleanups) {
-          deleteFileFromUrl(oldUrl);
+          if (!USE_MOCK) deleteFileFromUrl(oldUrl);
         }
 
         // 2. Clear file inputs and session cache
@@ -6880,7 +6899,7 @@
           renderMyDashboard();
         } else if (currentStep < 6) {
           setDirty(false);
-          goToStep(currentStep + 1);
+          goToStep(Math.min(currentStep + 1, getAllowedSubmitStep(obj)));
           renderTable(); renderKPI();
           renderExecutiveDashboard();
           renderMyDashboard();
@@ -6928,7 +6947,7 @@
         ['กำหนดตรวจรับ (TL)', d.tl_due_date ? `<span style="color:var(--orange); font-weight:700;">${fmtDate(d.tl_due_date)}</span>` : '—'],
       ];
 
-      const user = window.CURRENT_USER || {};
+      const user = CURRENT_USER || {};
       const isTL = user.role === 'tl';
 
       // Insurance/Detail Header
@@ -7000,18 +7019,18 @@
       // TL Action Section
       let tlActionHTML = '';
       if (isTL) {
-        if (d.complete_tl !== 'On Process') {
+        if (getWorkflowStatusKey(d) === 'tl_wait') {
           tlActionHTML = `
             <section class="detail-action-card" style="margin-top:25px; border-top:2px solid var(--blue-l); padding-top:20px; text-align:center;">
               <button class="btn btn-primary" style="width:100%; height:54px; font-size:18px; font-weight:700; box-shadow:0 4px 12px rgba(var(--blue-rgb), 0.2)" onclick="acceptJobTLDetail('${d.id}')">ยืนยันรับงาน (Start Process)</button>
             </section>
           `;
-        } else if (!d.pdf_tl_work) {
+        } else if (isTLWorkInProgress(d)) {
           tlActionHTML = `
             <section class="detail-action-card" style="margin-top:25px; border-top:2px solid var(--blue-l); padding-top:20px;">
               <button id="finish-btn-tl" class="btn btn-violet" style="width:100%; height:54px; font-size:18px; font-weight:700;" onclick="showUploadTL()">งานหน้างานเสร็จสิ้น</button>
               <div id="tl-upload-ui" style="display:none; margin-top:20px; padding:20px; background:var(--blue-l); border-radius:var(--r-md); border:1px solid var(--blue);">
-                 <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">แนบหลักฐาน PDF (บังคับ)</div>
+                 <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">${d.pdf_tl_work ? 'แนบหลักฐานแก้ไขเพิ่มเติม (เก็บหลักฐานเดิมไว้)' : 'แนบหลักฐาน PDF (บังคับ)'}</div>
                  <input type="file" id="f-pdf-tl-work-detail" accept=".pdf" class="form-control" multiple style="margin-bottom:15px; background:var(--white);">
 
                  <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">แนบเอกสารเพิ่มเติม (ถ้ามี)</div>
@@ -7026,7 +7045,7 @@
 
       // User Action Section (Review)
       let userActionHTML = '';
-      if (!isTL && d.pdf_tl_work && (d.status === 'ret' || d.status === 'tl')) {
+      if (!isTL && d.status === 'ret') {
         userActionHTML = `
           <section class="detail-action-card" style="margin-top:25px; border-top:1px dashed var(--border); padding-top:20px; text-align:center;">
              <p style="font-size:13px; color:var(--txt3); margin-bottom:12px;">หากหลักฐานงานของ TL ไม่ถูกต้อง คุณสามารถส่งกลับให้แก้ไขได้</p>
@@ -7133,14 +7152,12 @@
 
       // Check for 'Send Back' reason in logs
       let sendBackAlertHTML = '';
-      if (d.status === 'tl' && d.complete_tl === 'Pending' && d.log) {
-        // Find the most recent "ส่งกลับแก้ไข" log entry
-        const sendBackLogs = d.log.filter(l => l.title.includes('ส่งกลับแก้ไข'));
-        if (sendBackLogs.length > 0) {
-          const latestLog = sendBackLogs[sendBackLogs.length - 1];
+      const latestReworkLog = getTLReworkLog(d);
+      if (latestReworkLog) {
+          const latestLog = latestReworkLog;
           // Title format is "ส่งกลับแก้ไขโดย User: [reason]"
           const reasonMatch = latestLog.title.match(/ส่งกลับแก้ไขโดย User:\s*(.*)/);
-          const reasonText = reasonMatch ? reasonMatch[1] : latestLog.title;
+          const reasonText = esc(reasonMatch ? reasonMatch[1] : latestLog.title);
 
           sendBackAlertHTML = `
             <div style="margin-bottom:20px; padding:16px; background:var(--red-l); border:1px solid var(--red); border-left:4px solid var(--red); border-radius:var(--r-md);">
@@ -7153,7 +7170,6 @@
               <div style="color:var(--red); font-size:12px; margin-top:8px;">เวลาส่งกลับ: ${latestLog.time}</div>
             </div>
           `;
-        }
       }
 
       // Financial Breakdown Section [NEW - Replicated from openDetail]
@@ -7276,7 +7292,7 @@
       } else if ((d.status || '').toLowerCase() === 'tl' && d.complete_tl !== 'On Process') {
         // "ปุ่มก็เปลี่ยนจาก แก้ไขข้อมูลเป็นรับงาน"
         actionsContainer.innerHTML = `<button class="btn btn-primary" style="padding:10px 18px; font-size:15px;" onclick="acceptJobTLDetail('${d.id}', true)">รับงาน</button>`;
-      } else if (((d.status || '').toLowerCase() === 'on process' || d.complete_tl === 'On Process') && !d.pdf_tl_work) {
+      } else if (isTLWorkInProgress(d)) {
         // "จากนั้นปุ่มจะเปลี่ยนเป็นเสร็จสิ้น เมื่อคลิก เสร็จสิ้น ให้แสดงส่วนที่ต้องแนบไฟล์หลักฐาน (บังคับ)"
         actionsContainer.innerHTML = `
           <button id="modal-finish-btn" class="btn btn-violet" style="padding:10px 18px; font-size:15px;" onclick="showUploadTLModal()">เสร็จสิ้น</button>
@@ -7292,7 +7308,7 @@
         uploadUI.style.borderRadius = 'var(--r-md)';
         uploadUI.style.border = '1px solid var(--blue)';
         uploadUI.innerHTML = `
-             <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">แนบหลักฐาน PDF (บังคับ)</div>
+             <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">${d.pdf_tl_work ? 'แนบหลักฐานแก้ไขเพิ่มเติม (เก็บหลักฐานเดิมไว้)' : 'แนบหลักฐาน PDF (บังคับ)'}</div>
              <input type="file" id="f-pdf-tl-work-modal" accept=".pdf" class="form-control" multiple style="margin-bottom:15px; background:var(--white);">
 
              <div style="font-weight:700; font-size:14px; color:var(--blue-d); margin-bottom:12px; display:flex; align-items:center; gap:6px;">แนบเอกสารเพิ่มเติม (ถ้ามี)</div>
@@ -7384,9 +7400,10 @@
     /* ════════ TL ACTIONS (DETAIL VIEW) ════════ */
     async function acceptJobTLDetail(id, fromModal = false) {
       if (!confirm('ยืนยันการรับงานหน้างาน?')) return;
-      const d = findDepositById(id);
-      if (!d) return;
-      if ((d.status || '').toLowerCase() !== 'tl') {
+      const stored = findDepositById(id);
+      if (!stored) return;
+      const d = { ...stored, log: [...(stored.log || [])] };
+      if (getWorkflowStatusKey(d) !== 'tl_wait') {
         toast('งานนี้ยังไม่ถึงขั้นตอนของ TL หรือถูกดำเนินการไปแล้ว', 'error');
         return;
       }
@@ -7395,8 +7412,8 @@
       addLogEntry(d, 'TL รับงานเข้าดำเนินการ', '');
 
       try {
-        const updateObj = { status: 'On Process', complete_tl: 'On Process', tl_accept_date: new Date().toISOString().split('T')[0], log: d.log };
-        const updated = await updateDeposit(id, updateObj);
+        const updateObj = { status: 'On Process', status_final: 'On Process', complete_tl: 'On Process', tl_accept_date: new Date().toISOString().split('T')[0], log: d.log };
+        const updated = USE_MOCK ? { ...d, ...updateObj } : await updateDeposit(id, updateObj);
         mergeDepositIntoDB(id, updated);
         if (fromModal) openTLModal(id);
         else openDetail(id); // Reload view
@@ -7423,8 +7440,9 @@
     }
 
     async function saveTLWorkDetail(id, fromModal = false, saveOnlyInfo = false) {
-      const d = findDepositById(id);
-      if ((d.status || '').toLowerCase() !== 'on process' && d.complete_tl !== 'On Process') {
+      const stored = findDepositById(id);
+      const d = stored ? { ...stored, log: [...(stored.log || [])] } : null;
+      if (!isTLWorkInProgress(d)) {
         toast('สถานะงานไม่ถูกต้อง งานจำเป็นต้องถูกกดยืนยันรับงานก่อน', 'error');
         return;
       }
@@ -7536,11 +7554,14 @@
         if (uploadedExtraUrls.length > 0) finalExtraUrls = [...finalExtraUrls, ...uploadedExtraUrls];
         let extraValue = finalExtraUrls.length === 0 ? '' : (finalExtraUrls.length === 1 ? finalExtraUrls[0] : finalExtraUrls);
 
-        const logMsg = isBuilding ? 'ฝ่ายอาคารตรวจรับและปิดงาน' : 'TL ดำเนินการเสร็จสิ้นและแนบหลักฐาน';
+        const logMsg = getTLReworkLog(d) ? 'TL ส่งงานแก้ไขให้ตรวจรับใหม่'
+          : isBuilding ? 'ฝ่ายอาคารส่งงานให้ User ตรวจรับ' : 'TL ดำเนินการเสร็จสิ้นและแนบหลักฐาน';
         addLogEntry(d, logMsg, '');
 
         const updateObj = {
           status: 'ret',
+          status_final: 'ret',
+          return_status: 'Pending',
           pdf_tl_work: workValue,
           pdf_tl_extra: extraValue,
           tl_complete_date: tlCompleteDate,
@@ -7569,6 +7590,7 @@
         toast('บันทึกผิดพลาด: ' + err.message, 'error');
       } finally {
         btn.disabled = false; btn.textContent = originText;
+        toggleUploadOverlay(false);
       }
     }
 
@@ -7578,8 +7600,9 @@
     }
 
     async function saveExtraDocsOnly(id) {
-      const d = findDepositById(id);
-      if (!d) return;
+      const stored = findDepositById(id);
+      if (!stored) return;
+      const d = { ...stored, log: [...(stored.log || [])] };
 
       const input = document.getElementById('f-pdf-tl-extra-after');
       const files = (input && input.files) ? Array.from(input.files) : [];
@@ -7802,13 +7825,20 @@
       if (!reason.trim()) { toast('กรุณาระบุเหตุผล', 'error'); return; }
 
       try {
-        const d = findDepositById(id);
-        if (!d) return;
+        const stored = findDepositById(id);
+        if (!stored) return;
+        if ((stored.status || '').toLowerCase() !== 'ret') {
+          toast('ส่งกลับแก้ไขได้เฉพาะงานที่รอ User ตรวจรับ', 'error');
+          return;
+        }
+        const d = { ...stored, log: [...(stored.log || [])] };
 
         addLogEntry(d, `ส่งกลับแก้ไขโดย User: ${reason}`, '');
         const updateObj = {
           status: 'tl',
+          status_final: 'tl',
           complete_tl: 'Pending',
+          return_status: 'Pending',
           log: d.log
         };
 
@@ -7823,6 +7853,7 @@
         closeModal('formOverlay');
         closeModal('detailOverlay');
         renderTable(); renderKPI();
+        renderTLTasksPage();
         toast('ส่งกลับให้ TL แก้ไขเรียบร้อยแล้ว', 'success');
       } catch (err) {
         toast('ผิดพลาด: ' + err.message, 'error');
@@ -7990,12 +8021,16 @@
     }
 
     function getTLAcceptInfo(d) {
-      const acceptEntry = (d.log || []).find(l => l.title && l.title.includes('TL รับงานเข้าดำเนินการ'));
+      const entries = d.log || [];
+      const acceptIndex = entries.map(l => l.title).lastIndexOf('TL รับงานเข้าดำเนินการ');
+      const acceptEntry = entries[acceptIndex];
       if (!acceptEntry || !acceptEntry.time) return null;
       const acceptDate = parseTHLogDate(acceptEntry.time);
       if (!acceptDate) return null;
 
-      const doneEntry = (d.log || []).find(l => l.title && (l.title.includes('เสร็จสิ้นและแนบหลักฐาน') || l.title.includes('ตรวจรับและปิดงาน')));
+      const doneEntry = entries.slice(acceptIndex + 1).find(l => l.title &&
+        (l.title.includes('เสร็จสิ้นและแนบหลักฐาน') || l.title.includes('ตรวจรับและปิดงาน')
+          || l.title.includes('ส่งงานแก้ไขให้ตรวจรับใหม่') || l.title.includes('ฝ่ายอาคารส่งงานให้ User ตรวจรับ')));
       const endDate = doneEntry ? (parseTHLogDate(doneEntry.time) || new Date()) : new Date();
 
       const p = acceptEntry.time.split(' ')[0].split('/');
@@ -8046,14 +8081,12 @@
       empty.style.display = 'none';
       document.getElementById('tl-task-tbody').innerHTML = tlData.map(d => {
         let sendBackAlertHTML = '';
-        if (d.status === 'tl' && d.complete_tl === 'Pending' && d.log) {
-          const sendBackLogs = d.log.filter(l => l.title.includes('ส่งกลับแก้ไข'));
-          if (sendBackLogs.length > 0) {
-            const latestLog = sendBackLogs[sendBackLogs.length - 1];
+        const latestReworkLog = getTLReworkLog(d);
+        if (latestReworkLog) {
+            const latestLog = latestReworkLog;
             const reasonMatch = latestLog.title.match(/ส่งกลับแก้ไขโดย User:\s*(.*)/);
-            const reasonText = reasonMatch ? reasonMatch[1] : latestLog.title;
+            const reasonText = esc(reasonMatch ? reasonMatch[1] : latestLog.title);
             sendBackAlertHTML = `<div style="margin-top:6px; padding:6px 10px; background:var(--red-l); border:1px solid var(--red); border-radius:4px; font-size:11px; color:var(--red);">งานส่งกลับ: ${reasonText}</div>`;
-          }
         }
 
         return `

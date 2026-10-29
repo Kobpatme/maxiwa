@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node scripts/domain-logic.test.mjs && node scripts/baseline-check.mjs && node --test scripts/auth-migration-dry-run.test.mjs",
+    "test": "node scripts/domain-logic.test.mjs && node scripts/baseline-check.mjs && node --test scripts/auth-migration-dry-run.test.mjs scripts/tl-rework.test.mjs",
     "test:rules": "node scripts/run-rules-tests.mjs",
     "test:all": "npm test && npm run test:rules"
   },

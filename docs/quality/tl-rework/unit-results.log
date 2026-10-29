@@ -1,0 +1,26 @@
+
+> test
+> node scripts/domain-logic.test.mjs && node scripts/baseline-check.mjs && node --test scripts/auth-migration-dry-run.test.mjs scripts/tl-rework.test.mjs
+
+PASS deposit domain rules and financial metrics
+PASS baseline fixture: 3 roles, 10 synthetic workflow cases
+PASS local safety: realtime listeners disabled and every Firebase write API guarded
+✔ matches legacy users to Auth UID without exposing password values (1.9359ms)
+✔ blocks duplicate and incomplete identities (0.2297ms)
+✔ two complete rework rounds keep evidence, reason and review status consistent (10.9674ms)
+✔ normal first submission requires evidence and reaches review (3.0486ms)
+✔ Building Dept can submit without an evidence file (3.4949ms)
+✔ rework can submit corrected operation info with existing evidence (3.1156ms)
+✔ extra documents do not submit field work (3.2844ms)
+✔ stale TL completion marker cannot resubmit review or closed work (14.721ms)
+✔ failed send-back, acceptance, info save and submission leave local state and logs untouched (13.1419ms)
+✔ cancelled prompt and invalid repeated send-back do not alter work (2.9197ms)
+✔ TL duration follows the latest acceptance instead of a completed older round (3.6776ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 194.6111
